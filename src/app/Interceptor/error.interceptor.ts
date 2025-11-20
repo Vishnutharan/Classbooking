@@ -2,7 +2,7 @@ import { HttpErrorResponse, HttpEvent, HttpRequest } from '@angular/common/http'
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { inject } from '@angular/core';
-import { NotificationService } from '../services/notification.service';
+import { NotificationService } from '../Service/notification.service';
 
 export function errorInterceptor(
   req: HttpRequest<any>,

@@ -1,6 +1,7 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, tap, map } from 'rxjs';
+import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { Router } from '@angular/router';
 
 export interface LoginRequest {
@@ -34,6 +35,8 @@ export interface User {
 export class AuthService {
   private http = inject(HttpClient);
   private router = inject(Router);
+  private platformId = inject(PLATFORM_ID);
+  private isBrowser: boolean;
   
   private currentUserSubject = new BehaviorSubject<User | null>(this.getUserFromToken());
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(this.hasValidToken());
@@ -45,6 +48,10 @@ export class AuthService {
   private tokenKey = 'access_token';
   private refreshTokenKey = 'refresh_token';
   private userKey = 'current_user';
+
+  constructor() {
+    this.isBrowser = isPlatformBrowser(this.platformId);
+  }
 
   register(userData: any): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/register`, userData)
@@ -61,16 +68,18 @@ export class AuthService {
   }
 
   logout(): void {
-    localStorage.removeItem(this.tokenKey);
-    localStorage.removeItem(this.refreshTokenKey);
-    localStorage.removeItem(this.userKey);
+    if (this.isBrowser) {
+      localStorage.removeItem(this.tokenKey);
+      localStorage.removeItem(this.refreshTokenKey);
+      localStorage.removeItem(this.userKey);
+    }
     this.currentUserSubject.next(null);
     this.isAuthenticatedSubject.next(false);
     this.router.navigate(['/auth']);
   }
 
   refreshToken(): Observable<AuthResponse> {
-    const refreshToken = localStorage.getItem(this.refreshTokenKey);
+    const refreshToken = this.isBrowser ? localStorage.getItem(this.refreshTokenKey) : null;
     return this.http.post<AuthResponse>(`${this.apiUrl}/refresh-token`, { refreshToken })
       .pipe(
         tap(response => this.handleAuthResponse(response))
@@ -78,6 +87,7 @@ export class AuthService {
   }
 
   getToken(): string | null {
+    if (!this.isBrowser) return null;
     return localStorage.getItem(this.tokenKey);
   }
 
@@ -99,14 +109,18 @@ export class AuthService {
   }
 
   private handleAuthResponse(response: AuthResponse): void {
-    localStorage.setItem(this.tokenKey, response.token);
-    localStorage.setItem(this.refreshTokenKey, response.refreshToken);
-    localStorage.setItem(this.userKey, JSON.stringify(response.user));
+    if (this.isBrowser) {
+      localStorage.setItem(this.tokenKey, response.token);
+      localStorage.setItem(this.refreshTokenKey, response.refreshToken);
+      localStorage.setItem(this.userKey, JSON.stringify(response.user));
+    }
     this.currentUserSubject.next(response.user);
     this.isAuthenticatedSubject.next(true);
   }
 
   private getUserFromToken(): User | null {
+    if (!this.isBrowser) return null;
+    
     try {
       const userStr = localStorage.getItem(this.userKey);
       return userStr ? JSON.parse(userStr) : null;
@@ -116,6 +130,8 @@ export class AuthService {
   }
 
   private hasValidToken(): boolean {
+    if (!this.isBrowser) return false;
+    
     const token = localStorage.getItem(this.tokenKey);
     if (!token) return false;
     

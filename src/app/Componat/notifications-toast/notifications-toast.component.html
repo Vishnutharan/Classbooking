@@ -1,0 +1,23 @@
+  <div class="toast-container">
+      <div
+        *ngFor="let notification of notifications; trackBy: trackByFn"
+        class="toast"
+        [class]="'toast-' + notification.type"
+      >
+        <div class="toast-icon">
+          <span>{{ getIcon(notification.type) }}</span>
+        </div>
+        
+        <div class="toast-content">
+          <p class="toast-message">{{ notification.message }}</p>
+        </div>
+        
+        <button
+          class="toast-close"
+          (click)="removeNotification(notification.id)"
+          aria-label="Close notification"
+        >
+          ✕
+        </button>
+      </div>
+    </div>

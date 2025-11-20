@@ -1,0 +1,86 @@
+<nav class="navbar">
+      <div class="navbar-container">
+        <div class="navbar-left">
+          <div class="logo" (click)="navigate('/dashboard')">
+            <span class="logo-icon">🎓</span>
+            <span class="logo-text">ClassBooking</span>
+          </div>
+
+          <div class="search-bar">
+            <span class="search-icon">🔍</span>
+            <input
+              type="text"
+              placeholder="Search teachers, subjects..."
+              [(ngModel)]="searchQuery"
+              (keyup.enter)="onSearch()"
+            />
+          </div>
+        </div>
+
+        <div class="navbar-right">
+          <!-- Theme Toggle -->
+          <button class="icon-btn" (click)="toggleTheme()" title="Toggle Theme">
+            {{ isDarkMode ? '☀️' : '🌙' }}
+          </button>
+
+          <!-- Notifications -->
+          <div class="notification-wrapper">
+            <button class="icon-btn notification-btn" (click)="toggleNotifications()">
+              🔔
+              <span class="badge" *ngIf="notificationCount > 0">{{ notificationCount }}</span>
+            </button>
+            
+            <div class="dropdown notifications-dropdown" *ngIf="showNotifications">
+              <div class="dropdown-header">
+                <h3>Notifications</h3>
+                <button class="text-btn" (click)="clearNotifications()">Clear All</button>
+              </div>
+              <div class="notifications-list">
+                <div class="notification-item" *ngFor="let notification of notifications">
+                  <div class="notification-icon">{{ notification.icon }}</div>
+                  <div class="notification-content">
+                    <p class="notification-title">{{ notification.title }}</p>
+                    <p class="notification-time">{{ notification.time }}</p>
+                  </div>
+                </div>
+                <div class="empty-state" *ngIf="notifications.length === 0">
+                  <p>No new notifications</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- User Profile Dropdown -->
+          <div class="user-wrapper">
+            <button class="user-btn" (click)="toggleUserMenu()">
+              <img
+                [src]="currentUser?.profilePicture || 'https://via.placeholder.com/40'"
+                alt="User Avatar"
+                class="user-avatar"
+              />
+              <div class="user-info">
+                <span class="user-name">{{ currentUser?.fullName || 'User' }}</span>
+                <span class="user-role">{{ currentUser?.role }}</span>
+              </div>
+              <span class="dropdown-arrow">{{ showUserMenu ? '▲' : '▼' }}</span>
+            </button>
+
+            <div class="dropdown user-dropdown" *ngIf="showUserMenu">
+              <div class="dropdown-item" (click)="navigate('/manage-profile')">
+                <span class="item-icon">👤</span>
+                <span>My Profile</span>
+              </div>
+              <div class="dropdown-item" (click)="navigate('/settings')">
+                <span class="item-icon">⚙️</span>
+                <span>Settings</span>
+              </div>
+              <div class="dropdown-divider"></div>
+              <div class="dropdown-item logout" (click)="logout()">
+                <span class="item-icon">🚪</span>
+                <span>Logout</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </nav>

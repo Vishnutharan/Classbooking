@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 
-export interface Notification {
+export interface ToastNotification {
   id: string;
   type: 'success' | 'error' | 'info' | 'warning';
   message: string;
@@ -12,7 +12,7 @@ export interface Notification {
   providedIn: 'root'
 })
 export class NotificationService {
-  private notificationsSubject = new BehaviorSubject<Notification[]>([]);
+  private notificationsSubject = new BehaviorSubject<ToastNotification[]>([]);
   notifications$ = this.notificationsSubject.asObservable();
   private notificationId = 0;
 
@@ -32,8 +32,8 @@ export class NotificationService {
     this.addNotification('warning', message);
   }
 
-  private addNotification(type: Notification['type'], message: string): void {
-    const notification: Notification = {
+  private addNotification(type: ToastNotification['type'], message: string): void {
+    const notification: ToastNotification = {
       id: `notification-${++this.notificationId}`,
       type,
       message,

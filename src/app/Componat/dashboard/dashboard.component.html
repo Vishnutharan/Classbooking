@@ -1,0 +1,100 @@
+ <div class="dashboard-layout">
+      <app-navbar></app-navbar>
+      
+      <div class="dashboard-content">
+        <app-sidebar></app-sidebar>
+        
+        <main class="main-content">
+          <div class="welcome-section">
+            <div class="welcome-header">
+              <div>
+                <h1>Welcome back, {{ currentUser?.fullName || 'User' }}! 👋</h1>
+                <p class="role-badge" [class]="'role-' + currentUser?.role?.toLowerCase()">
+                  {{ currentUser?.role }}
+                </p>
+              </div>
+              <div class="quick-actions">
+                <button class="action-btn" (click)="navigateToProfile()">
+                  👤 My Profile
+                </button>
+                <button class="action-btn logout" (click)="logout()">
+                  🚪 Logout
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="dashboard-body">
+            <router-outlet></router-outlet>
+            
+            <!-- Default dashboard view when no child route is active -->
+            <div class="default-dashboard" *ngIf="!hasActiveChildRoute()">
+              <div class="dashboard-cards">
+                <div class="card" *ngIf="currentUser?.role === 'Student'">
+                  <div class="card-icon">📚</div>
+                  <h3>Book a Class</h3>
+                  <p>Find and book classes with top teachers</p>
+                  <button class="card-btn" (click)="navigate('/book-class')">Get Started</button>
+                </div>
+
+                <div class="card" *ngIf="currentUser?.role === 'Student'">
+                  <div class="card-icon">📖</div>
+                  <h3>My Bookings</h3>
+                  <p>View and manage your scheduled classes</p>
+                  <button class="card-btn" (click)="navigate('/my-bookings')">View Bookings</button>
+                </div>
+
+                <div class="card" *ngIf="currentUser?.role === 'Student'">
+                  <div class="card-icon">🎓</div>
+                  <h3>Exam Prep</h3>
+                  <p>Access study materials and past papers</p>
+                  <button class="card-btn" (click)="navigate('/exam-preparation')">Start Studying</button>
+                </div>
+
+                <div class="card" *ngIf="currentUser?.role === 'Teacher'">
+                  <div class="card-icon">👨‍🏫</div>
+                  <h3>My Profile</h3>
+                  <p>Update your profile and qualifications</p>
+                  <button class="card-btn" (click)="navigate('/manage-profile')">Edit Profile</button>
+                </div>
+
+                <div class="card" *ngIf="currentUser?.role === 'Teacher'">
+                  <div class="card-icon">📅</div>
+                  <h3>Manage Schedule</h3>
+                  <p>Set your availability and working hours</p>
+                  <button class="card-btn" (click)="navigate('/manage-schedule')">Update Schedule</button>
+                </div>
+
+                <div class="card" *ngIf="currentUser?.role === 'Teacher'">
+                  <div class="card-icon">👥</div>
+                  <h3>My Classes</h3>
+                  <p>View and manage your class bookings</p>
+                  <button class="card-btn" (click)="navigate('/my-classes')">View Classes</button>
+                </div>
+
+                <div class="card" *ngIf="currentUser?.role === 'Admin'">
+                  <div class="card-icon">👥</div>
+                  <h3>User Management</h3>
+                  <p>Manage students, teachers, and admins</p>
+                  <button class="card-btn" (click)="navigate('/admin/users')">Manage Users</button>
+                </div>
+
+                <div class="card" *ngIf="currentUser?.role === 'Admin'">
+                  <div class="card-icon">📊</div>
+                  <h3>Reports</h3>
+                  <p>View analytics and generate reports</p>
+                  <button class="card-btn" (click)="navigate('/admin/reports')">View Reports</button>
+                </div>
+
+                <div class="card" *ngIf="currentUser?.role === 'Admin'">
+                  <div class="card-icon">⚙️</div>
+                  <h3>Settings</h3>
+                  <p>Configure system settings and preferences</p>
+                  <button class="card-btn" (click)="navigate('/admin/settings')">Open Settings</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>

@@ -1,0 +1,34 @@
+   <aside class="sidebar" [class.collapsed]="isCollapsed">
+      <button class="toggle-btn" (click)="toggleSidebar()">
+        {{ isCollapsed ? '☰' : '✕' }}
+      </button>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section" *ngFor="let section of menuSections">
+          <h3 class="section-title" *ngIf="!isCollapsed && section.items.length > 0">
+            {{ section.title }}
+          </h3>
+          
+          <a
+            *ngFor="let item of section.items"
+            [routerLink]="item.route"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{exact: false}"
+            class="nav-item"
+            [title]="isCollapsed ? item.label : ''"
+          >
+            <span class="nav-icon">{{ item.icon }}</span>
+            <span class="nav-label" *ngIf="!isCollapsed">{{ item.label }}</span>
+          </a>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer" *ngIf="!isCollapsed">
+        <div class="help-card">
+          <div class="help-icon">💡</div>
+          <h4>Need Help?</h4>
+          <p>Contact support for assistance</p>
+          <button class="help-btn" (click)="openSupport()">Get Help</button>
+        </div>
+      </div>
+    </aside>
