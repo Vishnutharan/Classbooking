@@ -93,15 +93,19 @@ export const routes: Routes = [
         m => m.TeacherDashboardComponent
       )
   },
+  
+  // ✅ UPDATED: Swapped old ManageProfile for your new 'Generic' one
   {
     path: 'manage-profile',
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['Teacher', 'Student'] },
     loadComponent: () =>
-      import('./Componat/manage-profile/manage-profile.component').then(
-        m => m.ManageProfileComponent
+      // Make sure the path below matches your folder structure exactly
+      import('./Componat/manage-profile-generic/manage-profile-generic.component').then(
+        m => m.ManageProfileGenericComponent
       )
   },
+  
   {
     path: 'manage-schedule',
     canActivate: [AuthGuard, RoleGuard],
@@ -139,8 +143,7 @@ export const routes: Routes = [
       )
   },
 
-  // ✅ ADMIN ROUTES (Updated to load specific components)
-  
+  // ADMIN ROUTES
   {
     path: 'dashboard/admin',
     canActivate: [AuthGuard, RoleGuard],
@@ -178,7 +181,6 @@ export const routes: Routes = [
       )
   },
   {
-    // Optional: Sub-route for detailed report viewing if needed
     path: 'admin/reports/view',
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['Admin'] },
@@ -202,6 +204,7 @@ export const routes: Routes = [
     path: 'settings',
     canActivate: [AuthGuard],
     loadComponent: () =>
+      // Note: You might want to point this to ManageProfileGeneric too?
       import('./Componat/student-dashboard/student-dashboard.component').then(
         m => m.StudentDashboardComponent
       )
