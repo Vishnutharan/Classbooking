@@ -1,4 +1,4 @@
-   .auth-container {
+.auth-container {
       min-height: 100vh;
       display: flex;
       align-items: center;
@@ -30,7 +30,7 @@
 
     .auth-header {
       text-align: center;
-      margin-bottom: 32px;
+      margin-bottom: 24px;
     }
 
     .auth-header h1 {
@@ -43,6 +43,62 @@
     .auth-header p {
       color: #718096;
       font-size: 14px;
+    }
+
+    .demo-section {
+      background: #f0f4ff;
+      border: 2px solid #e0e7ff;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    .demo-label {
+      margin: 0 0 12px 0;
+      font-size: 13px;
+      font-weight: 600;
+      color: #2d3748;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .demo-buttons {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .demo-btn {
+      padding: 10px 12px;
+      border: 2px solid transparent;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      transition: all 0.2s;
+      background: white;
+      color: #2d3748;
+    }
+
+    .demo-btn:hover {
+      transform: translateY(-2px);
+      border-color: #667eea;
+    }
+
+    .demo-btn.student:hover {
+      background: #dbeafe;
+      border-color: #3b82f6;
+    }
+
+    .demo-btn.teacher:hover {
+      background: #dbeafe;
+      border-color: #10b981;
+    }
+
+    .demo-btn.admin:hover {
+      background: #fed7d7;
+      border-color: #ef4444;
     }
 
     .auth-form {
@@ -253,6 +309,10 @@
       }
 
       .social-buttons {
+        grid-template-columns: 1fr;
+      }
+
+      .demo-buttons {
         grid-template-columns: 1fr;
       }
     }

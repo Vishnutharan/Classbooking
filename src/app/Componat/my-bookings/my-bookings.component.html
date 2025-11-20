@@ -1,0 +1,174 @@
+<div class="my-bookings-container">
+  <div class="header">
+    <h1>📖 My Bookings</h1>
+    <div class="header-controls">
+      <select [(ngModel)]="statusFilter" (change)="onFilterChange()" class="filter-select">
+        <option *ngFor="let status of statuses" [value]="status">{{ status }}</option>
+      </select>
+
+      <select [(ngModel)]="sortBy" (change)="onSortChange()" class="filter-select">
+        <option value="date">Sort by Date</option>
+        <option value="subject">Sort by Subject</option>
+        <option value="teacher">Sort by Teacher</option>
+      </select>
+
+      <div class="view-toggle">
+        <button [class.active]="viewMode === 'card'" (click)="viewMode = 'card'" title="Card View">🔲</button>
+        <button [class.active]="viewMode === 'table'" (click)="viewMode = 'table'" title="Table View">📋</button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-spinner"></div>
+
+  <!-- Card View -->
+  <div class="bookings-grid" *ngIf="viewMode === 'card' && !isLoading">
+    <div *ngIf="getDisplayedBookings().length === 0" class="empty-state">
+      <p>No bookings found matching your criteria.</p>
+    </div>
+
+    <div class="booking-card" *ngFor="let booking of getDisplayedBookings()" [class]="'status-' + getStatusClass(booking.status)">
+      <div class="card-header">
+        <h3>{{ booking.subject }}</h3>
+        <span class="status-badge" [class]="'badge-' + getStatusClass(booking.status)">{{ booking.status }}</span>
+      </div>
+
+      <div class="card-body">
+        <div class="detail">
+          <label>Teacher</label>
+          <p>{{ booking.teacherId }}</p>
+        </div>
+        <div class="detail">
+          <label>Date & Time</label>
+          <p>{{ booking.date | date:'MMM dd, yyyy' }} | {{ booking.startTime }} - {{ booking.endTime }}</p>
+        </div>
+        <div class="detail">
+          <label>Type</label>
+          <p>{{ booking.classType }}</p>
+        </div>
+        <div class="detail" *ngIf="booking.notes">
+          <label>Notes</label>
+          <p>{{ booking.notes }}</p>
+        </div>
+      </div>
+
+      <div class="card-actions">
+        <button class="action-btn cancel" (click)="openCancelModal(booking)" *ngIf="booking.status === 'Confirmed' || booking.status === 'Pending'">
+          ✕ Cancel
+        </button>
+        <button class="action-btn reschedule" (click)="openRescheduleModal(booking)" *ngIf="booking.status === 'Confirmed'">
+          📅 Reschedule
+        </button>
+        <button class="action-btn review" (click)="openReviewModal(booking)" *ngIf="booking.status === 'Completed'">
+          ⭐ Review
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table View -->
+  <div class="table-container" *ngIf="viewMode === 'table' && !isLoading">
+    <table class="bookings-table">
+      <thead>
+        <tr>
+          <th>Subject</th>
+          <th>Teacher</th>
+          <th>Date & Time</th>
+          <th>Status</th>
+          <th>Type</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let booking of getDisplayedBookings()" [class]="'status-' + getStatusClass(booking.status)">
+          <td><strong>{{ booking.subject }}</strong></td>
+          <td>{{ booking.teacherId }}</td>
+          <td>{{ booking.date | date:'MMM dd, yyyy' }} | {{ booking.startTime }}</td>
+          <td>
+            <span class="status-badge" [class]="'badge-' + getStatusClass(booking.status)">
+              {{ booking.status }}
+            </span>
+          </td>
+          <td>{{ booking.classType }}</td>
+          <td>
+            <div class="action-buttons">
+              <button class="btn-small" (click)="openCancelModal(booking)" *ngIf="booking.status === 'Confirmed' || booking.status === 'Pending'" title="Cancel">✕</button>
+              <button class="btn-small" (click)="openRescheduleModal(booking)" *ngIf="booking.status === 'Confirmed'" title="Reschedule">📅</button>
+              <button class="btn-small" (click)="openReviewModal(booking)" *ngIf="booking.status === 'Completed'" title="Review">⭐</button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination" *ngIf="totalPages > 1">
+    <button [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">← Previous</button>
+    <span>Page {{ currentPage }} of {{ totalPages }}</span>
+    <button [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">Next →</button>
+  </div>
+
+  <!-- Cancel Modal -->
+  <div class="modal" *ngIf="showCancelModal">
+    <div class="modal-overlay" (click)="closeCancelModal()"></div>
+    <div class="modal-content">
+      <h2>Cancel Booking</h2>
+      <p>Are you sure you want to cancel this booking?</p>
+      <textarea [(ngModel)]="cancelReason" placeholder="Please provide a reason for cancellation..." class="modal-textarea"></textarea>
+      <div class="modal-actions">
+        <button class="btn cancel" (click)="closeCancelModal()">Keep Booking</button>
+        <button class="btn confirm" (click)="confirmCancel()">Confirm Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reschedule Modal -->
+  <div class="modal" *ngIf="showRescheduleModal">
+    <div class="modal-overlay" (click)="closeRescheduleModal()"></div>
+    <div class="modal-content">
+      <h2>Reschedule Class</h2>
+      <div class="modal-form">
+        <div class="form-group">
+          <label>Select New Date</label>
+          <input type="date" [(ngModel)]="rescheduleDate" (change)="onRescheduleDate()" class="form-input">
+        </div>
+        <div class="form-group">
+          <label>Select Time</label>
+          <select [(ngModel)]="rescheduleTime" class="form-input">
+            <option value="">Choose time slot</option>
+            <option *ngFor="let slot of availableSlots" [value]="slot">{{ slot }}</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn cancel" (click)="closeRescheduleModal()">Cancel</button>
+        <button class="btn confirm" (click)="confirmReschedule()">Confirm Reschedule</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Review Modal -->
+  <div class="modal" *ngIf="showReviewModal">
+    <div class="modal-overlay" (click)="closeReviewModal()"></div>
+    <div class="modal-content">
+      <h2>Rate Your Class</h2>
+      <div class="rating-section">
+        <div class="stars">
+          <span *ngFor="let i of [1,2,3,4,5]" 
+                class="star" 
+                [class.active]="i <= ratingValue"
+                (click)="setRating(i)">
+            ★
+          </span>
+        </div>
+        <p class="rating-text">{{ ratingValue }} / 5</p>
+      </div>
+      <textarea [(ngModel)]="reviewText" placeholder="Write your review..." class="modal-textarea"></textarea>
+      <div class="modal-actions">
+        <button class="btn cancel" (click)="closeReviewModal()">Cancel</button>
+        <button class="btn confirm" (click)="submitReview()">Submit Review</button>
+      </div>
+    </div>
+  </div>
+</div>

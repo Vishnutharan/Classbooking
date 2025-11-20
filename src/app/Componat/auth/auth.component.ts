@@ -1,12 +1,16 @@
+// src/app/Componat/auth/auth.component.ts
+
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { AuthService } from '../../Service/auth.service';
 import { ActivatedRoute, Router } from '@angular/router';
+
+import { AuthService, AuthResponse, LoginRequest } from '../../Service/auth.service';
 import { NotificationService } from '../../Service/notification.service';
 
 @Component({
   selector: 'app-auth',
+  standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './auth.component.html',
   styleUrl: './auth.component.css'
@@ -20,47 +24,64 @@ export class AuthComponent implements OnInit {
 
   authForm!: FormGroup;
   isLoginMode = true;
-  showPassword = false;
   isLoading = false;
-  errorMessage = '';
-  private returnUrl = '/dashboard';
+  errorMessage: string | null = null;
+  returnUrl = '/dashboard';
+  showPassword = false; // used in template
 
   ngOnInit(): void {
-    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
-    this.initForm();
+    // read returnUrl from query params (set by AuthGuard)
+    this.returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/dashboard';
+
+    // form fields used in your HTML
+    this.authForm = this.fb.group({
+      fullName: [''],
+      email: ['', [Validators.required, Validators.email]],
+      phoneNumber: [''],
+      password: ['', [Validators.required, Validators.minLength(6)]],
+      confirmPassword: [''],
+      role: ['Student', Validators.required]
+    });
   }
 
-  private initForm(): void {
-    if (this.isLoginMode) {
-      this.authForm = this.fb.group({
-        email: ['', [Validators.required, Validators.email]],
-        password: ['', [Validators.required, Validators.minLength(6)]]
-      });
-    } else {
-      this.authForm = this.fb.group({
-        fullName: ['', Validators.required],
-        email: ['', [Validators.required, Validators.email]],
-        phoneNumber: ['', [Validators.required, Validators.pattern(/^\+?94\s?\d{9}$/)]],
-        role: ['', Validators.required],
-        password: ['', [Validators.required, Validators.minLength(6)]],
-        confirmPassword: ['', Validators.required]
-      }, { validators: this.passwordMatchValidator });
+  get email() {
+    return this.authForm.get('email');
+  }
+
+  get password() {
+    return this.authForm.get('password');
+  }
+
+  /** Toggle between login and register modes */
+  toggleMode(event?: Event): void {
+    if (event) {
+      event.preventDefault();
     }
-  }
-
-  private passwordMatchValidator(group: FormGroup): { [key: string]: boolean } | null {
-    const password = group.get('password')?.value;
-    const confirmPassword = group.get('confirmPassword')?.value;
-    return password === confirmPassword ? null : { passwordMismatch: true };
-  }
-
-  toggleMode(event: Event): void {
-    event.preventDefault();
     this.isLoginMode = !this.isLoginMode;
-    this.errorMessage = '';
-    this.initForm();
+    this.errorMessage = null;
   }
 
+  /** Demo credentials buttons in the template */
+  useDemoCredentials(role: 'Student' | 'Teacher' | 'Admin'): void {
+    this.isLoginMode = true;
+
+    const demoMap: Record<'Student' | 'Teacher' | 'Admin', { email: string; password: string }> = {
+      Student: { email: 'student@test.com', password: 'Student@123' },
+      Teacher: { email: 'teacher@test.com', password: 'Teacher@123' },
+      Admin:   { email: 'admin@test.com',   password: 'Admin@123' }
+    };
+
+    const creds = demoMap[role];
+
+    this.authForm.patchValue({
+      email: creds.email,
+      password: creds.password
+    });
+
+    this.notificationService.showInfo(`${role} demo credentials loaded.`);
+  }
+
+  /** Show/hide password in template */
   togglePassword(): void {
     this.showPassword = !this.showPassword;
   }
@@ -72,37 +93,85 @@ export class AuthComponent implements OnInit {
     }
 
     this.isLoading = true;
-    this.errorMessage = '';
+    this.errorMessage = null;
 
     const formValue = this.authForm.value;
 
     if (this.isLoginMode) {
-      this.authService.login({
+      const credentials: LoginRequest = {
         email: formValue.email,
         password: formValue.password
-      }).subscribe({
-        next: (response) => {
-          this.notificationService.showSuccess('Login successful!');
-          this.router.navigate([this.returnUrl]);
+      };
+
+      this.authService.login(credentials).subscribe({
+        next: (response: AuthResponse) => {
+          this.notificationService.showSuccess('Logged in successfully!');
+
+          const role = response.user.role;
+
+          // default target route by role
+          let defaultRoute = '/dashboard';
+          if (role === 'Student') {
+            defaultRoute = '/dashboard/student';
+          } else if (role === 'Teacher') {
+            defaultRoute = '/dashboard/teacher';
+          } else if (role === 'Admin') {
+            defaultRoute = '/dashboard/admin';
+          }
+
+          // avoid redirecting back to /auth as returnUrl
+          const target =
+            this.returnUrl && this.returnUrl !== '/auth'
+              ? this.returnUrl
+              : defaultRoute;
+
+          this.router.navigate([target]);
         },
         error: (error) => {
-          this.isLoading = false;
-          this.errorMessage = error.message || 'Login failed. Please try again.';
+          const msg =
+            error?.error?.message ||
+            error?.message ||
+            'Login failed. Please try again.';
+          this.errorMessage = msg;
+          this.notificationService.showError(msg);
         },
         complete: () => {
           this.isLoading = false;
         }
       });
     } else {
+      // Register mode
       const { confirmPassword, ...registerData } = formValue;
+
+      if (registerData.password !== confirmPassword) {
+        const msg = 'Passwords do not match.';
+        this.errorMessage = msg;
+        this.notificationService.showError(msg);
+        this.isLoading = false;
+        return;
+      }
+
       this.authService.register(registerData).subscribe({
         next: (response) => {
           this.notificationService.showSuccess('Account created successfully!');
-          this.router.navigate([this.returnUrl]);
+          const role = response.user.role;
+          let defaultRoute = '/dashboard';
+          if (role === 'Student') {
+            defaultRoute = '/dashboard/student';
+          } else if (role === 'Teacher') {
+            defaultRoute = '/dashboard/teacher';
+          } else if (role === 'Admin') {
+            defaultRoute = '/dashboard/admin';
+          }
+          this.router.navigate([defaultRoute]);
         },
         error: (error) => {
-          this.isLoading = false;
-          this.errorMessage = error.message || 'Registration failed. Please try again.';
+          const msg =
+            error?.error?.message ||
+            error?.message ||
+            'Registration failed. Please try again.';
+          this.errorMessage = msg;
+          this.notificationService.showError(msg);
         },
         complete: () => {
           this.isLoading = false;

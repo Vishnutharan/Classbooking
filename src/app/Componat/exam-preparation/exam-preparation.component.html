@@ -1,0 +1,96 @@
+<div class="exam-prep-container">
+  <div class="header">
+    <h1>📚 Exam Preparation</h1>
+    <p>Study materials and resources for your exams</p>
+  </div>
+
+  <div class="exam-tabs">
+    <button [class.active]="selectedExam === 'OLevel'" (click)="selectedExam = 'OLevel'; onExamChange()"
+      class="tab-btn">
+      O-Level
+    </button>
+    <button [class.active]="selectedExam === 'ALevel'" (click)="selectedExam = 'ALevel'; onExamChange()"
+      class="tab-btn">
+      A-Level
+    </button>
+    <button [class.active]="selectedExam === 'Scholarship'" (click)="selectedExam = 'Scholarship'; onExamChange()"
+      class="tab-btn">
+      Scholarship
+    </button>
+  </div>
+
+  <div class="filters">
+    <input type="text" [(ngModel)]="searchTerm" (keyup)="onSearch()" placeholder="Search materials..."
+      class="search-input">
+
+    <select [(ngModel)]="selectedDifficulty" (change)="onFilterChange()" class="filter-select">
+      <option *ngFor="let diff of difficulties" [value]="diff">{{ diff }} Level</option>
+    </select>
+
+    <select [(ngModel)]="selectedYear" (change)="onFilterChange()" class="filter-select">
+      <option value="">All Years</option>
+      <option *ngFor="let year of years" [value]="year">{{ year }}</option>
+    </select>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-spinner"></div>
+
+  <div class="content">
+    <div class="sidebar">
+      <div class="subjects-list">
+        <h3>📖 Subjects</h3>
+        <div class="subject-item" *ngFor="let prep of getPreparationsByExam()">
+          <div class="subject-header">
+            <span class="subject-name">{{ prep.subject }}</span>
+          </div>
+          <div class="resource-count">
+            {{ prep.resources.length || 0 }} resources
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="main-content">
+      <div class="resources-grid" *ngIf="filteredResources.length > 0; else noResources">
+        <div class="resource-card" *ngFor="let resource of filteredResources">
+          <div class="resource-header">
+            <span class="type-badge">{{ getResourceTypeIcon(resource.type) }} {{ resource.type }}</span>
+            <button class="bookmark-btn" [class.bookmarked]="bookmarkedResources.has(resource.id)"
+              (click)="toggleBookmark(resource)" title="Bookmark">
+              ♥
+            </button>
+          </div>
+
+          <div class="resource-body">
+            <h3>{{ resource.title }}</h3>
+            <p class="description">{{ resource.description }}</p>
+          </div>
+
+          <div class="resource-actions">
+            <button class="action-btn view" (click)="openResource(resource)">
+              👁️ View
+            </button>
+            <button class="action-btn download" (click)="downloadResource(resource)">
+              ⬇️ Download
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <ng-template #noResources>
+        <div class="empty-state">
+          <p>No resources found matching your criteria.</p>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+
+  <div class="bookmarked-section" *ngIf="bookmarkedResources.size > 0">
+    <h2>⭐ Bookmarked Resources ({{ bookmarkedResources.size }})</h2>
+    <div class="bookmarked-list">
+      <div class="bookmarked-item" *ngFor="let resource of filteredResources | slice:0:3">
+        <span *ngIf="bookmarkedResources.has(resource.id)">📌 {{ resource.title }}</span>
+      </div>
+    </div>
+  </div>
+</div>

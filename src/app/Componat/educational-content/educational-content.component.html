@@ -1,0 +1,62 @@
+<div class="educational-content-container">
+  <div class="header">
+    <h1>📚 Educational Content Library</h1>
+    <p>Learn from carefully curated educational materials</p>
+  </div>
+
+  <div class="filters">
+    <select [(ngModel)]="selectedSubject" (change)="onSubjectChange()" class="filter-select">
+      <option value="">Select Subject</option>
+      <option *ngFor="let subject of subjects" [value]="subject">{{ subject }}</option>
+    </select>
+
+    <select [(ngModel)]="selectedLevel" (change)="onFilterChange()" class="filter-select">
+      <option value="">All Levels</option>
+      <option *ngFor="let level of levels" [value]="level">{{ level }}</option>
+    </select>
+
+    <select [(ngModel)]="selectedMedium" (change)="onFilterChange()" class="filter-select">
+      <option value="">All Mediums</option>
+      <option *ngFor="let medium of mediums" [value]="medium">{{ medium }}</option>
+    </select>
+
+    <input type="text" [(ngModel)]="searchTerm" (keyup)="onSearch()" placeholder="Search content..." class="search-input">
+  </div>
+
+  <div *ngIf="isLoading" class="loading-spinner"></div>
+
+  <div class="content-grid" *ngIf="filteredContents.length > 0; else noContent">
+    <div class="content-card" *ngFor="let content of filteredContents">
+      <div class="card-header">
+        <span class="type-icon">📹</span>
+        <button class="bookmark-btn" [class.bookmarked]="bookmarkedContents.has(content.id)" (click)="toggleBookmark(content)">
+          ♥
+        </button>
+      </div>
+
+      <h3>{{ content.title }}</h3>
+      <p class="description">{{ content.description }}</p>
+
+      <div class="card-meta">
+        <span class="duration">⏱️ 30 mins</span>
+        <span class="rating">⭐ 4.5/5</span>
+      </div>
+
+      <div class="card-actions">
+        <button class="btn view" (click)="viewContent(content)">👁️ View</button>
+        <button class="btn track" (click)="trackProgress(content)">📊 Track</button>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #noContent>
+    <div class="empty-state">
+      <p>No content found. Try adjusting your filters.</p>
+    </div>
+  </ng-template>
+
+  <div *ngIf="bookmarkedContents.size > 0" class="bookmarked-section">
+    <h2>⭐ My Bookmarks ({{ bookmarkedContents.size }})</h2>
+    <p>You have {{ bookmarkedContents.size }} bookmarked items for quick access</p>
+  </div>
+</div>

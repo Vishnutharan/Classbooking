@@ -1,0 +1,155 @@
+<div class="book-class-container">
+  <div class="header">
+    <h1>📚 Book a Class</h1>
+    <p>Find and schedule classes with expert teachers</p>
+  </div>
+
+  <div class="content">
+    <div class="form-section">
+      <form [formGroup]="bookingForm" (ngSubmit)="openConfirmation()" class="booking-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Subject *</label>
+            <select formControlName="subject" (change)="filterTeachers()" class="form-control">
+              <option value="">Select subject</option>
+              <option *ngFor="let subject of subjects" [value]="subject">{{ subject }}</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Level</label>
+            <select formControlName="level" (change)="filterTeachers()" class="form-control">
+              <option value="">All levels</option>
+              <option *ngFor="let level of levels" [value]="level">{{ level }}</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Minimum Rating</label>
+            <input type="number" formControlName="minRating" min="0" max="5" (change)="filterTeachers()" class="form-control">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Date *</label>
+            <input type="date" formControlName="date" (change)="onDateChange()" class="form-control">
+          </div>
+
+          <div class="form-group">
+            <label>Start Time *</label>
+            <input type="time" formControlName="startTime" class="form-control">
+          </div>
+
+          <div class="form-group">
+            <label>Duration (minutes) *</label>
+            <select formControlName="duration" class="form-control">
+              <option *ngFor="let duration of durations" [value]="duration">{{ duration }} minutes</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Class Type *</label>
+            <div class="class-type-toggle">
+              <button type="button" class="toggle-btn" [class.active]="bookingForm.get('classType')?.value === 'OneTime'" (click)="bookingForm.patchValue({classType: 'OneTime'})">
+                One Time
+              </button>
+              <button type="button" class="toggle-btn" [class.active]="bookingForm.get('classType')?.value === 'Recurring'" (click)="bookingForm.patchValue({classType: 'Recurring'})">
+                Recurring
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="bookingForm.get('classType')?.value === 'Recurring'" class="recurring-days">
+          <label>Select Days *</label>
+          <div class="days-grid">
+            <label class="day-checkbox" *ngFor="let day of days">
+              <input type="checkbox" [checked]="recurringDays[day]" (change)="toggleRecurringDay(day)">
+              <span>{{ day }}</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Notes</label>
+          <textarea formControlName="notes" placeholder="Add any notes or preferences..." class="form-control textarea"></textarea>
+        </div>
+
+        <button type="submit" class="submit-btn" [disabled]="isLoading || bookingForm.invalid">
+          {{ isLoading ? 'Processing...' : 'Proceed to Confirm' }}
+        </button>
+      </form>
+    </div>
+
+    <div class="teachers-section">
+      <h2>Available Teachers ({{ filteredTeachers.length }})</h2>
+      <div class="teachers-grid" *ngIf="filteredTeachers.length > 0; else noTeachers">
+        <div class="teacher-item" [class.selected]="selectedTeacher?.id === teacher.id" (click)="selectTeacher(teacher)" *ngFor="let teacher of filteredTeachers">
+          <img [src]="teacher.profilePicture || 'https://via.placeholder.com/80'" alt="{{ teacher.fullName }}" class="teacher-pic">
+          <h4>{{ teacher.fullName }}</h4>
+          <p class="subjects">{{ getTeacherSubjects(teacher) }}</p>
+          <p class="rating">⭐ {{ teacher.averageRating | number:'1.1-1' }}</p>
+          <p class="rate">LKR {{ teacher.hourlyRate }}/hour</p>
+          <span class="verified-badge" *ngIf="teacher.verificationStatus === 'Verified'">✓ Verified</span>
+        </div>
+      </div>
+      <ng-template #noTeachers>
+        <div class="empty-state">
+          <p>No teachers found matching your criteria.</p>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+
+  <div class="confirmation-modal" *ngIf="showConfirmation">
+    <div class="modal-overlay" (click)="closeConfirmation()"></div>
+    <div class="modal-content">
+      <h2>Confirm Your Booking</h2>
+      
+      <div class="confirmation-details">
+        <div class="detail-group">
+          <label>Teacher</label>
+          <p>{{ selectedTeacher?.fullName || 'Not selected' }}</p>
+        </div>
+        <div class="detail-group">
+          <label>Subject</label>
+          <p>{{ bookingForm.get('subject')?.value }}</p>
+        </div>
+        <div class="detail-group">
+          <label>Date & Time</label>
+          <p>{{ bookingForm.get('date')?.value | date:'MMM dd, yyyy' }} at {{ bookingForm.get('startTime')?.value }}</p>
+        </div>
+        <div class="detail-group">
+          <label>Duration</label>
+          <p>{{ bookingForm.get('duration')?.value }} minutes</p>
+        </div>
+        <div class="detail-group">
+          <label>Class Type</label>
+          <p>{{ bookingForm.get('classType')?.value }}</p>
+        </div>
+        <div class="detail-group" *ngIf="bookingForm.get('classType')?.value === 'Recurring'">
+          <label>Recurring Days</label>
+          <p>{{ getSelectedRecurringDays().join(', ') }}</p>
+        </div>
+        <div class="detail-group total">
+          <label>Total Amount</label>
+          <p>LKR {{ getTotalAmount() | number:'1.2-2' }}</p>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn cancel-btn" (click)="closeConfirmation()">Cancel</button>
+        <button class="btn confirm-btn" (click)="submitBooking()" [disabled]="isLoading">
+          {{ isLoading ? 'Booking...' : 'Confirm Booking' }}
+        </button>
+      </div>
+
+      <div *ngIf="bookingReference" class="success-message">
+        <p>✓ Booking Reference: <strong>{{ bookingReference }}</strong></p>
+      </div>
+    </div>
+  </div>
+</div>

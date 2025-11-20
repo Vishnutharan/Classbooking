@@ -13,7 +13,7 @@ export interface StudentProfile {
   gradeLevel: 'Primary' | 'OLevel' | 'ALevel';
   school?: string;
   focusAreas: string[];
-  targetExams: string[]; // O-Level, A-Level, Scholarship, etc.
+  targetExams: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -87,8 +87,11 @@ export class StudentService {
   }
 
   getExamPreparations(examType?: string): Observable<ExamPreparation[]> {
-    const params = examType ? { examType } : {};
-    return this.http.get<ExamPreparation[]>(`${this.apiUrl}/exam-preparations`, { params });
+    let params = {};
+    if (examType) {
+      params = { params: { examType } };
+    }
+    return this.http.get<ExamPreparation[]>(`${this.apiUrl}/exam-preparations`, params);
   }
 
   getExamPreparationById(id: string): Observable<ExamPreparation> {
@@ -96,13 +99,18 @@ export class StudentService {
   }
 
   getStudyMaterials(subject: string, level?: string): Observable<Resource[]> {
-    const params = level ? { subject, level } : { subject };
+    let params: any = { subject };
+    if (level) {
+      params.level = level;
+    }
     return this.http.get<Resource[]>(`${this.apiUrl}/study-materials`, { params });
   }
 
   getPastPapers(subject: string, examType: string, year?: number): Observable<Resource[]> {
-    const params: any = { subject, examType };
-    if (year) params.year = year;
+    let params: any = { subject, examType };
+    if (year) {
+      params.year = year;
+    }
     return this.http.get<Resource[]>(`${this.apiUrl}/past-papers`, { params });
   }
 

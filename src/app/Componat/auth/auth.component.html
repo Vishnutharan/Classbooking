@@ -1,8 +1,24 @@
- <div class="auth-container">
+<div class="auth-container">
       <div class="auth-card">
         <div class="auth-header">
           <h1>{{ isLoginMode ? 'Welcome Back' : 'Create Account' }}</h1>
           <p>{{ isLoginMode ? 'Sign in to continue' : 'Join our learning platform' }}</p>
+        </div>
+
+        <!-- Demo Credentials Section (Login Mode Only) -->
+        <div *ngIf="isLoginMode" class="demo-section">
+          <p class="demo-label">🎯 Try Demo Accounts</p>
+          <div class="demo-buttons">
+            <button type="button" class="demo-btn student" (click)="useDemoCredentials('Student')" title="Load Student Demo">
+              👨‍🎓 Student
+            </button>
+            <button type="button" class="demo-btn teacher" (click)="useDemoCredentials('Teacher')" title="Load Teacher Demo">
+              👨‍🏫 Teacher
+            </button>
+            <button type="button" class="demo-btn admin" (click)="useDemoCredentials('Admin')" title="Load Admin Demo">
+              🔐 Admin
+            </button>
+          </div>
         </div>
 
         <form [formGroup]="authForm" (ngSubmit)="onSubmit()" class="auth-form">

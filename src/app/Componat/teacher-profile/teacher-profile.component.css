@@ -1,0 +1,431 @@
+.teacher-profile-container {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.profile-header {
+  background: white;
+  border-radius: 12px;
+  padding: 32px;
+  display: flex;
+  gap: 32px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 32px;
+  align-items: flex-start;
+}
+
+.profile-pic {
+  width: 150px;
+  height: 150px;
+  border-radius: 12px;
+  object-fit: cover;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.profile-info {
+  flex: 1;
+}
+
+.header-top {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.profile-info h1 {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 700;
+  color: #1a202c;
+}
+
+.verified-badge {
+  display: inline-block;
+  background: #c6f6d5;
+  color: #22543d;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.bio {
+  margin: 12px 0;
+  font-size: 16px;
+  color: #718096;
+  line-height: 1.6;
+}
+
+.rating-section {
+  display: flex;
+  gap: 12px;
+  margin: 16px 0;
+  align-items: center;
+  font-size: 14px;
+}
+
+.stars {
+  font-weight: 600;
+  color: #f6ad55;
+}
+
+.review-count {
+  color: #718096;
+}
+
+.classes-count {
+  color: #718096;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.btn.primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.btn.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.btn.secondary {
+  border: 2px solid #667eea;
+  color: #667eea;
+  background: white;
+}
+
+.btn.secondary:hover {
+  background: #edf2f7;
+}
+
+.profile-content {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+}
+
+.section {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.section h2 {
+  margin: 0 0 20px 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1a202c;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 12px;
+}
+
+.experience {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.experience p {
+  margin: 0;
+  font-size: 14px;
+  color: #4a5568;
+}
+
+.qualifications {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.qualification-badge {
+  background: #edf2f7;
+  color: #2d3748;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.subjects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.subject-card {
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px;
+  transition: all 0.2s;
+}
+
+.subject-card:hover {
+  border-color: #667eea;
+  background: #f7fafc;
+}
+
+.subject-name {
+  font-weight: 600;
+  color: #1a202c;
+  margin-bottom: 8px;
+}
+
+.subject-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: #718096;
+}
+
+.medium, .level {
+  display: block;
+}
+
+.schedule-table {
+  overflow-x: auto;
+}
+
+.schedule-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.schedule-table th {
+  background: #f7fafc;
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #2d3748;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.schedule-table td {
+  padding: 12px;
+  border-bottom: 1px solid #e2e8f0;
+  color: #4a5568;
+  font-size: 14px;
+}
+
+.contact a {
+  color: #667eea;
+  text-decoration: none;
+}
+
+.contact a:hover {
+  text-decoration: underline;
+}
+
+.contact p {
+  margin: 8px 0;
+  font-size: 14px;
+  color: #4a5568;
+}
+
+.pricing {
+  text-align: center;
+}
+
+.rate-box {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 24px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.rate-amount {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.rate-label {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.reviews-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.review-item {
+  padding: 12px;
+  border-left: 3px solid #667eea;
+  background: #f7fafc;
+  border-radius: 6px;
+}
+
+.review-header {
+  margin-bottom: 8px;
+}
+
+.reviewer-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.reviewer-info strong {
+  color: #1a202c;
+  font-size: 14px;
+}
+
+.rating {
+  display: flex;
+  gap: 2px;
+}
+
+.star {
+  color: #e2e8f0;
+  font-size: 12px;
+}
+
+.star.filled {
+  color: #f6ad55;
+}
+
+.review-text {
+  margin: 8px 0;
+  font-size: 13px;
+  color: #4a5568;
+  line-height: 1.4;
+}
+
+.review-date {
+  display: block;
+  font-size: 11px;
+  color: #a0aec0;
+  margin-top: 6px;
+}
+
+.empty-reviews {
+  text-align: center;
+  padding: 20px;
+  color: #a0aec0;
+}
+
+.about-info p {
+  margin: 8px 0;
+  font-size: 14px;
+  color: #4a5568;
+}
+
+.status-verified {
+  color: #22543d;
+  font-weight: 600;
+  background: #c6f6d5;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.status-pending {
+  color: #7c2d12;
+  font-weight: 600;
+  background: #feebc8;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.status-rejected {
+  color: #742a2a;
+  font-weight: 600;
+  background: #fed7d7;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 16px;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e2e8f0;
+  border-top: 4px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@media (max-width: 1024px) {
+  .profile-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .header-top {
+    justify-content: center;
+  }
+
+  .profile-content {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .teacher-profile-container {
+    padding: 16px;
+  }
+
+  .profile-header {
+    padding: 16px;
+    gap: 16px;
+  }
+
+  .profile-pic {
+    width: 100px;
+    height: 100px;
+  }
+
+  .profile-info h1 {
+    font-size: 24px;
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+
+  .btn {
+    width: 100%;
+  }
+
+  .subjects-grid {
+    grid-template-columns: 1fr;
+  }
+}
