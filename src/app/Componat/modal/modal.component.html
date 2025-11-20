@@ -1,0 +1,25 @@
+    <div class="modal" *ngIf="isOpen" [@modalAnimation]>
+      <div class="modal-overlay" (click)="closeOnBackdropClick()"></div>
+      <div class="modal-container" [class]="'size-' + size">
+        <div class="modal-header">
+          <h2 class="modal-title">{{ title }}</h2>
+          <button class="btn-close" (click)="close()" aria-label="Close modal">✕</button>
+        </div>
+
+        <div class="modal-body">
+          <ng-content></ng-content>
+        </div>
+
+        <div class="modal-footer" *ngIf="showFooter">
+          <ng-content select="[footer]"></ng-content>
+          <div class="default-actions" *ngIf="!hasFooterContent">
+            <button class="btn btn-cancel" (click)="close()">
+              {{ cancelLabel }}
+            </button>
+            <button class="btn btn-confirm" (click)="confirm()">
+              {{ confirmLabel }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>

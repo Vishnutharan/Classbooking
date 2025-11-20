@@ -1,0 +1,138 @@
+    .pagination-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      align-items: center;
+      padding: 20px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .pagination-info {
+      font-size: 14px;
+      color: #718096;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .divider {
+      color: #e2e8f0;
+    }
+
+    .pagination-controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border: 1px solid #e2e8f0;
+      background: white;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.2s;
+      color: #2d3748;
+    }
+
+    .btn:hover:not(:disabled) {
+      border-color: #667eea;
+      color: #667eea;
+      background: #edf2f7;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .page-numbers {
+      display: flex;
+      gap: 4px;
+    }
+
+    .page-numbers button {
+      min-width: 36px;
+      height: 36px;
+      padding: 0;
+      border: 1px solid #e2e8f0;
+      background: white;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 13px;
+      transition: all 0.2s;
+      color: #4a5568;
+    }
+
+    .page-numbers button:hover:not(.ellipsis) {
+      border-color: #667eea;
+      color: #667eea;
+      background: #edf2f7;
+    }
+
+    .page-numbers button.active {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-color: #667eea;
+    }
+
+    .page-numbers button.ellipsis {
+      border: none;
+      background: transparent;
+      cursor: default;
+      color: #a0aec0;
+    }
+
+    .items-per-page {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      font-size: 14px;
+      color: #2d3748;
+    }
+
+    .items-per-page label {
+      font-weight: 600;
+    }
+
+    .select-input {
+      padding: 6px 10px;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      font-size: 14px;
+      cursor: pointer;
+      background: white;
+    }
+
+    .select-input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    @media (max-width: 768px) {
+      .pagination-container {
+        flex-direction: column;
+      }
+
+      .pagination-controls {
+        flex-direction: column;
+        width: 100%;
+      }
+
+      .page-numbers {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .btn {
+        width: 100%;
+      }
+    }

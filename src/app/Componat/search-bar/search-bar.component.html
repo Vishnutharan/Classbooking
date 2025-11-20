@@ -1,0 +1,62 @@
+    <div class="search-container">
+      <div class="search-input-wrapper">
+        <span class="search-icon">🔍</span>
+        <input
+          #searchInput
+          type="text"
+          [(ngModel)]="searchQuery"
+          (ngModelChange)="onSearchChange($event)"
+          [placeholder]="placeholder"
+          class="search-input"
+          aria-label="Search"
+        >
+        <button 
+          *ngIf="searchQuery" 
+          class="btn-clear" 
+          (click)="clearSearch()"
+          title="Clear search"
+          aria-label="Clear search">
+          ✕
+        </button>
+        <div *ngIf="isLoading" class="loading-indicator"></div>
+      </div>
+
+      <!-- Search Results Dropdown -->
+      <div class="search-results" *ngIf="searchQuery && showResults">
+        <div *ngIf="isLoading" class="results-loading">
+          <div class="spinner"></div>
+          <span>Searching...</span>
+        </div>
+
+        <div *ngIf="!isLoading && results.length > 0" class="results-list">
+          <button 
+            *ngFor="let result of results" 
+            class="result-item"
+            (click)="selectResult(result)"
+            type="button">
+            <span class="result-icon">{{ result.icon }}</span>
+            <div class="result-content">
+              <span class="result-title">{{ result.title }}</span>
+              <span class="result-subtitle" *ngIf="result.subtitle">{{ result.subtitle }}</span>
+            </div>
+          </button>
+        </div>
+
+        <div *ngIf="!isLoading && searchQuery && results.length === 0" class="no-results">
+          <span>No results found for "{{ searchQuery }}"</span>
+        </div>
+      </div>
+
+      <!-- Recent Searches -->
+      <div class="recent-searches" *ngIf="!searchQuery && recentSearches.length > 0 && showResults">
+        <div class="recent-label">Recent Searches</div>
+        <button 
+          *ngFor="let search of recentSearches" 
+          class="recent-item"
+          (click)="onRecentSearch(search)"
+          type="button">
+          <span>🕐</span>
+          <span>{{ search }}</span>
+        </button>
+      </div>
+    </div>
