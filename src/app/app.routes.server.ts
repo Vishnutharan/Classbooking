@@ -1,5 +1,3 @@
-// src/app/app.routes.server.ts
-
 import { RenderMode, ServerRoute } from '@angular/ssr';
 
 /**
@@ -33,9 +31,11 @@ export const serverRoutes: ServerRoute[] = [
   { path: 'settings', renderMode: RenderMode.Server },
 
   // ADMIN ROUTES
+  // These ensure your new Admin Components are rendered on the server (SSR)
   { path: 'admin/users', renderMode: RenderMode.Server },
   { path: 'admin/timetable', renderMode: RenderMode.Server },
   { path: 'admin/reports', renderMode: RenderMode.Server },
+  { path: 'admin/reports/view', renderMode: RenderMode.Server }, // Added specifically for viewer
   { path: 'admin/settings', renderMode: RenderMode.Server },
   { path: 'dashboard/admin', renderMode: RenderMode.Server },
 

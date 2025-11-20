@@ -1,0 +1,159 @@
+<div class="timetable-management-container">
+  <div class="header">
+    <h1>📅 Timetable Management</h1>
+    <div class="tabs">
+      <button class="tab-btn" [class.active]="currentTab === 'holidays'" (click)="currentTab = 'holidays'">Holidays</button>
+      <button class="tab-btn" [class.active]="currentTab === 'exams'" (click)="currentTab = 'exams'">Exam Seasons</button>
+    </div>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-spinner"></div>
+
+  <div class="content" *ngIf="!isLoading">
+    <!-- Holidays Section -->
+    <div *ngIf="currentTab === 'holidays'" class="section">
+      <div class="section-header">
+        <h2>🎉 Public Holidays</h2>
+        <button class="btn-primary" (click)="openHolidayForm()">➕ Add Holiday</button>
+      </div>
+
+      <div class="table-container">
+        <table class="timetable">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Date</th>
+              <th>Description</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let holiday of holidays">
+              <td>{{ holiday.name }}</td>
+              <td>{{ holiday.date | date:'MMM dd, yyyy' }}</td>
+              <td>{{ holiday.description || '-' }}</td>
+              <td class="actions">
+                <button class="btn-icon" (click)="editHoliday(holiday)">✏️</button>
+                <button class="btn-icon delete" (click)="deleteHoliday(holiday.id)">🗑️</button>
+              </td>
+            </tr>
+            <tr *ngIf="holidays.length === 0">
+              <td colspan="4" class="empty">No holidays defined</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Holiday Form Modal -->
+      <div class="modal" *ngIf="showHolidayForm">
+        <div class="modal-overlay" (click)="closeHolidayForm()"></div>
+        <div class="modal-content">
+          <h2>{{ editingHolidayId ? 'Edit Holiday' : 'Add Holiday' }}</h2>
+          <form [formGroup]="holidayForm" (ngSubmit)="saveHoliday()">
+            <div class="form-group">
+              <label>Holiday Name</label>
+              <input type="text" formControlName="name" class="form-input" placeholder="e.g., New Year">
+            </div>
+            <div class="form-group">
+              <label>Date</label>
+              <input type="date" formControlName="date" class="form-input">
+            </div>
+            <div class="form-group">
+              <label>Description</label>
+              <textarea formControlName="description" class="form-input" rows="3" placeholder="Optional..."></textarea>
+            </div>
+            <div class="modal-actions">
+              <button type="button" class="btn cancel" (click)="closeHolidayForm()">Cancel</button>
+              <button type="submit" class="btn confirm">{{ editingHolidayId ? 'Update' : 'Create' }}</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Exam Seasons Section -->
+    <div *ngIf="currentTab === 'exams'" class="section">
+      <div class="section-header">
+        <h2>📝 Exam Seasons</h2>
+        <button class="btn-primary" (click)="openExamForm()">➕ Add Exam Season</button>
+      </div>
+
+      <div class="table-container">
+        <table class="timetable">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Type</th>
+              <th>Start Date</th>
+              <th>End Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let exam of examSeasons">
+              <td><strong>{{ exam.name }}</strong></td>
+              <td><span class="badge">{{ exam.examType }}</span></td>
+              <td>{{ exam.startDate | date:'MMM dd, yyyy' }}</td>
+              <td>{{ exam.endDate | date:'MMM dd, yyyy' }}</td>
+              <td class="actions">
+                <button class="btn-icon" (click)="editExam(exam)">✏️</button>
+                <button class="btn-icon delete" (click)="deleteExam(exam.id)">🗑️</button>
+              </td>
+            </tr>
+            <tr *ngIf="examSeasons.length === 0">
+              <td colspan="5" class="empty">No exam seasons defined</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Exam Form Modal -->
+      <div class="modal" *ngIf="showExamForm">
+        <div class="modal-overlay" (click)="closeExamForm()"></div>
+        <div class="modal-content">
+          <h2>{{ editingExamId ? 'Edit Exam Season' : 'Add Exam Season' }}</h2>
+          <form [formGroup]="examForm" (ngSubmit)="saveExam()">
+            <div class="form-group">
+              <label>Season Name</label>
+              <input type="text" formControlName="name" class="form-input" placeholder="e.g., 2024 O-Level">
+            </div>
+            <div class="form-group">
+              <label>Exam Type</label>
+              <select formControlName="examType" class="form-input">
+                <option *ngFor="let type of examTypes" [value]="type">{{ type }}</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Start Date</label>
+                <input type="date" formControlName="startDate" class="form-input">
+              </div>
+              <div class="form-group">
+                <label>End Date</label>
+                <input type="date" formControlName="endDate" class="form-input">
+              </div>
+            </div>
+            <div class="modal-actions">
+              <button type="button" class="btn cancel" (click)="closeExamForm()">Cancel</button>
+              <button type="submit" class="btn confirm">{{ editingExamId ? 'Update' : 'Create' }}</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Calendar View -->
+    <div class="section">
+      <h2>📆 Calendar View</h2>
+      <div class="calendar-events">
+        <div class="event-item" *ngFor="let event of getCalendarEvents()">
+          <span class="event-badge" [class]="event.type">{{ event.type === 'holiday' ? '🎉' : '📝' }}</span>
+          <div class="event-content">
+            <strong>{{ event.title }}</strong>
+            <small>{{ event.date | date:'MMM dd, yyyy' }}</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

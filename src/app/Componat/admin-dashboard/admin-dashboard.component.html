@@ -1,0 +1,147 @@
+<div class="admin-dashboard-container">
+  <div class="header">
+    <h1>📊 Admin Dashboard</h1>
+    <p>System overview and management</p>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-spinner"></div>
+
+  <div class="dashboard-content" *ngIf="!isLoading">
+    <!-- Statistics Cards -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">👥</div>
+        <h3>{{ stats.totalUsers }}</h3>
+        <p>Total Users</p>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🎓</div>
+        <h3>{{ stats.totalStudents }}</h3>
+        <p>Active Students</p>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">👨‍🏫</div>
+        <h3>{{ stats.totalTeachers }}</h3>
+        <p>Active Teachers</p>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">📚</div>
+        <h3>{{ stats.totalBookings }}</h3>
+        <p>Total Bookings</p>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">⏳</div>
+        <h3>{{ stats.pendingBookings }}</h3>
+        <p>Pending Bookings</p>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">✅</div>
+        <h3>{{ stats.completedBookings }}</h3>
+        <p>Completed Bookings</p>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">💰</div>
+        <h3>LKR {{ (stats.totalRevenue) | number:'1.0-0' }}</h3>
+        <p>Total Revenue</p>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">⭐</div>
+        <h3>{{ (stats.averageRating) | number:'1.1-1' }}/5</h3>
+        <p>Average Rating</p>
+      </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="charts-section">
+      <div class="chart-card">
+        <h2>📈 Booking Trends (6 Months)</h2>
+        <div class="mock-chart">
+          <div class="chart-item" *ngFor="let item of bookingTrends">
+            <div class="bar" [style.height.%]="(item.bookings / 250) * 100"></div>
+            <span>{{ item.month }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <h2>👥 User Growth Trend</h2>
+        <div class="mock-chart">
+          <div class="chart-item" *ngFor="let item of userGrowth">
+            <div class="bar-group">
+              <div class="bar student" [style.height.%]="(item.students / 200) * 100"></div>
+              <div class="bar teacher" [style.height.%]="(item.teachers / 60) * 100"></div>
+            </div>
+            <span>{{ item.month }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <h2>💹 Monthly Revenue</h2>
+        <div class="mock-chart">
+          <div class="chart-item" *ngFor="let item of revenueData">
+            <div class="bar revenue" [style.height.%]="(item.revenue / 100000) * 100"></div>
+            <span>{{ item.month }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <h2>🌟 Top Teachers by Rating</h2>
+        <div class="top-teachers">
+          <div class="teacher-item" *ngFor="let teacher of topTeachers">
+            <div class="teacher-info">
+              <h4>{{ teacher.name }}</h4>
+              <p class="rating">⭐ {{ (teacher.rating) | number:'1.1-1' }} • {{ teacher.classes }} classes</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <button class="action-btn" (click)="navigate('/admin/users')">👤 Manage Users</button>
+      <button class="action-btn" (click)="navigate('/admin/timetable')">📅 Manage Timetable</button>
+      <button class="action-btn" (click)="navigate('/admin/reports')">📊 View Reports</button>
+      <button class="action-btn" (click)="navigate('/admin/settings')">⚙️ Settings</button>
+    </div>
+
+    <!-- Recent Activities -->
+    <div class="section">
+      <h2>📋 Recent Activities</h2>
+      <div class="activity-feed">
+        <div class="activity-item" *ngFor="let activity of recentActivities">
+          <span class="icon">{{ activity.icon }}</span>
+          <div class="activity-content">
+            <p>{{ activity.message }}</p>
+            <small>{{ activity.time }}</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- System Health -->
+    <div class="section">
+      <h2>🔧 System Health</h2>
+      <div class="health-indicators">
+        <div class="health-item">
+          <span>Database</span>
+          <div class="health-badge online">● Online</div>
+        </div>
+        <div class="health-item">
+          <span>API Server</span>
+          <div class="health-badge online">● Online</div>
+        </div>
+        <div class="health-item">
+          <span>Email Service</span>
+          <div class="health-badge online">● Online</div>
+        </div>
+        <div class="health-item">
+          <span>Storage</span>
+          <div class="health-badge online">● Online</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

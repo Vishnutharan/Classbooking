@@ -1,0 +1,150 @@
+  <div class="reports-viewer-container">
+    <div class="header">
+      <h1>📋 Reports Viewer</h1>
+      <button class="btn-schedule" (click)="openScheduleForm()">⏰ Schedule Report</button>
+    </div>
+
+    <div *ngIf="isLoading" class="loading-spinner"></div>
+
+    <div class="content" *ngIf="!isLoading">
+      <div class="main-area">
+        <!-- Report History -->
+        <div class="section">
+          <h2>📂 Report Generation History</h2>
+          
+          <div class="reports-list">
+            <div class="report-item" *ngFor="let report of reportHistory" (click)="viewReport(report)" [class.selected]="selectedReport?.id === report.id">
+              <div class="report-icon">
+                <span *ngIf="report.type === 'pdf'">📄</span>
+                <span *ngIf="report.type === 'excel'">📊</span>
+              </div>
+              <div class="report-info">
+                <h4>{{ report.name }}</h4>
+                <p class="meta">Generated: {{ report.generatedAt | date:'MMM dd, yyyy HH:mm' }} • {{ report.fileSize }}</p>
+              </div>
+              <div class="report-status">
+                <span class="status-badge" [class]="'status-' + getStatusBadgeClass(report.status)">
+                  {{ getStatusIcon(report.status) }} {{ report.status }}
+                </span>
+              </div>
+              <div class="report-actions">
+                <button class="btn-icon" (click)="viewReport(report); $event.stopPropagation()" title="View">👁️</button>
+                <button class="btn-icon" (click)="downloadReport(report); $event.stopPropagation()" title="Download">⬇️</button>
+                <button class="btn-icon" (click)="regenerateReport(report); $event.stopPropagation()" title="Regenerate">🔄</button>
+                <button class="btn-icon delete" (click)="deleteReport(report); $event.stopPropagation()" title="Delete">🗑️</button>
+              </div>
+            </div>
+
+            <div *ngIf="reportHistory.length === 0" class="empty-state">
+              <p>No reports generated yet</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Preview Area -->
+        <div class="section preview-section" *ngIf="selectedReport">
+          <h2>👁️ Report Preview: {{ selectedReport.name }}</h2>
+          <div class="preview-container">
+            <div class="preview-placeholder" [class]="'type-' + selectedReport.type">
+              <div class="preview-icon">
+                <span *ngIf="selectedReport.type === 'pdf'">📄</span>
+                <span *ngIf="selectedReport.type === 'excel'">📊</span>
+              </div>
+              <p>{{ selectedReport.name }}</p>
+              <small>Generated: {{ selectedReport.generatedAt | date:'MMM dd, yyyy HH:mm' }}</small>
+              <small>File size: {{ selectedReport.fileSize }}</small>
+              
+              <div class="preview-actions">
+                <button class="btn-preview" (click)="downloadReport(selectedReport)">⬇️ Download {{ selectedReport.type | uppercase }}</button>
+                <button class="btn-preview secondary" (click)="regenerateReport(selectedReport)">🔄 Regenerate</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <!-- Distribution Settings -->
+        <div class="sidebar-section">
+          <h3>📧 Distribution List</h3>
+          <div class="distribution-list">
+            <div class="dist-item">
+              <span>adminexample.com</span>
+              <button class="btn-remove">✕</button>
+            </div>
+            <div class="dist-item">
+              <span>managerexample.com</span>
+              <button class="btn-remove">✕</button>
+            </div>
+          </div>
+          <button class="btn-add-dist" (click)="addDistributionList()">➕ Add Email</button>
+        </div>
+
+        <!-- Scheduled Reports -->
+        <div class="sidebar-section">
+          <h3>⏰ Scheduled Reports</h3>
+          <div class="scheduled-list">
+            <div class="scheduled-item">
+              <h5>Weekly Booking Report</h5>
+              <p>📧 every Monday</p>
+              <p>👥 2 recipients</p>
+            </div>
+            <div class="scheduled-item">
+              <h5>Monthly Revenue</h5>
+              <p>📧 every 1st of month</p>
+              <p>👥 1 recipient</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Report Formats -->
+        <div class="sidebar-section">
+          <h3>📋 Supported Formats</h3>
+          <div class="format-list">
+            <div class="format-item">
+              <span>📄 PDF</span>
+              <small>Best for viewing</small>
+            </div>
+            <div class="format-item">
+              <span>📊 Excel</span>
+              <small>Best for data analysis</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Schedule Form Modal -->
+    <div class="modal" *ngIf="showScheduleForm">
+      <div class="modal-overlay" (click)="closeScheduleForm()"></div>
+      <div class="modal-content">
+        <h2>⏰ Schedule Report</h2>
+        <div class="form-group">
+          <label>Report Type</label>
+          <select [(ngModel)]="reportType" class="form-input">
+            <option value="bookings">Bookings Report</option>
+            <option value="users">Users Report</option>
+            <option value="revenue">Revenue Report</option>
+            <option value="teachers">Teachers Report</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" [(ngModel)]="scheduleEmail" class="form-input" placeholder="admin@example.com">
+        </div>
+        <div class="form-group">
+          <label>Frequency</label>
+          <select [(ngModel)]="scheduleFrequency" class="form-input">
+            <option value="daily">Daily</option>
+            <option value="weekly" selected>Weekly</option>
+            <option value="monthly">Monthly</option>
+          </select>
+        </div>
+        <div class="modal-actions">
+          <button class="btn cancel" (click)="closeScheduleForm()">Cancel</button>
+          <button class="btn confirm" (click)="scheduleReport()">Schedule</button>
+        </div>
+      </div>
+    </div>
+  </div>

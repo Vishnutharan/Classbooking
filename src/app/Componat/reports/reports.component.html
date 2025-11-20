@@ -1,0 +1,238 @@
+<div class="reports-container">
+  <div class="header">
+    <h1>📊 Reports</h1>
+    <div class="date-range">
+      <label>From:</label>
+      <input type="date" [(ngModel)]="startDate" (change)="onDateChange()" class="date-input">
+      <label>To:</label>
+      <input type="date" [(ngModel)]="endDate" (change)="onDateChange()" class="date-input">
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn" [class.active]="currentTab === 'bookings'" (click)="currentTab = 'bookings'">Bookings</button>
+    <button class="tab-btn" [class.active]="currentTab === 'users'" (click)="currentTab = 'users'">Users</button>
+    <button class="tab-btn" [class.active]="currentTab === 'revenue'" (click)="currentTab = 'revenue'">Revenue</button>
+    <button class="tab-btn" [class.active]="currentTab === 'teachers'" (click)="currentTab = 'teachers'">Teachers</button>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-spinner"></div>
+
+  <div class="content" *ngIf="!isLoading">
+    <!-- Bookings Tab -->
+    <div *ngIf="currentTab === 'bookings'" class="tab-content">
+      <div class="stats-row">
+        <div class="stat-box">
+          <span class="label">Total Bookings</span>
+          <h3>{{ bookingStats.total }}</h3>
+        </div>
+        <div class="stat-box">
+          <span class="label">Confirmed</span>
+          <h3>{{ bookingStats.confirmed }} ({{ getConfirmationPercentage() }}%)</h3>
+        </div>
+        <div class="stat-box">
+          <span class="label">Completed</span>
+          <h3>{{ bookingStats.completed }} ({{ getCompletionPercentage() }}%)</h3>
+        </div>
+        <div class="stat-box">
+          <span class="label">Cancelled</span>
+          <h3>{{ bookingStats.cancelled }}</h3>
+        </div>
+      </div>
+
+      <div class="charts-row">
+        <div class="chart-box">
+          <h3>Top Subjects</h3>
+          <div class="bar-chart">
+            <div class="bar-item" *ngFor="let subject of bookingStats.topSubjects">
+              <span class="label">{{ subject.subject }}</span>
+              <div class="bar" [style.width.%]="(subject.count / 150) * 100"></div>
+              <span class="value">{{ subject.count }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="chart-box">
+          <h3>Booking Distribution</h3>
+          <div class="pie-chart">
+            <div class="pie-section confirmed" [style.width.%]="getConfirmationPercentage()"></div>
+            <div class="pie-section cancelled" [style.width.%]="(bookingStats.cancelled / bookingStats.total) * 100"></div>
+          </div>
+          <div class="legend">
+            <div>✓ Confirmed: {{ getConfirmationPercentage() }}%</div>
+            <div>✕ Cancelled: {{ ((bookingStats.cancelled / bookingStats.total) * 100) | number:'1.0-0' }}%</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="export-actions">
+        <button class="btn-export" (click)="exportBookingReport('pdf')">📄 Export PDF</button>
+        <button class="btn-export" (click)="exportBookingReport('excel')">📊 Export Excel</button>
+      </div>
+    </div>
+
+    <!-- Users Tab -->
+    <div *ngIf="currentTab === 'users'" class="tab-content">
+      <div class="stats-row">
+        <div class="stat-box">
+          <span class="label">Total Users</span>
+          <h3>{{ userStats.totalUsers }}</h3>
+        </div>
+        <div class="stat-box">
+          <span class="label">Students</span>
+          <h3>{{ userStats.students }}</h3>
+        </div>
+        <div class="stat-box">
+          <span class="label">Teachers</span>
+          <h3>{{ userStats.teachers }}</h3>
+        </div>
+        <div class="stat-box">
+          <span class="label">New This Month</span>
+          <h3>{{ userStats.newThisMonth }}</h3>
+        </div>
+      </div>
+
+      <div class="charts-row">
+        <div class="chart-box">
+          <h3>User Growth</h3>
+          <div class="line-chart">
+            <div class="chart-placeholder">📈 Growth chart visualization</div>
+          </div>
+        </div>
+
+        <div class="chart-box">
+          <h3>Role Distribution</h3>
+          <div class="role-list">
+            <div class="role-item">
+              <span>👨‍🎓 Students: {{ userStats.students }}</span>
+              <div class="bar" [style.width.%]="(userStats.students / userStats.totalUsers) * 100"></div>
+            </div>
+            <div class="role-item">
+              <span>👨‍🏫 Teachers: {{ userStats.teachers }}</span>
+              <div class="bar" [style.width.%]="(userStats.teachers / userStats.totalUsers) * 100"></div>
+            </div>
+            <div class="role-item">
+              <span>⚙️ Admins: {{ userStats.admins }}</span>
+              <div class="bar" [style.width.%]="(userStats.admins / userStats.totalUsers) * 100"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="export-actions">
+        <button class="btn-export" (click)="exportUserReport('pdf')">📄 Export PDF</button>
+        <button class="btn-export" (click)="exportUserReport('excel')">📊 Export Excel</button>
+      </div>
+    </div>
+
+    <!-- Revenue Tab -->
+    <div *ngIf="currentTab === 'revenue'" class="tab-content">
+      <div class="stats-row">
+        <div class="stat-box">
+          <span class="label">Total Revenue</span>
+          <h3>LKR {{ (revenueStats.totalRevenue) | number:'1.0-0' }}</h3>
+        </div>
+        <div class="stat-box">
+          <span class="label">Commission (15%)</span>
+          <h3>LKR {{ (revenueStats.commission) | number:'1.0-0' }}</h3>
+        </div>
+      </div>
+
+      <div class="charts-row">
+        <div class="chart-box full">
+          <h3>Monthly Revenue Trend</h3>
+          <div class="line-chart">
+            <div class="chart-placeholder">📈 Revenue trend visualization</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-box">
+        <h3>Revenue by Teacher (Top 10)</h3>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Teacher</th>
+              <th>Classes</th>
+              <th>Revenue</th>
+              <th>Commission</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let teacher of revenueStats.byTeacher">
+              <td>{{ teacher.name }}</td>
+              <td>{{ teacher.classes }}</td>
+              <td>LKR {{ (teacher.revenue) | number:'1.0-0' }}</td>
+              <td>LKR {{ (teacher.revenue * 0.15) | number:'1.0-0' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="export-actions">
+        <button class="btn-export" (click)="exportRevenueReport('pdf')">📄 Export PDF</button>
+        <button class="btn-export" (click)="exportRevenueReport('excel')">📊 Export Excel</button>
+      </div>
+    </div>
+
+    <!-- Teachers Tab -->
+    <div *ngIf="currentTab === 'teachers'" class="tab-content">
+      <div class="stats-row">
+        <div class="stat-box">
+          <span class="label">Average Rating</span>
+          <h3>{{ (teacherStats.averageRating) | number:'1.1-1' }}/5</h3>
+        </div>
+        <div class="stat-box">
+          <span class="label">Completion Rate</span>
+          <h3>{{ (teacherStats.completionRate) | number:'1.0-0' }}%</h3>
+        </div>
+      </div>
+
+      <div class="table-box">
+        <h3>Top Teachers by Rating</h3>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Teacher</th>
+              <th>Rating</th>
+              <th>Classes</th>
+              <th>Reviews</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let teacher of teacherStats.topTeachers; let i = index">
+              <td>{{ i + 1 }}</td>
+              <td>{{ teacher.name }}</td>
+              <td>⭐ {{ (teacher.rating) | number:'1.1-1' }}</td>
+              <td>{{ teacher.classes }}</td>
+              <td>{{ teacher.reviews }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="table-box">
+        <h3>Earnings Leaderboard</h3>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Teacher</th>
+              <th>Monthly Earnings</th>
+              <th>Total Earnings</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let teacher of teacherStats.earningsLeaderboard; let i = index">
+              <td>{{ i + 1 }}</td>
+              <td>{{ teacher.name }}</td>
+              <td>LKR {{ (teacher.monthlyEarnings) | number:'1.0-0' }}</td>
+              <td>LKR {{ (teacher.totalEarnings) | number:'1.0-0' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

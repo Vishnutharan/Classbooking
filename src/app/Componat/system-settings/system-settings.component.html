@@ -1,0 +1,174 @@
+<div class="system-settings-container">
+  <div class="header">
+    <h1>⚙️ System Settings</h1>
+    <p>Configure platform-wide settings and policies</p>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-spinner"></div>
+
+  <form [formGroup]="settingsForm" (ngSubmit)="saveSettings()" *ngIf="!isLoading" class="settings-form">
+    <!-- Platform Settings -->
+    <div class="settings-section">
+      <h2>🌐 Platform Settings</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Platform Name</label>
+          <input type="text" formControlName="platformName" class="form-input" placeholder="e.g., ClassBooking">
+          <small>The name displayed across the platform</small>
+        </div>
+        <div class="form-group">
+          <label>Platform Email</label>
+          <input type="email" formControlName="platformEmail" class="form-input" placeholder="noreply@example.com">
+          <small>Email address for system notifications</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Class Duration Settings -->
+    <div class="settings-section">
+      <h2>📚 Class Duration Settings</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Minimum Class Duration (minutes)</label>
+          <input type="number" formControlName="minClassDurationMinutes" class="form-input" min="15" placeholder="30">
+          <small>Minimum duration allowed for a single class</small>
+        </div>
+        <div class="form-group">
+          <label>Maximum Class Duration (minutes)</label>
+          <input type="number" formControlName="maxClassDurationMinutes" class="form-input" min="30" placeholder="180" (change)="validateMinMax()">
+          <small>Maximum duration allowed for a single class</small>
+        </div>
+        <div class="form-group">
+          <label>Default Hourly Rate (LKR)</label>
+          <input type="number" formControlName="defaultHourlyRate" class="form-input" min="0" placeholder="500">
+          <small>Default rate suggested to new teachers</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cancellation Policy -->
+    <div class="settings-section">
+      <h2>🚫 Cancellation Policy</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Cancellation Deadline (hours before class)</label>
+          <input type="number" formControlName="cancellationDeadlineHours" class="form-input" min="1" placeholder="24">
+          <small>Users must cancel at least this many hours before the class to get a refund</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Commission Settings -->
+    <div class="settings-section">
+      <h2>💰 Commission Settings</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Platform Commission (%)</label>
+          <input type="number" formControlName="platformCommissionPercentage" class="form-input" min="0" max="100" placeholder="15">
+          <small>Percentage of each booking retained by the platform</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Email Settings -->
+    <div class="settings-section">
+      <h2>📧 Email Settings</h2>
+      <div class="info-box">
+        <p>Email notifications are currently enabled. For SMTP configuration, please contact the development team.</p>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>
+            <input type="checkbox" [checked]="true" disabled>
+            Send booking confirmations
+          </label>
+        </div>
+        <div class="form-group">
+          <label>
+            <input type="checkbox" [checked]="true" disabled>
+            Send reminder emails 24 hours before class
+          </label>
+        </div>
+        <div class="form-group">
+          <label>
+            <input type="checkbox" [checked]="true" disabled>
+            Send weekly activity digest
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notification Preferences -->
+    <div class="settings-section">
+      <h2>🔔 Notification Preferences</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label>
+            <input type="checkbox" [checked]="true" disabled>
+            Notify teachers of new bookings
+          </label>
+        </div>
+        <div class="form-group">
+          <label>
+            <input type="checkbox" [checked]="true" disabled>
+            Notify students of booking confirmations
+          </label>
+        </div>
+        <div class="form-group">
+          <label>
+            <input type="checkbox" [checked]="true" disabled>
+            Send system alerts to admins
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- API Configuration -->
+    <div class="settings-section">
+      <h2>🔑 API Configuration</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label>API Version</label>
+          <input type="text" value="v1" disabled class="form-input">
+          <small>Current API version</small>
+        </div>
+        <div class="form-group">
+          <label>Rate Limit (requests/minute)</label>
+          <input type="number" value="100" disabled class="form-input">
+          <small>Maximum API requests per minute per IP</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+      <button type="button" class="btn-secondary" (click)="resetForm()">↻ Reset</button>
+      <button type="submit" class="btn-primary" [disabled]="isSaving || settingsForm.invalid">
+        {{ isSaving ? '💾 Saving...' : '💾 Save Settings' }}
+      </button>
+    </div>
+  </form>
+
+  <!-- System Information -->
+  <div class="section info-section">
+    <h2>ℹ️ System Information</h2>
+    <div class="info-grid">
+      <div class="info-item">
+        <span class="label">Platform Status</span>
+        <span class="value online">🟢 Online</span>
+      </div>
+      <div class="info-item">
+        <span class="label">Database Status</span>
+        <span class="value online">🟢 Connected</span>
+      </div>
+      <div class="info-item">
+        <span class="label">Last Backup</span>
+        <span class="value">Today at 2:30 AM</span>
+      </div>
+      <div class="info-item">
+        <span class="label">Version</span>
+        <span class="value">1.0.0</span>
+      </div>
+    </div>
+  </div>
+</div>
