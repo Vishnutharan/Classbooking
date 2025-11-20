@@ -1,0 +1,130 @@
+<div class="my-classes-container">
+  <div class="header">
+    <h1>👥 My Classes</h1>
+    <div class="header-controls">
+      <select [(ngModel)]="statusFilter" (change)="onFilterChange()" class="filter-select">
+        <option *ngFor="let status of statuses">{{ status }}</option>
+      </select>
+
+      <div class="view-toggle">
+        <button [class.active]="viewMode === 'list'" (click)="viewMode = 'list'" title="List View">📋</button>
+        <button [class.active]="viewMode === 'calendar'" (click)="viewMode = 'calendar'" title="Calendar View">📅</button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-spinner"></div>
+
+  <!-- List View -->
+  <div class="classes-list" *ngIf="viewMode === 'list' && !isLoading">
+    <div *ngIf="filteredClasses.length === 0" class="empty-state">
+      <p>No classes found matching your criteria.</p>
+    </div>
+
+    <div class="class-item" *ngFor="let cls of filteredClasses" [class]="'status-' + getClassStatus(cls).toLowerCase()">
+      <div class="class-info">
+        <h3>{{ cls.subject }}</h3>
+        <p><strong>Student ID:</strong> {{ cls.studentId }}</p>
+        <p><strong>Date:</strong> {{ cls.date | date:'MMM dd, yyyy' }}</p>
+        <p><strong>Time:</strong> {{ cls.startTime }} - {{ cls.endTime }} ({{ getClassDuration(cls) }} mins)</p>
+        <p><strong>Type:</strong> {{ cls.classType }}</p>
+        <span class="status-badge" [class]="'badge-' + getClassStatus(cls).toLowerCase()">
+          {{ getClassStatus(cls) }}
+        </span>
+      </div>
+
+      <div class="class-actions">
+        <button 
+          *ngIf="getClassStatus(cls) === 'Upcoming'" 
+          class="btn-start"
+          (click)="startClass(cls)"
+        >
+          ▶️ Start Class
+        </button>
+
+        <button 
+          *ngIf="getClassStatus(cls) === 'Upcoming'" 
+          class="btn-complete"
+          (click)="markComplete(cls)"
+        >
+          ✓ Mark Complete
+        </button>
+
+        <button 
+          *ngIf="getClassStatus(cls) !== 'Cancelled'" 
+          class="btn-reschedule"
+          (click)="rescheduleClass(cls)"
+        >
+          📅 Reschedule
+        </button>
+
+        <button 
+          *ngIf="getClassStatus(cls) === 'Upcoming'" 
+          class="btn-cancel"
+          (click)="cancelClass(cls)"
+        >
+          ✕ Cancel
+        </button>
+
+        <button 
+          *ngIf="getClassStatus(cls) === 'Completed'" 
+          class="btn-notes"
+          (click)="openNotesModal(cls)"
+        >
+          📝 Add Notes
+        </button>
+
+        <button class="btn-resources" (click)="openNotesModal(cls)">
+          📤 Resources
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Calendar View -->
+  <div class="calendar-view" *ngIf="viewMode === 'calendar' && !isLoading">
+    <div class="calendar-placeholder">
+      <p>Calendar View - Classes Overview</p>
+      <div class="calendar-grid">
+        <div *ngFor="let cls of filteredClasses" class="calendar-event">
+          <strong>{{ cls.subject }}</strong>
+          <p>{{ cls.date | date:'MMM dd' }}</p>
+          <small>{{ cls.startTime }}</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notes & Resources Modal -->
+  <div class="modal" *ngIf="showNotesModal">
+    <div class="modal-overlay" (click)="closeNotesModal()"></div>
+    <div class="modal-content">
+      <h2>📝 Class Notes & Resources</h2>
+      <p *ngIf="selectedClass"><strong>Subject:</strong> {{ selectedClass.subject }}</p>
+      <p *ngIf="selectedClass"><strong>Date:</strong> {{ selectedClass.date | date:'MMM dd, yyyy' }}</p>
+
+      <div class="notes-section">
+        <label>Class Notes</label>
+        <textarea [(ngModel)]="classNotes" placeholder="Add notes about this class..." rows="4"></textarea>
+      </div>
+
+      <div class="resources-section">
+        <label>📤 Upload Resources</label>
+        <input type="file" multiple (change)="onResourceUpload($event)" />
+        
+        <div class="uploaded-resources" *ngIf="uploadedResources.length > 0">
+          <h4>Uploaded Resources:</h4>
+          <div class="resource-item" *ngFor="let resource of uploadedResources; let i = index">
+            <span>{{ resource.name }} ({{ resource.size }} KB)</span>
+            <button type="button" class="btn-remove" (click)="removeResource(i)">✕</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-secondary" (click)="closeNotesModal()">Close</button>
+        <button class="btn-primary" (click)="saveNotes()">💾 Save</button>
+      </div>
+    </div>
+  </div>
+</div>

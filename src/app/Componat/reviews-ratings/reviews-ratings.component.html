@@ -1,0 +1,159 @@
+<div class="reviews-ratings-container">
+  <div class="header">
+    <h1>⭐ Reviews & Ratings</h1>
+    <p>Student feedback and performance metrics</p>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-spinner"></div>
+
+  <div class="reviews-content" *ngIf="!isLoading">
+    <!-- Rating Summary -->
+    <div class="section rating-summary">
+      <h2>📊 Rating Summary</h2>
+      <div class="summary-grid">
+        <div class="summary-card">
+          <div class="average-rating">
+            <div class="rating-circle">
+              <h3>{{ (averageRating) | number: '1.1-1' }}/5</h3>
+              <div class="stars">
+                <span
+                  *ngFor="let i of [1,2,3,4,5]"
+                  class="star"
+                  [class.filled]="i <= averageRating"
+                >
+                  ★
+                </span>
+              </div>
+            </div>
+            <p>Based on {{ totalReviews }} reviews</p>
+          </div>
+        </div>
+
+        <div class="summary-card">
+          <h3>Rating Distribution</h3>
+          <div class="rating-distribution">
+            <div class="rating-bar" *ngFor="let rating of [5,4,3,2,1]">
+              <span class="label">{{ rating }} ★</span>
+              <div class="bar-container">
+                <div
+                  class="bar-fill"
+                  [style.width.%]="getRatingPercentage(rating)"
+                ></div>
+              </div>
+              <span class="count">{{ getRatingCount(rating) }}</span>
+              <span class="percentage"
+                >({{ getRatingPercentage(rating) }}%)</span
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="section filter-section">
+      <label>Filter by Rating:</label>
+      <div class="filter-buttons">
+        <button
+          *ngFor="let rating of [0,5,4,3,2,1]"
+          [class.active]="selectedRatingFilter === rating"
+          (click)="selectedRatingFilter = rating; onRatingFilterChange()"
+          class="filter-btn"
+        >
+          {{ rating === 0 ? 'All Reviews' : rating + ' ★' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Reviews List -->
+    <div class="section reviews-list">
+      <h2>💬 Student Reviews ({{ filteredReviews.length }})</h2>
+
+      <div *ngIf="filteredReviews.length === 0" class="empty-state">
+        <p>No reviews found with selected filter.</p>
+      </div>
+
+      <div class="review-item" *ngFor="let review of filteredReviews">
+        <div class="review-header">
+          <div class="student-info">
+            <img
+              [src]="review.studentPicture || 'https://via.placeholder.com/50'"
+              alt="{{ review.studentName }}"
+              class="student-pic"
+            />
+            <div class="student-details">
+              <h4>{{ review.studentName }}</h4>
+              <small>{{ review.date | date: 'MMM dd, yyyy' }}</small>
+            </div>
+          </div>
+          <div class="rating-stars">
+            <span
+              *ngFor="let i of [1,2,3,4,5]"
+              class="star"
+              [class.filled]="i <= review.rating"
+            >
+              ★
+            </span>
+          </div>
+        </div>
+
+        <p class="review-text">{{ review.text }}</p>
+
+        <div class="review-actions">
+          <button class="btn-helpful" (click)="markHelpful(review.id)">
+            👍 Helpful ({{ review.helpful }})
+          </button>
+        </div>
+
+        <!-- Reply Section -->
+        <div class="reply-section">
+          <div *ngIf="!replyingToReviewId || replyingToReviewId !== review.id">
+            <button
+              class="btn-reply"
+              *ngIf="!review.reply"
+              (click)="openReplyForm(review.id)"
+            >
+              💬 Reply
+            </button>
+            <div *ngIf="review.reply" class="teacher-reply">
+              <p><strong>Your Reply:</strong></p>
+              <p>{{ review.reply }}</p>
+            </div>
+          </div>
+
+          <div *ngIf="replyingToReviewId === review.id" class="reply-form">
+            <textarea
+              [(ngModel)]="replyText"
+              placeholder="Write your reply..."
+              rows="3"
+            ></textarea>
+            <div class="reply-actions">
+              <button class="btn-cancel" (click)="closeReplyForm()">
+                Cancel
+              </button>
+              <button class="btn-submit" (click)="submitReply()">
+                Post Reply
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats Footer -->
+    <div class="section stats-footer">
+      <div class="stat">
+        <h3>{{ totalReviews }}</h3>
+        <p>Total Reviews</p>
+      </div>
+      <div class="stat">
+        <h3>{{ ratingDistribution[5] }}</h3>
+        <p>5-Star Reviews</p>
+      </div>
+      <div class="stat">
+        <h3>{{ (averageRating) | number: '1.1-1' }}</h3>
+        <p>Average Rating</p>
+      </div>
+    </div>
+  </div>
+</div>

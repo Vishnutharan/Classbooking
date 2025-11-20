@@ -27,13 +27,11 @@ export class AuthComponent implements OnInit {
   isLoading = false;
   errorMessage: string | null = null;
   returnUrl = '/dashboard';
-  showPassword = false; // used in template
+  showPassword = false;
 
   ngOnInit(): void {
-    // read returnUrl from query params (set by AuthGuard)
     this.returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/dashboard';
 
-    // form fields used in your HTML
     this.authForm = this.fb.group({
       fullName: [''],
       email: ['', [Validators.required, Validators.email]],
@@ -44,15 +42,6 @@ export class AuthComponent implements OnInit {
     });
   }
 
-  get email() {
-    return this.authForm.get('email');
-  }
-
-  get password() {
-    return this.authForm.get('password');
-  }
-
-  /** Toggle between login and register modes */
   toggleMode(event?: Event): void {
     if (event) {
       event.preventDefault();
@@ -61,7 +50,6 @@ export class AuthComponent implements OnInit {
     this.errorMessage = null;
   }
 
-  /** Demo credentials buttons in the template */
   useDemoCredentials(role: 'Student' | 'Teacher' | 'Admin'): void {
     this.isLoginMode = true;
 
@@ -81,7 +69,6 @@ export class AuthComponent implements OnInit {
     this.notificationService.showInfo(`${role} demo credentials loaded.`);
   }
 
-  /** Show/hide password in template */
   togglePassword(): void {
     this.showPassword = !this.showPassword;
   }
@@ -109,7 +96,6 @@ export class AuthComponent implements OnInit {
 
           const role = response.user.role;
 
-          // default target route by role
           let defaultRoute = '/dashboard';
           if (role === 'Student') {
             defaultRoute = '/dashboard/student';
@@ -119,7 +105,6 @@ export class AuthComponent implements OnInit {
             defaultRoute = '/dashboard/admin';
           }
 
-          // avoid redirecting back to /auth as returnUrl
           const target =
             this.returnUrl && this.returnUrl !== '/auth'
               ? this.returnUrl
@@ -140,7 +125,6 @@ export class AuthComponent implements OnInit {
         }
       });
     } else {
-      // Register mode
       const { confirmPassword, ...registerData } = formValue;
 
       if (registerData.password !== confirmPassword) {

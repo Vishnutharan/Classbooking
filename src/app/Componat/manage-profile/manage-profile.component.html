@@ -1,0 +1,191 @@
+<div class="manage-profile-container">
+  <div class="header">
+    <h1>👤 Manage Profile</h1>
+    <p>Update your profile information and qualifications</p>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-spinner">Loading profile...</div>
+
+  <div class="profile-content" *ngIf="!isLoading">
+    <div class="section profile-pic-section">
+      <h2>📸 Profile Picture</h2>
+      <div class="pic-container">
+        <img 
+          [src]="profilePicture || 'https://via.placeholder.com/150'" 
+          alt="Profile Picture"
+          class="profile-pic"
+        />
+        <div class="pic-upload"
+          (dragover)="onDragOver($event)"
+          (drop)="onDrop($event)">
+          <p>📤 Drag & drop image here or click to upload</p>
+          <input type="file" accept="image/*" (change)="onProfilePictureChange($event)" class="file-input" />
+        </div>
+      </div>
+    </div>
+
+    <form [formGroup]="profileForm" (ngSubmit)="saveProfile()" class="section profile-form">
+      <h2>📝 Basic Information</h2>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="fullName">Full Name</label>
+          <input id="fullName" type="text" formControlName="fullName" class="form-control" placeholder="Enter your full name">
+          <span class="error-message" *ngIf="profileForm.get('fullName')?.invalid && profileForm.get('fullName')?.touched">
+            Name is required (min 2 characters)
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input id="email" type="email" formControlName="email" class="form-control" placeholder="Enter your email">
+          <span class="error-message" *ngIf="profileForm.get('email')?.invalid && profileForm.get('email')?.touched">
+            Valid email is required
+          </span>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="phoneNumber">Phone Number</label>
+          <input id="phoneNumber" type="tel" formControlName="phoneNumber" class="form-control" placeholder="+94 XX XXX XXXX">
+          <span class="error-message" *ngIf="profileForm.get('phoneNumber')?.invalid && profileForm.get('phoneNumber')?.touched">
+            Phone number is required
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label for="hourlyRate">Hourly Rate (LKR)</label>
+          <input id="hourlyRate" type="number" formControlName="hourlyRate" class="form-control" placeholder="e.g., 500" min="0">
+          <span class="error-message" *ngIf="profileForm.get('hourlyRate')?.invalid && profileForm.get('hourlyRate')?.touched">
+            Valid hourly rate is required
+          </span>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="experienceYears">Experience (Years)</label>
+          <input id="experienceYears" type="number" formControlName="experienceYears" class="form-control" placeholder="e.g., 5" min="0">
+          <span class="error-message" *ngIf="profileForm.get('experienceYears')?.invalid && profileForm.get('experienceYears')?.touched">
+            Valid experience years is required
+          </span>
+        </div>
+      </div>
+
+      <div class="form-group full-width">
+        <label for="bio">Bio</label>
+        <textarea id="bio" formControlName="bio" class="form-control textarea" rows="4" placeholder="Tell students about yourself..."></textarea>
+      </div>
+
+      <button type="submit" class="btn-save" [disabled]="isSaving || profileForm.invalid">
+        {{ isSaving ? '💾 Saving...' : '💾 Save Changes' }}
+      </button>
+    </form>
+
+    <div class="section">
+      <h2>🎓 Qualifications</h2>
+      
+      <div class="qualifications-list" *ngIf="qualifications.length > 0">
+        <div class="qualification-item" *ngFor="let qual of qualifications; let i = index">
+          <span>{{ qual }}</span>
+          <button type="button" class="btn-remove" (click)="removeQualification(i)" title="Remove">✕</button>
+        </div>
+      </div>
+
+      <div class="add-qualification">
+        <input 
+          type="text" 
+          [(ngModel)]="newQualification"
+          placeholder="e.g., Bachelor of Science in Mathematics"
+          class="form-control"
+        />
+        <button type="button" class="btn-add" (click)="addQualification()">+ Add Qualification</button>
+      </div>
+
+      <div *ngIf="qualifications.length === 0" class="empty-message">
+        <p>No qualifications added yet.</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>📚 Subjects & Levels</h2>
+      
+      <div class="subjects-grid" *ngIf="subjects.length > 0">
+        <div class="subject-card" *ngFor="let subject of subjects; let i = index">
+          <div class="subject-header">
+            <h4>{{ subject.name }}</h4>
+            <button type="button" class="btn-remove-subject" (click)="removeSubject(i)" title="Remove">✕</button>
+          </div>
+          <p class="subject-meta">
+            <span class="badge medium">{{ subject.medium }}</span>
+            <span class="badge level">{{ subject.level }}</span>
+          </p>
+        </div>
+      </div>
+
+      <div *ngIf="subjects.length === 0" class="empty-message">
+        <p>No subjects added yet.</p>
+      </div>
+
+      <div class="add-subject-form">
+        <h3>Add New Subject</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="subjectName">Subject Name</label>
+            <input 
+              id="subjectName"
+              type="text" 
+              [(ngModel)]="newSubject.name"
+              class="form-control"
+              placeholder="e.g., Mathematics"
+            >
+          </div>
+          <div class="form-group">
+            <label for="medium">Medium</label>
+            <select 
+              id="medium" 
+              [(ngModel)]="newSubject.medium"
+              class="form-control"
+            >
+              <option *ngFor="let medium of mediums" [value]="medium">{{ medium }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="level">Level</label>
+            <select 
+              id="level" 
+              [(ngModel)]="newSubject.level"
+              class="form-control"
+            >
+              <option *ngFor="let level of levels" [value]="level">{{ level }}</option>
+            </select>
+          </div>
+        </div>
+        <button type="button" class="btn-add" (click)="addSubject()">+ Add Subject</button>
+      </div>
+    </div>
+
+    <div class="section verification-section">
+      <h2>✓ Verification Status</h2>
+      <div class="status-info">
+        <p>
+          <strong>Status:</strong> 
+          <span class="badge verification-badge" [ngClass]="'status-' + (teacher?.verificationStatus || 'pending' | lowercase)">
+            {{ teacher?.verificationStatus || 'Pending' }}
+          </span>
+        </p>
+        <p><strong>Member Since:</strong> {{ teacher?.createdAt | date:'MMM yyyy' }}</p>
+      </div>
+      
+      <div class="document-upload" *ngIf="teacher?.verificationStatus === 'Pending'">
+        <h3>📄 Upload Documents</h3>
+        <div class="upload-area">
+            <p>Select your qualification documents</p>
+            <input type="file" multiple accept=".pdf,.jpg,.png,.jpeg" />
+            <button type="button" class="btn-secondary">📤 Upload Documents</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

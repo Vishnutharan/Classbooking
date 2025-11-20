@@ -7,27 +7,28 @@ import { RenderMode, ServerRoute } from '@angular/ssr';
  * Use SSR runtime only for these routes.
  */
 export const serverRoutes: ServerRoute[] = [
-  // Student + teacher dashboard
+  // Student Dashboards
   { path: 'dashboard', renderMode: RenderMode.Server },
   { path: 'dashboard/student', renderMode: RenderMode.Server },
+
+  // Teacher Dashboards & Components
   { path: 'dashboard/teacher', renderMode: RenderMode.Server },
-
-  // Bookings
-  { path: 'my-bookings', renderMode: RenderMode.Server },
+  { path: 'manage-profile', renderMode: RenderMode.Server },
+  { path: 'manage-schedule', renderMode: RenderMode.Server },
   { path: 'my-classes', renderMode: RenderMode.Server },
+  { path: 'reviews-ratings', renderMode: RenderMode.Server },
+  { path: 'resources-upload', renderMode: RenderMode.Server },
 
-  // Booking, reschedule, cancel, review
+  // Student Bookings & Learning
+  { path: 'my-bookings', renderMode: RenderMode.Server },
   { path: 'book-class', renderMode: RenderMode.Server },
-
-  // Student learning content
   { path: 'exam-preparation', renderMode: RenderMode.Server },
   { path: 'educational-content', renderMode: RenderMode.Server },
 
-  // Teacher profile (dynamic)
+  // Teacher & Student Profiles
   { path: 'teacher-profile/:id', renderMode: RenderMode.Server },
 
   // Misc pages calling APIs
-  { path: 'manage-profile', renderMode: RenderMode.Server },
   { path: 'support', renderMode: RenderMode.Server },
   { path: 'settings', renderMode: RenderMode.Server },
 

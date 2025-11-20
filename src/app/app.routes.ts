@@ -56,39 +56,40 @@ export const routes: Routes = [
     loadComponent: () => import('./Componat/teacher-profile/teacher-profile.component').then(m => m.TeacherProfileComponent)
   },
   {
-    path: 'manage-profile',
-    canActivate: [AuthGuard],
-    loadComponent: () => import('./Componat/teacher-profile/teacher-profile.component').then(m => m.TeacherProfileComponent)
-  },
-  {
     path: 'dashboard/teacher',
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['Teacher'] },
-    loadComponent: () => import('./Componat/student-dashboard/student-dashboard.component').then(m => m.StudentDashboardComponent)
+    loadComponent: () => import('./Componat/teacher-dashboard/teacher-dashboard.component').then(m => m.TeacherDashboardComponent)
+  },
+  {
+    path: 'manage-profile',
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['Teacher', 'Student'] },
+    loadComponent: () => import('./Componat/manage-profile/manage-profile.component').then(m => m.ManageProfileComponent)
   },
   {
     path: 'manage-schedule',
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['Teacher'] },
-    loadComponent: () => import('./Componat/student-dashboard/student-dashboard.component').then(m => m.StudentDashboardComponent)
+    loadComponent: () => import('./Componat/manage-schedule/manage-schedule.component').then(m => m.ManageScheduleComponent)
   },
   {
     path: 'my-classes',
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['Teacher'] },
-    loadComponent: () => import('./Componat/my-bookings/my-bookings.component').then(m => m.MyBookingsComponent)
+    loadComponent: () => import('./Componat/my-classes/my-classes.component').then(m => m.MyClassesComponent)
   },
   {
     path: 'reviews-ratings',
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['Teacher'] },
-    loadComponent: () => import('./Componat/student-dashboard/student-dashboard.component').then(m => m.StudentDashboardComponent)
+    loadComponent: () => import('./Componat/reviews-ratings/reviews-ratings.component').then(m => m.ReviewsRatingsComponent)
   },
   {
     path: 'resources-upload',
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['Teacher'] },
-    loadComponent: () => import('./Componat/student-dashboard/student-dashboard.component').then(m => m.StudentDashboardComponent)
+    loadComponent: () => import('./Componat/resources-upload/resources-upload.component').then(m => m.ResourcesUploadComponent)
   },
   {
     path: 'dashboard/admin',

@@ -42,7 +42,6 @@ export class NavbarComponent implements OnInit, OnDestroy {
       this.currentUser = user;
     });
 
-    // Only add document listener in browser
     if (this.isBrowser) {
       this.clickListener = (event: MouseEvent) => this.handleDocumentClick(event);
       document.addEventListener('click', this.clickListener as EventListener);
@@ -50,7 +49,6 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    // Clean up event listener
     if (this.isBrowser && this.clickListener) {
       document.removeEventListener('click', this.clickListener as EventListener);
     }
@@ -74,7 +72,6 @@ export class NavbarComponent implements OnInit, OnDestroy {
   onSearch(): void {
     if (this.searchQuery.trim()) {
       this.notificationService.showInfo(`Searching for: ${this.searchQuery}`);
-      // Implement search functionality
     }
   }
 

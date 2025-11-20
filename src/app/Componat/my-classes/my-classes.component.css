@@ -1,0 +1,516 @@
+:host {
+  display: block;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #111827;
+}
+
+/* Container */
+
+.my-classes-container {
+  max-width: 1100px;
+  margin: 24px auto;
+  padding: 24px;
+  background: #f9fafb;
+  border-radius: 16px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+  box-sizing: border-box;
+}
+
+/* Header */
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 1.8rem;
+  color: #111827;
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Filter select */
+
+.filter-select {
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  font-size: 0.9rem;
+  color: #111827;
+  outline: none;
+}
+
+.filter-select:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.25);
+}
+
+/* View toggle */
+
+.view-toggle {
+  display: inline-flex;
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  overflow: hidden;
+  background: #f3f4f6;
+}
+
+.view-toggle button {
+  border: none;
+  padding: 6px 10px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.view-toggle button.active {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+/* Loading spinner */
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 4px solid #e5e7eb;
+  border-top-color: #3b82f6;
+  animation: spin 0.8s linear infinite;
+  margin: 32px auto;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Classes list */
+
+.classes-list {
+  margin-top: 4px;
+}
+
+/* Empty state */
+
+.empty-state {
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px dashed #d1d5db;
+  background: #f9fafb;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+/* Class item */
+
+.class-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  transition: box-shadow 0.15s ease, transform 0.05s ease, border-color 0.15s ease;
+}
+
+.class-item:hover {
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
+  transform: translateY(-1px);
+  border-color: #d1d5db;
+}
+
+.class-info h3 {
+  margin: 0 0 4px;
+  font-size: 1rem;
+  color: #111827;
+}
+
+.class-info p {
+  margin: 2px 0;
+  font-size: 0.9rem;
+  color: #374151;
+}
+
+/* Status highlighting of row (optional) */
+
+.status-upcoming {
+  border-left: 4px solid #2563eb;
+}
+
+.status-completed {
+  border-left: 4px solid #16a34a;
+}
+
+.status-cancelled {
+  border-left: 4px solid #b91c1c;
+}
+
+/* Status badge */
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+.badge-upcoming {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.badge-completed {
+  background: #ecfdf5;
+  color: #15803d;
+}
+
+.badge-cancelled {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+/* Actions */
+
+.class-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-end;
+  min-width: 170px;
+}
+
+.class-actions button {
+  border-radius: 999px;
+  border: none;
+  padding: 5px 10px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+/* Individual action styles */
+
+.btn-start {
+  background: #22c55e;
+  color: #ffffff;
+}
+
+.btn-start:hover {
+  background: #16a34a;
+}
+
+.btn-complete {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.btn-complete:hover {
+  background: #1d4ed8;
+}
+
+.btn-reschedule {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.btn-reschedule:hover {
+  background: #e5e7eb;
+}
+
+.btn-cancel {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.btn-cancel:hover {
+  background: #fecaca;
+}
+
+.btn-notes {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.btn-notes:hover {
+  background: #fde68a;
+}
+
+.btn-resources {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.btn-resources:hover {
+  background: #dbeafe;
+}
+
+/* Calendar view */
+
+.calendar-view {
+  margin-top: 4px;
+}
+
+.calendar-placeholder {
+  border-radius: 12px;
+  border: 1px dashed #d1d5db;
+  background: #f9fafb;
+  padding: 16px;
+}
+
+.calendar-placeholder p {
+  margin: 0 0 10px;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+}
+
+.calendar-event {
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  padding: 8px 10px;
+  font-size: 0.9rem;
+}
+
+.calendar-event strong {
+  display: block;
+  margin-bottom: 2px;
+}
+
+.calendar-event p {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.calendar-event small {
+  color: #6b7280;
+}
+
+/* Modal */
+
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.modal-content {
+  position: relative;
+  z-index: 50;
+  width: 100%;
+  max-width: 520px;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 18px 20px 16px;
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.4);
+  box-sizing: border-box;
+}
+
+.modal-content h2 {
+  margin: 0 0 8px;
+  font-size: 1.4rem;
+}
+
+.modal-content p {
+  margin: 2px 0;
+  font-size: 0.9rem;
+  color: #4b5563;
+}
+
+/* Notes & resources sections */
+
+.notes-section,
+.resources-section {
+  margin-top: 10px;
+}
+
+.notes-section label,
+.resources-section label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.notes-section textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 80px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  font-size: 0.9rem;
+  font-family: inherit;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.notes-section textarea:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.22);
+}
+
+.resources-section input[type="file"] {
+  font-size: 0.85rem;
+  margin-bottom: 8px;
+}
+
+/* Uploaded resources list */
+
+.uploaded-resources {
+  margin-top: 6px;
+  border-radius: 10px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  padding: 8px 10px;
+}
+
+.uploaded-resources h4 {
+  margin: 0 0 6px;
+  font-size: 0.9rem;
+  color: #111827;
+}
+
+.resource-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  padding: 4px 0;
+}
+
+.btn-remove {
+  border-radius: 999px;
+  border: none;
+  padding: 2px 8px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.btn-remove:hover {
+  background: #fecaca;
+}
+
+/* Modal actions */
+
+.modal-actions {
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.btn-secondary,
+.btn-primary {
+  border-radius: 999px;
+  border: none;
+  padding: 6px 14px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-secondary {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+.btn-secondary:hover {
+  background: #d1d5db;
+}
+
+.btn-primary {
+  background: #2563eb;
+  color: #ffffff;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.25);
+}
+
+.btn-primary:hover {
+  background: #1d4ed8;
+}
+
+/* Responsive */
+
+@media (max-width: 768px) {
+  .my-classes-container {
+    margin: 12px;
+    padding: 16px;
+  }
+
+  .header {
+    align-items: flex-start;
+  }
+
+  .class-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .class-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  .modal-content {
+    margin: 0 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-controls {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .class-actions button {
+    flex: 1 1 calc(50% - 6px);
+    justify-content: center;
+  }
+}

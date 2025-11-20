@@ -1,0 +1,143 @@
+<div class="manage-schedule-container">
+  <div class="header">
+    <h1>📅 Manage Schedule</h1>
+    <p>Set your availability and working hours</p>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-spinner"></div>
+
+  <div class="schedule-content" *ngIf="!isLoading">
+    <!-- Availability Table -->
+    <div class="section">
+      <h2>⏰ Weekly Availability</h2>
+      <div class="schedule-table-wrapper">
+        <table class="schedule-table">
+          <thead>
+            <tr>
+              <th>Day</th>
+              <th>Start Time</th>
+              <th>End Time</th>
+              <th>Hours</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let day of days">
+              <td><strong>{{ day }}</strong></td>
+
+              <td>
+                <input
+                  type="time"
+                  [value]="availability[day]?.startTime"
+                  (change)="updateSlot(day, 'startTime', $any($event.target).value)"
+                  class="time-input"
+                />
+              </td>
+
+              <td>
+                <input
+                  type="time"
+                  [value]="availability[day]?.endTime"
+                  (change)="updateSlot(day, 'endTime', $any($event.target).value)"
+                  class="time-input"
+                />
+              </td>
+
+              <td>
+                <span class="hours-display">
+                  {{ getHoursForDay(day) }} hrs
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Bulk Copy Section -->
+    <div class="section copy-section">
+      <h2>📋 Bulk Copy Availability</h2>
+      <div class="copy-form">
+        <div class="form-group">
+          <label>Copy From Day</label>
+          <select [(ngModel)]="copyFromDay" class="form-control">
+            <option *ngFor="let day of days">{{ day }}</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Copy To Days</label>
+          <div class="days-selection">
+            <label *ngFor="let day of days" class="checkbox-label">
+              <input
+                type="checkbox"
+                [checked]="selectedDaysForCopy.includes(day)"
+                (change)="toggleDay(day)"
+              />
+              {{ day }}
+            </label>
+          </div>
+        </div>
+
+        <button type="button" class="btn-copy" (click)="copyAvailability()">
+          📋 Copy Availability
+        </button>
+      </div>
+    </div>
+
+    <!-- Break Management -->
+    <div class="section">
+      <h2>☕ Break Time Management</h2>
+      <div class="break-info">
+        <p>Configure break times to avoid scheduling conflicts</p>
+      </div>
+      <div class="break-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Break Start Time</label>
+            <input type="time" class="form-control" value="12:00" />
+          </div>
+          <div class="form-group">
+            <label>Break End Time</label>
+            <input type="time" class="form-control" value="13:00" />
+          </div>
+          <button type="button" class="btn-secondary">+ Add Break</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Visual Calendar -->
+    <div class="section">
+      <h2>📆 Visual Calendar</h2>
+      <div class="calendar-view">
+        <div class="calendar-placeholder">
+          <p>Availability Calendar View</p>
+          <div class="calendar-grid">
+            <div *ngFor="let day of days" class="calendar-day">
+              <h4>{{ day }}</h4>
+              <div class="available-badge">✓ Available</div>
+              <p>
+                {{ availability[day]?.startTime }} -
+                {{ availability[day]?.endTime }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+      <button
+        type="button"
+        class="btn-primary"
+        (click)="saveSchedule()"
+        [disabled]="isSaving"
+      >
+        {{ isSaving ? '💾 Saving...' : '💾 Save Schedule' }}
+      </button>
+      <button type="button" class="btn-secondary">
+        🔄 Reset to Default
+      </button>
+    </div>
+  </div>
+</div>

@@ -62,7 +62,6 @@ export class SidebarComponent implements OnInit {
       this.updateMenu();
     });
 
-    // Check screen size for initial collapsed state only in browser
     if (this.isBrowser && window.innerWidth <= 1024) {
       this.isCollapsed = true;
     }

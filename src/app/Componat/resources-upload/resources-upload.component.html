@@ -1,0 +1,143 @@
+<div class="resources-upload-container">
+  <div class="header">
+    <h1>📤 Upload Resources</h1>
+    <p>Share study materials with your students</p>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-spinner"></div>
+
+  <div class="upload-content" *ngIf="!isLoading">
+    <!-- Upload Form -->
+    <form [formGroup]="uploadForm" (ngSubmit)="uploadResource()" class="section upload-section">
+      <h2>📋 Upload New Resource</h2>
+
+      <!-- File Upload Area -->
+      <div class="upload-area"
+        (dragover)="onDragOver($event)"
+        (dragleave)="onDragLeave($event)"
+        (drop)="onDrop($event)"
+        [class.drag-over]="dragOverActive"
+      >
+        <div class="upload-icon">📁</div>
+        <p class="upload-text">Drag & drop files here or click to browse</p>
+        <input type="file" class="file-input" (change)="onFileSelected($event)" />
+        <span *ngIf="selectedFile" class="file-selected">✓ {{ selectedFile.name }}</span>
+      </div>
+
+      <!-- Resource Details -->
+      <div class="form-section">
+        <div class="form-group">
+          <label>Resource Title *</label>
+          <input type="text" formControlName="title" class="form-control" placeholder="e.g., Chapter 5 - Algebra Basics">
+          <span class="error-message" *ngIf="uploadForm.get('title')?.invalid && uploadForm.get('title')?.touched">
+            Title is required (min 3 characters)
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label>Description *</label>
+          <textarea formControlName="description" class="form-control" rows="3" placeholder="Describe the resource..."></textarea>
+          <span class="error-message" *ngIf="uploadForm.get('description')?.invalid && uploadForm.get('description')?.touched">
+            Description is required (min 10 characters)
+          </span>
+        </div>
+      </div>
+
+      <!-- Resource Type & Subject -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>File Type *</label>
+          <select formControlName="type" class="form-control">
+            <option *ngFor="let type of fileTypes">{{ type }}</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Subject *</label>
+          <select formControlName="subject" class="form-control">
+            <option *ngFor="let subject of subjects">{{ subject }}</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Level *</label>
+          <select formControlName="level" class="form-control">
+            <option *ngFor="let level of levels">{{ level }}</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Visibility Toggle -->
+      <div class="form-group checkbox-group">
+        <label class="checkbox-label">
+          <input type="checkbox" formControlName="isPublic" />
+          <span>Make this resource public (visible to all students)</span>
+        </label>
+      </div>
+
+      <!-- Progress Bar -->
+      <div *ngIf="isUploading" class="progress-section">
+        <div class="progress-bar">
+          <div class="progress-fill" [style.width.%]="uploadProgress"></div>
+        </div>
+        <p class="progress-text">Uploading... {{ uploadProgress }}%</p>
+      </div>
+
+      <!-- Upload Button -->
+      <button type="submit" class="btn-upload" [disabled]="isUploading">
+        {{ isUploading ? '⏳ Uploading...' : '📤 Upload Resource' }}
+      </button>
+    </form>
+
+    <!-- Uploaded Resources List -->
+    <div class="section resources-list-section">
+      <h2>📚 Your Resources ({{ resources.length }})</h2>
+
+      <div *ngIf="resources.length === 0" class="empty-state">
+        <p>No resources uploaded yet. Start by uploading your first resource!</p>
+      </div>
+
+      <div class="resources-table" *ngIf="resources.length > 0">
+        <div class="table-header">
+          <div class="col-title">Title</div>
+          <div class="col-type">Type</div>
+          <div class="col-subject">Subject</div>
+          <div class="col-level">Level</div>
+          <div class="col-date">Uploaded</div>
+          <div class="col-size">Size</div>
+          <div class="col-visibility">Visibility</div>
+          <div class="col-actions">Actions</div>
+        </div>
+
+        <div class="table-row" *ngFor="let resource of resources">
+          <div class="col-title">
+            <strong>{{ resource.title }}</strong>
+            <p class="description">{{ resource.description | slice:0:50 }}...</p>
+          </div>
+          <div class="col-type">
+            <span class="badge">{{ resource.type }}</span>
+          </div>
+          <div class="col-subject">{{ resource.subject }}</div>
+          <div class="col-level">{{ resource.level }}</div>
+          <div class="col-date">{{ resource.uploadedAt | date:'MMM dd, yyyy' }}</div>
+          <div class="col-size">{{ getFileSizeDisplay(resource.fileSize) }}</div>
+          <div class="col-visibility">
+            <button 
+              class="btn-visibility"
+              [class.public]="resource.isPublic"
+              [class.private]="!resource.isPublic"
+              (click)="toggleVisibility(resource)"
+            >
+              {{ resource.isPublic ? '🌍 Public' : '🔒 Private' }}
+            </button>
+          </div>
+          <div class="col-actions">
+            <button class="btn-icon" (click)="downloadResource(resource)" title="Download">⬇️</button>
+            <button class="btn-icon" (click)="editResource(resource)" title="Edit">✏️</button>
+            <button class="btn-icon delete" (click)="deleteResource(resource.id)" title="Delete">🗑️</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
