@@ -2,8 +2,9 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { StudentService } from '../../services/student.service';
-import { TeacherProfile, TeacherService } from '../../services/teacher.service';
-import { ClassBooking, ClassBookingService } from '../../services/class-booking.service';
+import { TeacherService } from '../../services/teacher.service';
+import { ClassBookingService } from '../../services/class-booking.service';
+import { TeacherProfile, ClassBooking } from '../../models/shared.models';
 
 @Component({
   selector: 'app-student-dashboard',
@@ -80,11 +81,11 @@ export class StudentDashboardComponent implements OnInit {
   }
 
   viewExamMaterials(): void {
-    this.router.navigate(['/exam-preparation']);
+    this.router.navigate(['/exam-materials']);
   }
 
   seePastPapers(): void {
-    this.router.navigate(['/exam-preparation']);
+    this.router.navigate(['/past-papers']);
   }
 
   viewTeacherProfile(teacherId: string): void {

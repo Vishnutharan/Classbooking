@@ -3,18 +3,19 @@ import { Component, inject, OnInit } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { NavbarComponent } from '../navbar/navbar.component';
 import { SidebarComponent } from '../sidebar/sidebar.component';
-import { AuthService, User } from '../../services/auth.service';
+import { AuthService } from '../../services/auth.service';
+import { User } from '../../models/shared.models';
 
 @Component({
   selector: 'app-dashboard',
   imports: [CommonModule, RouterModule, NavbarComponent, SidebarComponent],
-    templateUrl: './dashboard.component.html',
+  templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
 })
 export class DashboardComponent implements OnInit {
   private authService = inject(AuthService);
   private router = inject(Router);
-  
+
   currentUser: User | null = null;
 
   ngOnInit(): void {

@@ -1,24 +1,8 @@
-import { Injectable, inject, PLATFORM_ID } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
 import { Observable, BehaviorSubject, of, throwError } from 'rxjs';
-import { delay, tap } from 'rxjs/operators';
-
-export interface ClassBooking {
-  id: string;
-  studentId: string;
-  teacherId: string;
-  subject: string;
-  date: Date;
-  startTime: string;
-  endTime: string;
-  status: 'Pending' | 'Confirmed' | 'Cancelled' | 'Completed';
-  classType: 'OneTime' | 'Recurring';
-  recurringDays?: string[]; // For recurring classes
-  notes?: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import { delay } from 'rxjs/operators';
+import { DemoDataService } from './demo-data.service';
+import { ClassBooking } from '../models/shared.models';
 
 export interface BookingRequest {
   teacherId: string;
@@ -41,57 +25,26 @@ export interface BookingResponse {
   providedIn: 'root'
 })
 export class ClassBookingService {
-  private http = inject(HttpClient);
-  private platformId = inject(PLATFORM_ID);
-  private isBrowser: boolean;
-  private apiUrl = 'api/bookings';
-  private STORAGE_KEY = 'mock_bookings';
-
-  private bookingsSubject = new BehaviorSubject<ClassBooking[]>([]);
-  bookings$ = this.bookingsSubject.asObservable();
-
-  constructor() {
-    this.isBrowser = isPlatformBrowser(this.platformId);
-    this.loadBookingsFromStorage();
-  }
-
-  private loadBookingsFromStorage() {
-    if (this.isBrowser) {
-      const stored = localStorage.getItem(this.STORAGE_KEY);
-      if (stored) {
-        const bookings = JSON.parse(stored).map((b: any) => ({
-          ...b,
-          date: new Date(b.date),
-          createdAt: new Date(b.createdAt),
-          updatedAt: new Date(b.updatedAt)
-        }));
-        this.bookingsSubject.next(bookings);
-      }
-    }
-  }
-
-  private saveBookingsToStorage(bookings: ClassBooking[]) {
-    if (this.isBrowser) {
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(bookings));
-      this.bookingsSubject.next(bookings);
-    }
-  }
+  private demoData = inject(DemoDataService);
 
   getStudentBookings(): Observable<ClassBooking[]> {
-    // Return all bookings for now as we are simulating a single user environment mostly
-    return of(this.bookingsSubject.value).pipe(delay(500));
+    // Filter for current student (mock: student-1)
+    const bookings = this.demoData.getBookings().filter(b => b.studentId === 'student-1');
+    return of(bookings).pipe(delay(500));
   }
 
   getTeacherBookings(): Observable<ClassBooking[]> {
-    return of(this.bookingsSubject.value).pipe(delay(500));
+    // Filter for current teacher (mock: teacher-1)
+    const bookings = this.demoData.getBookings().filter(b => b.teacherId === 'teacher-1');
+    return of(bookings).pipe(delay(500));
   }
 
   getAllBookings(): Observable<ClassBooking[]> {
-    return of(this.bookingsSubject.value).pipe(delay(500));
+    return of(this.demoData.getBookings()).pipe(delay(500));
   }
 
   getBookingById(id: string): Observable<ClassBooking> {
-    const booking = this.bookingsSubject.value.find(b => b.id === id);
+    const booking = this.demoData.getBookings().find(b => b.id === id);
     if (!booking) return throwError(() => new Error('Booking not found'));
     return of(booking).pipe(delay(300));
   }
@@ -99,7 +52,7 @@ export class ClassBookingService {
   createBooking(request: BookingRequest): Observable<BookingResponse> {
     const newBooking: ClassBooking = {
       id: 'bk-' + Date.now(),
-      studentId: 'current-user-id', // Mock ID
+      studentId: 'student-1', // Mock ID
       teacherId: request.teacherId,
       subject: request.subject,
       date: request.date,
@@ -113,9 +66,7 @@ export class ClassBookingService {
       updatedAt: new Date()
     };
 
-    const currentBookings = this.bookingsSubject.value;
-    const updatedBookings = [...currentBookings, newBooking];
-    this.saveBookingsToStorage(updatedBookings);
+    this.demoData.addBooking(newBooking);
 
     return of({
       success: true,
@@ -125,19 +76,16 @@ export class ClassBookingService {
   }
 
   updateBooking(id: string, request: Partial<BookingRequest>): Observable<BookingResponse> {
-    const currentBookings = this.bookingsSubject.value;
-    const index = currentBookings.findIndex(b => b.id === id);
-
-    if (index === -1) return throwError(() => new Error('Booking not found'));
+    const booking = this.demoData.getBookings().find(b => b.id === id);
+    if (!booking) return throwError(() => new Error('Booking not found'));
 
     const updatedBooking = {
-      ...currentBookings[index],
+      ...booking,
       ...request,
       updatedAt: new Date()
     };
 
-    currentBookings[index] = updatedBooking;
-    this.saveBookingsToStorage(currentBookings);
+    this.demoData.updateBooking(updatedBooking);
 
     return of({
       success: true,
@@ -147,19 +95,16 @@ export class ClassBookingService {
   }
 
   cancelBooking(id: string, reason?: string): Observable<BookingResponse> {
-    const currentBookings = this.bookingsSubject.value;
-    const index = currentBookings.findIndex(b => b.id === id);
+    const booking = this.demoData.getBookings().find(b => b.id === id);
+    if (!booking) return throwError(() => new Error('Booking not found'));
 
-    if (index === -1) return throwError(() => new Error('Booking not found'));
-
-    const updatedBooking = {
-      ...currentBookings[index],
-      status: 'Cancelled' as const,
+    const updatedBooking: ClassBooking = {
+      ...booking,
+      status: 'Cancelled',
       updatedAt: new Date()
     };
 
-    currentBookings[index] = updatedBooking;
-    this.saveBookingsToStorage(currentBookings);
+    this.demoData.updateBooking(updatedBooking);
 
     return of({
       success: true,
@@ -169,19 +114,16 @@ export class ClassBookingService {
   }
 
   confirmBooking(id: string): Observable<BookingResponse> {
-    const currentBookings = this.bookingsSubject.value;
-    const index = currentBookings.findIndex(b => b.id === id);
+    const booking = this.demoData.getBookings().find(b => b.id === id);
+    if (!booking) return throwError(() => new Error('Booking not found'));
 
-    if (index === -1) return throwError(() => new Error('Booking not found'));
-
-    const updatedBooking = {
-      ...currentBookings[index],
-      status: 'Confirmed' as const,
+    const updatedBooking: ClassBooking = {
+      ...booking,
+      status: 'Confirmed',
       updatedAt: new Date()
     };
 
-    currentBookings[index] = updatedBooking;
-    this.saveBookingsToStorage(currentBookings);
+    this.demoData.updateBooking(updatedBooking);
 
     return of({
       success: true,
@@ -191,19 +133,16 @@ export class ClassBookingService {
   }
 
   completeBooking(id: string): Observable<BookingResponse> {
-    const currentBookings = this.bookingsSubject.value;
-    const index = currentBookings.findIndex(b => b.id === id);
+    const booking = this.demoData.getBookings().find(b => b.id === id);
+    if (!booking) return throwError(() => new Error('Booking not found'));
 
-    if (index === -1) return throwError(() => new Error('Booking not found'));
-
-    const updatedBooking = {
-      ...currentBookings[index],
-      status: 'Completed' as const,
+    const updatedBooking: ClassBooking = {
+      ...booking,
+      status: 'Completed',
       updatedAt: new Date()
     };
 
-    currentBookings[index] = updatedBooking;
-    this.saveBookingsToStorage(currentBookings);
+    this.demoData.updateBooking(updatedBooking);
 
     return of({
       success: true,
@@ -226,22 +165,19 @@ export class ClassBookingService {
   }
 
   rescheduleBooking(id: string, newDate: Date, newStartTime: string, newEndTime: string): Observable<BookingResponse> {
-    const currentBookings = this.bookingsSubject.value;
-    const index = currentBookings.findIndex(b => b.id === id);
+    const booking = this.demoData.getBookings().find(b => b.id === id);
+    if (!booking) return throwError(() => new Error('Booking not found'));
 
-    if (index === -1) return throwError(() => new Error('Booking not found'));
-
-    const updatedBooking = {
-      ...currentBookings[index],
+    const updatedBooking: ClassBooking = {
+      ...booking,
       date: newDate,
       startTime: newStartTime,
       endTime: newEndTime,
-      status: 'Confirmed' as const,
+      status: 'Confirmed',
       updatedAt: new Date()
     };
 
-    currentBookings[index] = updatedBooking;
-    this.saveBookingsToStorage(currentBookings);
+    this.demoData.updateBooking(updatedBooking);
 
     return of({
       success: true,

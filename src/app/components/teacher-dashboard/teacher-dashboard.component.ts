@@ -1,8 +1,9 @@
 ﻿import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { TeacherProfile, TeacherService } from '../../services/teacher.service';
-import { ClassBooking, ClassBookingService } from '../../services/class-booking.service';
+import { TeacherService } from '../../services/teacher.service';
+import { ClassBookingService } from '../../services/class-booking.service';
+import { TeacherProfile, ClassBooking } from '../../models/shared.models';
 import { NotificationService } from '../../services/notification.service';
 
 @Component({

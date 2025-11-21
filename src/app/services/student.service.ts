@@ -1,48 +1,8 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject } from 'rxjs';
-import { tap } from 'rxjs/operators';
-
-export interface StudentProfile {
-  id: string;
-  userId: string;
-  fullName: string;
-  email: string;
-  phoneNumber: string;
-  profilePicture?: string;
-  gradeLevel: 'Primary' | 'OLevel' | 'ALevel';
-  school?: string;
-  focusAreas: string[];
-  targetExams: string[];
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface UpdateStudentRequest {
-  gradeLevel?: string;
-  school?: string;
-  focusAreas?: string[];
-  targetExams?: string[];
-}
-
-export interface ExamPreparation {
-  id: string;
-  title: string;
-  description: string;
-  examType: 'OLevel' | 'ALevel' | 'Scholarship';
-  subject: string;
-  resources: Resource[];
-  materials: string[];
-  createdAt: Date;
-}
-
-export interface Resource {
-  id: string;
-  title: string;
-  type: 'Video' | 'PDF' | 'Quiz' | 'Notes' | 'PastPaper';
-  url: string;
-  description?: string;
-}
+import { Observable, BehaviorSubject, of, throwError } from 'rxjs';
+import { delay } from 'rxjs/operators';
+import { DemoDataService } from './demo-data.service';
+import { StudentProfile, Resource, ExamPreparation } from '../models/shared.models';
 
 export interface UpdateStudentProfileRequest {
   phoneNumber?: string;
@@ -56,73 +16,74 @@ export interface UpdateStudentProfileRequest {
   providedIn: 'root'
 })
 export class StudentService {
-  private http = inject(HttpClient);
-  private apiUrl = 'api/students';
-  
+  private demoData = inject(DemoDataService);
+
   private studentSubject = new BehaviorSubject<StudentProfile | null>(null);
   student$ = this.studentSubject.asObservable();
 
   getMyProfile(): Observable<StudentProfile> {
-    return this.http.get<StudentProfile>(`${this.apiUrl}/profile/me`)
-      .pipe(
-        tap(profile => this.studentSubject.next(profile))
-      );
+    const student = this.demoData.getStudentById('student-1');
+    if (student) {
+      this.studentSubject.next(student);
+      return of(student).pipe(delay(300));
+    }
+    return throwError(() => new Error('Student profile not found'));
   }
 
   getStudentProfile(id: string): Observable<StudentProfile> {
-    return this.http.get<StudentProfile>(`${this.apiUrl}/${id}`);
+    const student = this.demoData.getStudentById(id);
+    if (!student) return throwError(() => new Error('Student not found'));
+    return of(student).pipe(delay(300));
   }
 
   updateProfile(update: UpdateStudentProfileRequest): Observable<StudentProfile> {
-    return this.http.put<StudentProfile>(`${this.apiUrl}/profile/update`, update)
-      .pipe(
-        tap(profile => this.studentSubject.next(profile))
-      );
+    const student = this.demoData.getStudentById('student-1');
+    if (!student) return throwError(() => new Error('Student not found'));
+
+    const updatedStudent = { ...student, ...update, updatedAt: new Date() } as StudentProfile;
+    this.demoData.updateStudent(updatedStudent);
+    this.studentSubject.next(updatedStudent);
+    return of(updatedStudent).pipe(delay(500));
   }
 
   uploadProfilePicture(file: File): Observable<{ url: string }> {
-    const formData = new FormData();
-    formData.append('file', file);
-    return this.http.post<{ url: string }>(`${this.apiUrl}/profile-picture/upload`, formData);
+    return of({ url: URL.createObjectURL(file) }).pipe(delay(500));
   }
 
   getExamPreparations(examType?: string): Observable<ExamPreparation[]> {
-    let params = {};
-    if (examType) {
-      params = { params: { examType } };
-    }
-    return this.http.get<ExamPreparation[]>(`${this.apiUrl}/exam-preparations`, params);
+    const preps: ExamPreparation[] = [
+      {
+        id: 'ep-1', description: 'Comprehensive O/L Math revision materials',
+        examType: 'OLevel', subject: 'Mathematics', resources: []
+      }
+    ];
+    return of(preps).pipe(delay(500));
   }
 
   getExamPreparationById(id: string): Observable<ExamPreparation> {
-    return this.http.get<ExamPreparation>(`${this.apiUrl}/exam-preparations/${id}`);
+    return of({
+      id: 'ep-1', description: 'Comprehensive O/L Math revision materials',
+      examType: 'OLevel', subject: 'Mathematics', resources: []
+    } as ExamPreparation).pipe(delay(300));
   }
 
   getStudyMaterials(subject: string, level?: string): Observable<Resource[]> {
-    let params: any = { subject };
-    if (level) {
-      params.level = level;
-    }
-    return this.http.get<Resource[]>(`${this.apiUrl}/study-materials`, { params });
+    return of([]).pipe(delay(300));
   }
 
   getPastPapers(subject: string, examType: string, year?: number): Observable<Resource[]> {
-    let params: any = { subject, examType };
-    if (year) {
-      params.year = year;
-    }
-    return this.http.get<Resource[]>(`${this.apiUrl}/past-papers`, { params });
+    return of([]).pipe(delay(300));
   }
 
   getProgressReport(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/progress-report`);
+    return of({ completedClasses: 10, averageScore: 85 }).pipe(delay(300));
   }
 
   getRecommendedTeachers(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/recommended-teachers`);
+    return of([]).pipe(delay(300));
   }
 
   getSummaryStats(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/summary-stats`);
+    return of({ classesAttended: 12, upcomingClasses: 2 }).pipe(delay(300));
   }
 }

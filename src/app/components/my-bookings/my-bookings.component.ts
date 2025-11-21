@@ -3,7 +3,8 @@ import { Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NotificationService } from '../../services/notification.service';
 import { AuthService } from '../../services/auth.service';
-import { DemoDataService } from '../../services/demo-data.service';
+import { ClassBookingService } from '../../services/class-booking.service';
+import { ClassBooking } from '../../models/shared.models';
 
 @Component({
   selector: 'app-my-bookings',
@@ -13,12 +14,12 @@ import { DemoDataService } from '../../services/demo-data.service';
   styleUrl: './my-bookings.component.css'
 })
 export class MyBookingsComponent implements OnInit {
-  private demoDataService = inject(DemoDataService);
+  private bookingService = inject(ClassBookingService);
   private notificationService = inject(NotificationService);
   private authService = inject(AuthService);
 
-  allBookings: any[] = [];
-  filteredBookings: any[] = [];
+  allBookings: ClassBooking[] = [];
+  filteredBookings: ClassBooking[] = [];
   isLoading = false;
   viewMode: 'table' | 'card' = 'card';
   statusFilter = 'All';
@@ -41,25 +42,18 @@ export class MyBookingsComponent implements OnInit {
     if (!this.currentUser) return;
 
     this.isLoading = true;
-    const allClasses = this.demoDataService.getClasses();
 
-    // Filter for bookings where the current user is the student
-    const myBookings = allClasses.filter(c => c.studentId === this.currentUser.id);
-
-    // Map to a display-friendly format
-    this.allBookings = myBookings.map(c => ({
-      id: c.id,
-      subject: c.title,
-      teacherName: 'Teacher', // In a real app, we'd look up the teacher name
-      date: c.start,
-      startTime: c.start.split('T')[1].substring(0, 5),
-      duration: 60, // Simplified
-      status: c.status === 'booked' ? 'Confirmed' : c.status,
-      amount: 1000 // Simplified
-    }));
-
-    this.applyFiltersAndSort();
-    this.isLoading = false;
+    this.bookingService.getStudentBookings().subscribe({
+      next: (bookings) => {
+        this.allBookings = bookings;
+        this.applyFiltersAndSort();
+        this.isLoading = false;
+      },
+      error: () => {
+        this.notificationService.showError('Failed to load bookings');
+        this.isLoading = false;
+      }
+    });
   }
 
   private applyFiltersAndSort(): void {
@@ -87,7 +81,7 @@ export class MyBookingsComponent implements OnInit {
     this.totalPages = Math.ceil(this.filteredBookings.length / this.itemsPerPage);
   }
 
-  getDisplayedBookings(): any[] {
+  getDisplayedBookings(): ClassBooking[] {
     const start = (this.currentPage - 1) * this.itemsPerPage;
     return this.filteredBookings.slice(start, start + this.itemsPerPage);
   }
@@ -104,7 +98,7 @@ export class MyBookingsComponent implements OnInit {
   showCancelModal = false;
   showRescheduleModal = false;
   showReviewModal = false;
-  selectedBooking: any | null = null;
+  selectedBooking: ClassBooking | null = null;
 
   // Modal data
   cancelReason = '';
@@ -114,7 +108,7 @@ export class MyBookingsComponent implements OnInit {
   ratingValue = 0;
   reviewText = '';
 
-  openCancelModal(booking: any): void {
+  openCancelModal(booking: ClassBooking): void {
     this.selectedBooking = booking;
     this.cancelReason = '';
     this.showCancelModal = true;
@@ -128,20 +122,19 @@ export class MyBookingsComponent implements OnInit {
   confirmCancel(): void {
     if (!this.selectedBooking) return;
 
-    const allClasses = this.demoDataService.getClasses();
-    const session = allClasses.find(c => c.id === this.selectedBooking.id);
-
-    if (session) {
-      session.status = 'available';
-      session.studentId = undefined;
-      this.demoDataService.updateClass(session);
-      this.notificationService.showSuccess('Booking cancelled');
-      this.loadBookings();
-      this.closeCancelModal();
-    }
+    this.bookingService.cancelBooking(this.selectedBooking.id, this.cancelReason || 'Cancelled by student').subscribe({
+      next: () => {
+        this.notificationService.showSuccess('Booking cancelled');
+        this.loadBookings();
+        this.closeCancelModal();
+      },
+      error: () => {
+        this.notificationService.showError('Failed to cancel booking');
+      }
+    });
   }
 
-  openRescheduleModal(booking: any): void {
+  openRescheduleModal(booking: ClassBooking): void {
     this.selectedBooking = booking;
     this.rescheduleDate = '';
     this.rescheduleTime = '';
@@ -164,7 +157,7 @@ export class MyBookingsComponent implements OnInit {
     this.closeRescheduleModal();
   }
 
-  openReviewModal(booking: any): void {
+  openReviewModal(booking: ClassBooking): void {
     this.selectedBooking = booking;
     this.ratingValue = 0;
     this.reviewText = '';
@@ -185,7 +178,7 @@ export class MyBookingsComponent implements OnInit {
     this.closeReviewModal();
   }
 
-  cancelBooking(booking: any): void {
+  cancelBooking(booking: ClassBooking): void {
     this.openCancelModal(booking);
   }
 

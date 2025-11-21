@@ -1,8 +1,7 @@
 ﻿import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { NotificationService } from '../../services/notification.service';
-import { DashboardStats } from '../../services/admin.service';
-import { DemoDataService } from '../../services/demo-data.service';
+import { AdminService, DashboardStats } from '../../services/admin.service';
 import { Router } from '@angular/router';
 
 @Component({
@@ -13,7 +12,7 @@ import { Router } from '@angular/router';
   styleUrl: './admin-dashboard.component.css'
 })
 export class AdminDashboardComponent implements OnInit {
-  private demoDataService = inject(DemoDataService);
+  private adminService = inject(AdminService);
   private notificationService = inject(NotificationService);
   private router = inject(Router);
 
@@ -42,27 +41,18 @@ export class AdminDashboardComponent implements OnInit {
   private loadDashboard(): void {
     this.isLoading = true;
 
-    const users = this.demoDataService.getUsers();
-    const classes = this.demoDataService.getClasses();
-
-    this.stats.totalUsers = users.length;
-    this.stats.totalStudents = users.filter(u => u.role === 'Student').length;
-    this.stats.totalTeachers = users.filter(u => u.role === 'Teacher').length;
-
-    const bookings = classes.filter(c => c.status === 'booked' || c.status === 'completed');
-    this.stats.totalBookings = bookings.length;
-    this.stats.pendingBookings = classes.filter(c => c.status === 'booked').length;
-    this.stats.completedBookings = classes.filter(c => c.status === 'completed').length;
-
-    // Simplified revenue calculation (e.g., 1000 per class)
-    this.stats.totalRevenue = this.stats.completedBookings * 1000;
-
-    // Mock average rating calculation
-    this.stats.averageRating = 4.5;
-
-    this.generateMockCharts();
-    this.loadActivities();
-    this.isLoading = false;
+    this.adminService.getDashboardStats().subscribe({
+      next: (stats) => {
+        this.stats = stats;
+        this.generateMockCharts();
+        this.loadActivities();
+        this.isLoading = false;
+      },
+      error: () => {
+        this.notificationService.showError('Failed to load dashboard');
+        this.isLoading = false;
+      }
+    });
   }
 
   private generateMockCharts(): void {
@@ -93,13 +83,12 @@ export class AdminDashboardComponent implements OnInit {
       { month: 'Jun', revenue: 85000 }
     ];
 
-    // Get top teachers from demo data if possible, otherwise mock
-    const teachers = this.demoDataService.getUsers().filter(u => u.role === 'Teacher');
-    this.topTeachers = teachers.slice(0, 3).map(t => ({
-      name: t.fullName,
-      rating: (Math.random() * (5.0 - 4.0) + 4.0), // Random rating 4.0-5.0
-      classes: Math.floor(Math.random() * 100) + 50
-    }));
+    // Mock top teachers
+    this.topTeachers = [
+      { name: 'Mr. Fernando', rating: 4.8, classes: 85 },
+      { name: 'Ms. Silva', rating: 4.7, classes: 72 },
+      { name: 'Dr. Perera', rating: 4.9, classes: 95 }
+    ];
   }
 
   private loadActivities(): void {

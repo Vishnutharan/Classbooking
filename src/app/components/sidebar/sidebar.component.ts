@@ -1,7 +1,8 @@
 ﻿import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Component, inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
-import { AuthService, User } from '../../services/auth.service';
+import { AuthService } from '../../services/auth.service';
+import { User } from '../../models/shared.models';
 import { NotificationService } from '../../services/notification.service';
 
 interface MenuItem {

@@ -1,7 +1,8 @@
 ﻿import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { AdminService, User } from '../../services/admin.service';
+import { AdminService } from '../../services/admin.service';
+import { User } from '../../models/shared.models';
 import { NotificationService } from '../../services/notification.service';
 
 @Component({
@@ -11,7 +12,7 @@ import { NotificationService } from '../../services/notification.service';
   templateUrl: './user-management.component.html',
   styleUrl: './user-management.component.css'
 })
-export class UserManagementComponent  implements OnInit {
+export class UserManagementComponent implements OnInit {
   private adminService = inject(AdminService);
   private notificationService = inject(NotificationService);
   private fb = inject(FormBuilder);
@@ -108,6 +109,10 @@ export class UserManagementComponent  implements OnInit {
     users.sort((a, b) => {
       let aVal = a[this.sortBy as keyof User];
       let bVal = b[this.sortBy as keyof User];
+
+      if (aVal === undefined && bVal === undefined) return 0;
+      if (aVal === undefined) return 1;
+      if (bVal === undefined) return -1;
 
       if (typeof aVal === 'string') {
         aVal = aVal.toLowerCase();
@@ -283,8 +288,8 @@ export class UserManagementComponent  implements OnInit {
       u.fullName,
       u.role,
       u.status,
-      new Date(u.createdAt).toLocaleDateString(),
-      new Date(u.lastLogin).toLocaleDateString()
+      u.createdAt ? new Date(u.createdAt).toLocaleDateString() : '',
+      u.lastLogin ? new Date(u.lastLogin).toLocaleDateString() : ''
     ]);
 
     return [headers, ...rows].map(row => row.join(',')).join('\n');

@@ -2,7 +2,8 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NotificationService } from '../../services/notification.service';
-import { StudentService, Resource } from '../../services/student.service';
+import { StudentService } from '../../services/student.service';
+import { Resource } from '../../models/shared.models';
 
 @Component({
   selector: 'app-educational-content',
@@ -37,7 +38,7 @@ export class EducationalContentComponent implements OnInit {
     this.isLoading = true;
     const subject = this.selectedSubject || 'Mathematics';
     const level = this.selectedLevel || '';
-    
+
     this.studentService.getStudyMaterials(subject, level).subscribe({
       next: (materials) => {
         this.contents = materials;

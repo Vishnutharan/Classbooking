@@ -63,6 +63,24 @@ export const routes: Routes = [
       ).then(m => m.ExamPreparationComponent)
   },
   {
+    path: 'exam-materials',
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['Student'] },
+    loadComponent: () =>
+      import(
+        './components/exam-materials/exam-materials.component'
+      ).then(m => m.ExamMaterialsComponent)
+  },
+  {
+    path: 'past-papers',
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['Student'] },
+    loadComponent: () =>
+      import(
+        './components/past-papers/past-papers.component'
+      ).then(m => m.PastPapersComponent)
+  },
+  {
     path: 'educational-content',
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['Student'] },

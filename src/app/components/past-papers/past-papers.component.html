@@ -1,0 +1,106 @@
+<div class="past-papers-container">
+    <div class="header">
+        <h1>📄 Past Papers</h1>
+        <p>Access past examination papers for your preparation</p>
+    </div>
+
+    <div class="exam-tabs">
+        <button [class.active]="selectedExam === 'OLevel'" (click)="selectedExam = 'OLevel'; onExamChange()"
+            class="tab-btn">
+            O-Level
+        </button>
+        <button [class.active]="selectedExam === 'ALevel'" (click)="selectedExam = 'ALevel'; onExamChange()"
+            class="tab-btn">
+            A-Level
+        </button>
+        <button [class.active]="selectedExam === 'Scholarship'" (click)="selectedExam = 'Scholarship'; onExamChange()"
+            class="tab-btn">
+            Scholarship
+        </button>
+    </div>
+
+    <div class="filters">
+        <input type="text" [(ngModel)]="searchTerm" (keyup)="onSearch()" placeholder="Search past papers..."
+            class="search-input">
+
+        <select [(ngModel)]="selectedSubject" (change)="onFilterChange()" class="filter-select">
+            <option *ngFor="let subject of subjects" [value]="subject">{{ subject }}</option>
+        </select>
+
+        <select [(ngModel)]="selectedYear" (change)="onFilterChange()" class="filter-select">
+            <option *ngFor="let year of years" [value]="year">{{ year === 'All' ? 'All Years' : year }}</option>
+        </select>
+    </div>
+
+    <div *ngIf="isLoading" class="loading-spinner">Loading...</div>
+
+    <div class="content" *ngIf="!isLoading">
+        <div class="sidebar">
+            <div class="subjects-list">
+                <h3>📁 Subjects</h3>
+                <div class="subject-item" *ngFor="let prep of preparations"
+                    [class.active]="selectedSubject === prep.subject"
+                    (click)="selectedSubject = prep.subject; onFilterChange()">
+                    <div class="subject-header">
+                        <span class="subject-name">{{ prep.subject }}</span>
+                    </div>
+                    <div class="resource-count">
+                        {{ getPapersBySubject(prep.subject).length }} papers
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="resources-grid" *ngIf="filteredPapers.length > 0; else noPapers">
+                <div class="paper-card" *ngFor="let paper of filteredPapers">
+                    <div class="paper-header">
+                        <span class="year-badge">{{ getYearFromTitle(paper.title) }}</span>
+                        <button class="bookmark-btn" [class.bookmarked]="bookmarkedPapers.has(paper.id)"
+                            (click)="toggleBookmark(paper)" title="Bookmark">
+                            ♥
+                        </button>
+                    </div>
+
+                    <div class="paper-body">
+                        <h3>{{ paper.title }}</h3>
+                        <p class="description">{{ paper.description }}</p>
+                        <p class="upload-info" *ngIf="paper.uploadedAt">
+                            <small>Added: {{ paper.uploadedAt | date:'MMM dd, yyyy' }}</small>
+                        </p>
+                    </div>
+
+                    <div class="paper-actions">
+                        <button class="action-btn view" (click)="openPaper(paper)">
+                            👁️ View
+                        </button>
+                        <button class="action-btn download" (click)="downloadPaper(paper)">
+                            ⬇️ Download
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <ng-template #noPapers>
+                <div class="empty-state">
+                    <div class="empty-icon">📄</div>
+                    <h3>No Past Papers Found</h3>
+                    <p>No past papers match your current filters.</p>
+                    <button class="reset-btn"
+                        (click)="selectedYear = 'All'; selectedSubject = 'All'; searchTerm = ''; onFilterChange()">
+                        Reset Filters
+                    </button>
+                </div>
+            </ng-template>
+        </div>
+    </div>
+
+    <div class="bookmarked-section" *ngIf="bookmarkedPapers.size > 0">
+        <h2>⭐ Bookmarked Papers ({{ bookmarkedPapers.size }})</h2>
+        <div class="bookmarked-list">
+            <div class="bookmarked-item" *ngFor="let paper of filteredPapers">
+                <span *ngIf="bookmarkedPapers.has(paper.id)">📌 {{ paper.title }}</span>
+            </div>
+        </div>
+    </div>
+</div>

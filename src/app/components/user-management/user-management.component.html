@@ -12,8 +12,9 @@
   <div *ngIf="isLoading" class="loading-spinner"></div>
 
   <div class="filters" *ngIf="!isLoading">
-    <input type="text" [(ngModel)]="searchQuery" (keyup)="onSearch()" placeholder="Search by email or name..." class="filter-input">
-    
+    <input type="text" [(ngModel)]="searchQuery" (keyup)="onSearch()" placeholder="Search by email or name..."
+      class="filter-input">
+
     <select [(ngModel)]="filterRole" (change)="onFilterChange()" class="filter-select">
       <option value="">All Roles</option>
       <option *ngFor="let role of roles" [value]="role">{{ role }}</option>
@@ -46,17 +47,21 @@
       </thead>
       <tbody>
         <tr *ngFor="let user of getDisplayedUsers()" [class.selected]="selectedUsers.has(user.id)">
-          <td><input type="checkbox" [checked]="selectedUsers.has(user.id)" (change)="toggleUserSelection(user.id)"></td>
+          <td><input type="checkbox" [checked]="selectedUsers.has(user.id)" (change)="toggleUserSelection(user.id)">
+          </td>
           <td>{{ user.email }}</td>
           <td>{{ user.fullName }}</td>
           <td><span class="badge" [class]="'role-' + user.role.toLowerCase()">{{ user.role }}</span></td>
-          <td><span class="badge" [class]="'status-' + user.status.toLowerCase()">{{ user.status }}</span></td>
+          <td><span class="badge" [class]="'status-' + (user.status?.toLowerCase() || 'inactive')">{{ user.status
+              }}</span></td>
           <td>{{ user.createdAt | date:'MMM dd, yyyy' }}</td>
           <td>{{ user.lastLogin | date:'MMM dd, yyyy' }}</td>
           <td class="actions">
             <button class="btn-icon" (click)="openEditModal(user)" title="Edit">✏️</button>
-            <button class="btn-icon" *ngIf="user.status !== 'Suspended'" (click)="openSuspendModal(user)" title="Suspend">🚫</button>
-            <button class="btn-icon" *ngIf="user.status === 'Suspended'" (click)="activateUser(user)" title="Activate">✅</button>
+            <button class="btn-icon" *ngIf="user.status !== 'Suspended'" (click)="openSuspendModal(user)"
+              title="Suspend">🚫</button>
+            <button class="btn-icon" *ngIf="user.status === 'Suspended'" (click)="activateUser(user)"
+              title="Activate">✅</button>
           </td>
         </tr>
       </tbody>
@@ -78,7 +83,8 @@
         <div class="form-group">
           <label>Email</label>
           <input type="email" formControlName="email" class="form-input">
-          <span class="error" *ngIf="createForm.get('email')?.invalid && createForm.get('email')?.touched">Valid email required</span>
+          <span class="error" *ngIf="createForm.get('email')?.invalid && createForm.get('email')?.touched">Valid email
+            required</span>
         </div>
         <div class="form-group">
           <label>Full Name</label>

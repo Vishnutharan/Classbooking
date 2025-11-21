@@ -2,7 +2,8 @@
 import { Component, inject, OnInit, OnDestroy, PLATFORM_ID } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { AuthService, User } from '../../services/auth.service';
+import { AuthService } from '../../services/auth.service';
+import { User } from '../../models/shared.models';
 import { NotificationService } from '../../services/notification.service';
 
 @Component({
@@ -26,7 +27,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   showNotifications = false;
   showUserMenu = false;
   notificationCount = 3;
-  
+
   notifications = [
     { icon: 'ðŸ“š', title: 'New class booked with Mr. Perera', time: '5 minutes ago' },
     { icon: 'â­', title: 'Your profile was verified', time: '1 hour ago' },

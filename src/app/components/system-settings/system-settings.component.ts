@@ -1,7 +1,8 @@
 ﻿import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { AdminService, SystemSettings } from '../../services/admin.service';
+import { AdminService } from '../../services/admin.service';
+import { SystemSettings } from '../../models/shared.models';
 import { NotificationService } from '../../services/notification.service';
 
 @Component({

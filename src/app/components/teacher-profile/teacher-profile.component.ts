@@ -1,6 +1,7 @@
 ﻿import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
-import { TeacherProfile, TeacherService } from '../../services/teacher.service';
+import { TeacherService } from '../../services/teacher.service';
+import { TeacherProfile } from '../../models/shared.models';
 import { NotificationService } from '../../services/notification.service';
 import { ActivatedRoute, Router } from '@angular/router';
 

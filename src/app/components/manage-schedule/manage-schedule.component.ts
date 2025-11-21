@@ -1,7 +1,7 @@
 ﻿import { Component, inject, OnInit } from '@angular/core';
 import { NotificationService } from '../../services/notification.service';
 import { AuthService } from '../../services/auth.service';
-import { DemoDataService, ClassSession } from '../../services/demo-data.service';
+import { ClassBookingService } from '../../services/class-booking.service';
 import { CalendarComponent } from '../shared/calendar/calendar.component';
 import { EventInput, DateSelectArg, EventClickArg } from '@fullcalendar/core';
 import { CommonModule } from '@angular/common';
@@ -14,7 +14,7 @@ import { CommonModule } from '@angular/common';
   styleUrl: './manage-schedule.component.css'
 })
 export class ManageScheduleComponent implements OnInit {
-  private demoDataService = inject(DemoDataService);
+  private bookingService = inject(ClassBookingService);
   private notificationService = inject(NotificationService);
   private authService = inject(AuthService);
 
@@ -29,54 +29,53 @@ export class ManageScheduleComponent implements OnInit {
   public loadSchedule(): void {
     if (!this.currentUser) return;
 
-    const allClasses = this.demoDataService.getClasses();
-    // Filter classes for this teacher
-    const myClasses = allClasses.filter(c => c.teacherId === this.currentUser.id);
-
-    this.calendarEvents = myClasses.map(c => ({
-      id: c.id,
-      title: c.title || 'Available Slot',
-      start: c.start,
-      end: c.end,
-      backgroundColor: c.status === 'booked' ? '#ff9f89' : '#3788d8',
-      borderColor: c.status === 'booked' ? '#ff9f89' : '#3788d8',
-      extendedProps: {
-        status: c.status
+    this.bookingService.getTeacherBookings().subscribe({
+      next: (bookings) => {
+        this.calendarEvents = bookings.map(b => ({
+          id: b.id,
+          title: b.subject || 'Class',
+          start: `${b.date}T${b.startTime}`,
+          end: `${b.date}T${b.endTime}`,
+          backgroundColor: b.status === 'Confirmed' ? '#ff9f89' : (b.status === 'Pending' ? '#ffc107' : '#3788d8'),
+          borderColor: b.status === 'Confirmed' ? '#ff9f89' : (b.status === 'Pending' ? '#ffc107' : '#3788d8'),
+          extendedProps: {
+            status: b.status
+          }
+        }));
+      },
+      error: () => {
+        this.notificationService.showError('Failed to load schedule');
       }
-    }));
+    });
   }
 
   onSlotSelected(arg: DateSelectArg): void {
     if (!this.currentUser) return;
 
-    const newClass: ClassSession = {
-      id: `slot-${Date.now()}`,
-      title: 'Available Slot',
-      teacherId: this.currentUser.id,
-      start: arg.startStr,
-      end: arg.endStr,
-      status: 'available'
-    };
-
-    this.demoDataService.addClass(newClass);
-    this.notificationService.showSuccess('Availability slot added');
-    this.loadSchedule();
+    // For demo purposes, we'll just show a message
+    // In a real app, this would create a booking or availability slot
+    this.notificationService.showInfo('Slot selection functionality - would create availability here');
   }
 
   onEventClicked(arg: EventClickArg): void {
     const eventId = arg.event.id;
     const eventProps = arg.event.extendedProps;
 
-    if (eventProps['status'] === 'booked') {
-      this.notificationService.showWarning('Cannot delete a booked slot');
+    if (eventProps['status'] === 'Confirmed') {
+      this.notificationService.showWarning('Cannot delete a confirmed booking');
       return;
     }
 
-    if (confirm('Delete this availability slot?')) {
-      this.demoDataService.deleteClass(eventId);
-      this.notificationService.showSuccess('Slot removed');
-      this.loadSchedule();
+    if (confirm('Cancel this booking?')) {
+      this.bookingService.cancelBooking(eventId, 'Cancelled by teacher').subscribe({
+        next: () => {
+          this.notificationService.showSuccess('Booking cancelled');
+          this.loadSchedule();
+        },
+        error: () => {
+          this.notificationService.showError('Failed to cancel booking');
+        }
+      });
     }
   }
 }
-

@@ -1,7 +1,9 @@
 ﻿import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ExamPreparation, Resource, StudentService } from '../../services/student.service';
+import { ActivatedRoute } from '@angular/router';
+import { StudentService } from '../../services/student.service';
+import { ExamPreparation, Resource } from '../../models/shared.models';
 import { NotificationService } from '../../services/notification.service';
 
 @Component({
@@ -14,22 +16,34 @@ import { NotificationService } from '../../services/notification.service';
 export class ExamPreparationComponent implements OnInit {
   private studentService = inject(StudentService);
   private notificationService = inject(NotificationService);
+  private route = inject(ActivatedRoute);
 
   selectedExam: 'OLevel' | 'ALevel' | 'Scholarship' = 'OLevel';
   preparations: ExamPreparation[] = [];
   filteredResources: Resource[] = [];
   isLoading = false;
 
+  selectedResourceType = 'All';
   selectedDifficulty = 'All';
   selectedYear = '';
   searchTerm = '';
   bookmarkedResources: Set<string> = new Set();
 
+  resourceTypes = ['All', 'PastPaper', 'PDF', 'Video', 'Quiz', 'Notes'];
   difficulties = ['All', 'Easy', 'Medium', 'Hard'];
   years = [2023, 2022, 2021, 2020, 2019];
 
   ngOnInit(): void {
-    this.loadExamPreparations();
+    // Read query params to determine initial state
+    this.route.queryParams.subscribe(params => {
+      if (params['filter'] === 'past-papers') {
+        this.selectedResourceType = 'PastPaper';
+      }
+      if (params['examType']) {
+        this.selectedExam = params['examType'];
+      }
+      this.loadExamPreparations();
+    });
   }
 
   private loadExamPreparations(): void {
@@ -60,11 +74,12 @@ export class ExamPreparationComponent implements OnInit {
 
     resources = resources.filter(r => {
       const matchesSearch = r.title.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-                           r.description?.toLowerCase().includes(this.searchTerm.toLowerCase());
+        r.description?.toLowerCase().includes(this.searchTerm.toLowerCase());
+      const matchesResourceType = this.selectedResourceType === 'All' || r.type === this.selectedResourceType;
       const matchesType = !this.selectedDifficulty || this.selectedDifficulty === 'All';
       const matchesYear = !this.selectedYear || r.type === 'PastPaper';
 
-      return matchesSearch && matchesType && matchesYear;
+      return matchesSearch && matchesResourceType && matchesType && matchesYear;
     });
 
     this.filteredResources = resources;

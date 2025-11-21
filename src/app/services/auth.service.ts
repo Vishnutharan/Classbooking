@@ -6,6 +6,7 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap, of } from 'rxjs';
 import { Router } from '@angular/router';
 import { DemoDataService } from './demo-data.service';
+import { User } from '../models/shared.models';
 
 export interface LoginRequest {
   email: string;
@@ -15,21 +16,7 @@ export interface LoginRequest {
 export interface AuthResponse {
   token: string;
   refreshToken: string;
-  user: {
-    id: string;
-    email: string;
-    fullName: string;
-    role: 'Student' | 'Teacher' | 'Admin';
-    profilePicture?: string;
-  };
-}
-
-export interface User {
-  id: string;
-  email: string;
-  fullName: string;
-  role: 'Student' | 'Teacher' | 'Admin';
-  profilePicture?: string;
+  user: User;
 }
 
 @Injectable({
@@ -58,9 +45,25 @@ export class AuthService {
   }
 
   register(userData: any): Observable<AuthResponse> {
-    return this.http
-      .post<AuthResponse>(`${this.apiUrl}/register`, userData)
-      .pipe(tap(response => this.handleAuthResponse(response)));
+    // Mock register
+    const newUser: User = {
+      id: `user-${Date.now()}`,
+      email: userData.email,
+      fullName: userData.fullName,
+      role: userData.role,
+      password: userData.password,
+      status: 'Active',
+      createdAt: new Date()
+    };
+    this.demoDataService.addUser(newUser);
+
+    const response: AuthResponse = {
+      token: 'mock-token',
+      refreshToken: 'mock-refresh',
+      user: newUser
+    };
+    this.handleAuthResponse(response);
+    return of(response).pipe(tap(() => { }));
   }
 
   login(credentials: LoginRequest): Observable<AuthResponse> {
@@ -76,13 +79,7 @@ export class AuthService {
       const response: AuthResponse = {
         token,
         refreshToken: 'dev-refresh-token',
-        user: {
-          id: user.id,
-          email: user.email,
-          fullName: user.fullName,
-          role: user.role,
-          profilePicture: user.profilePicture
-        }
+        user: user
       };
 
       this.handleAuthResponse(response);
@@ -108,10 +105,16 @@ export class AuthService {
   }
 
   refreshToken(): Observable<AuthResponse> {
-    const refreshToken = this.isBrowser ? localStorage.getItem(this.refreshTokenKey) : null;
-    return this.http
-      .post<AuthResponse>(`${this.apiUrl}/refresh-token`, { refreshToken })
-      .pipe(tap(response => this.handleAuthResponse(response)));
+    // Mock refresh
+    const user = this.getCurrentUser();
+    if (user) {
+      return of({
+        token: 'new-mock-token',
+        refreshToken: 'new-mock-refresh',
+        user
+      });
+    }
+    return of({} as AuthResponse);
   }
 
   getToken(): string | null {
