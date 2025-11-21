@@ -1,6 +1,6 @@
-import { Component } from '@angular/core';
+﻿import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { NotificationsToastComponent } from "./Componat/notifications-toast/notifications-toast.component";
+import { NotificationsToastComponent } from "./components/notifications-toast/notifications-toast.component";
 
 @Component({
   selector: 'app-root',
@@ -11,3 +11,4 @@ import { NotificationsToastComponent } from "./Componat/notifications-toast/noti
 export class AppComponent {
   title = 'Classbooking';
 }
+

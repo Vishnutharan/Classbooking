@@ -1,0 +1,21 @@
+<div class="container-fluid p-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Manage Schedule</h2>
+    <button class="btn btn-primary" (click)="loadSchedule()">
+      <i class="bi bi-arrow-clockwise me-2"></i>Refresh
+    </button>
+  </div>
+
+  <div class="alert alert-info">
+    <i class="bi bi-info-circle me-2"></i>
+    Click and drag on the calendar to create availability slots. Click on a slot to remove it.
+  </div>
+
+  <app-calendar
+    [events]="calendarEvents"
+    [editable]="true"
+    [selectable]="true"
+    (slotSelected)="onSlotSelected($event)"
+    (eventClicked)="onEventClicked($event)">
+  </app-calendar>
+</div>

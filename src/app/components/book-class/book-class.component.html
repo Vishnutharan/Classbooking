@@ -1,0 +1,69 @@
+<div class="container-fluid p-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>📚 Book a Class</h2>
+    <button class="btn btn-primary" (click)="loadAvailableClasses()">
+      <i class="bi bi-arrow-clockwise me-2"></i>Refresh Slots
+    </button>
+  </div>
+
+  <div class="alert alert-info">
+    <i class="bi bi-info-circle me-2"></i>
+    <strong>Green slots</strong> are available - click to book. <strong>Grey slots</strong> are already booked.
+  </div>
+
+  <app-calendar [events]="calendarEvents" [editable]="false" [selectable]="false"
+    (eventClicked)="onEventClicked($event)">
+  </app-calendar>
+</div>
+
+<!-- Booking Dialog Modal -->
+<div class="modal-overlay" *ngIf="showBookingDialog" (click)="closeBookingDialog()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>📝 Book This Class</h3>
+      <button class="close-btn" (click)="closeBookingDialog()">&times;</button>
+    </div>
+
+    <div class="modal-body" *ngIf="selectedSlot">
+      <div class="slot-info mb-3">
+        <p><strong>Teacher:</strong> {{ selectedSlot.teacherName }}</p>
+        <p><strong>Date:</strong> {{ selectedSlot.date }}</p>
+        <p><strong>Time:</strong> {{ selectedSlot.startTime }} - {{ selectedSlot.endTime }}</p>
+        <p><strong>Rate:</strong> LKR {{ selectedSlot.teacherRate }}/hour</p>
+      </div>
+
+      <form>
+        <div class="form-group mb-3">
+          <label for="subject">Subject *</label>
+          <select id="subject" class="form-control" [(ngModel)]="bookingForm.subject" name="subject" required>
+            <option value="">Select Subject</option>
+            <option *ngFor="let subject of selectedSlot.subjects" [value]="subject.name">
+              {{ subject.name }} ({{ subject.level }})
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group mb-3">
+          <label for="classType">Class Type</label>
+          <select id="classType" class="form-control" [(ngModel)]="bookingForm.classType" name="classType">
+            <option value="OneTime">One-Time Class</option>
+            <option value="Recurring">Recurring Class</option>
+          </select>
+        </div>
+
+        <div class="form-group mb-3">
+          <label for="notes">Notes (Optional)</label>
+          <textarea id="notes" class="form-control" [(ngModel)]="bookingForm.notes" name="notes" rows="3"
+            placeholder="Any special requirements or topics to cover..."></textarea>
+        </div>
+      </form>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="closeBookingDialog()">Cancel</button>
+      <button class="btn btn-primary" (click)="confirmBooking()" [disabled]="!bookingForm.subject">
+        Confirm Booking
+      </button>
+    </div>
+  </div>
+</div>

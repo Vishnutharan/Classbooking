@@ -1,7 +1,7 @@
-import { TeacherProfile, TeacherAvailability } from '../Service/teacher.service';
-import { StudentProfile, ExamPreparation, Resource } from '../Service/student.service';
-import { ClassBooking } from '../Service/class-booking.service';
-import { User } from '../Service/auth.service';
+﻿import { TeacherProfile, TeacherAvailability } from '../services/teacher.service';
+import { StudentProfile, ExamPreparation, Resource } from '../services/student.service';
+import { ClassBooking } from '../services/class-booking.service';
+import { User } from '../services/auth.service';
 
 export const MOCK_AVAILABILITY: TeacherAvailability[] = [
   { dayOfWeek: 'Monday', startTime: '09:00', endTime: '17:00' },
