@@ -1,59 +1,40 @@
-# Classbooking
+# ClassBooking Platform
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.19.
+## Overview
+ClassBooking is a comprehensive online education platform connecting students with teachers for scheduled classes. It supports three distinct roles: Students, Teachers, and Admins, offering tailored dashboards and features for each.
 
-## Development server
+## Features
 
-To start a local development server, run:
+### General
+- **Authentication**: Secure login/registration with role-based access control (RBAC).
+- **Responsive Design**: Optimized for desktop, tablet, and mobile devices.
+- **Notifications**: Real-time alerts for bookings and system updates.
 
-```bash
-ng serve
-```
+### For Students
+- **Search Teachers**: Filter by subject, level, and rating.
+- **Book Classes**: Schedule one-time or recurring classes.
+- **Resource Library**: Access study materials and past papers.
+- **Progress Tracking**: Monitor study hours and completed classes.
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+### For Teachers
+- **Schedule Management**: Set availability and working hours.
+- **Class Management**: View upcoming classes, mark attendance.
+- **Profile Customization**: Update qualifications, subjects, and rates.
+- **Resource Upload**: Share learning materials with students.
 
-## Code scaffolding
+### For Admins
+- **User Management**: Create, suspend, or activate accounts.
+- **Reporting**: Generate PDF/Excel reports for revenue and usage.
+- **System Settings**: Configure platform fees and global settings.
+- **Timetable**: Manage public holidays and exam seasons.
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## Technology Stack
+- **Frontend**: Angular 19 (SSR enabled)
+- **Language**: TypeScript
+- **State Management**: RxJS (BehaviorSubjects)
+- **Styling**: CSS (Modular)
+- **Build Tool**: Angular CLI
 
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+## Team
+- **Developer**: Vishnutharan
+- **Role**: Full Stack Engineer
