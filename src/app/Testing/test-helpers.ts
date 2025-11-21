@@ -1,6 +1,6 @@
-import { User } from '../Service/auth.service';
-import { ClassBooking } from '../Service/class-booking.service';
-import { TeacherProfile } from '../Service/teacher.service';
+﻿import { User } from '../services/auth.service';
+import { ClassBooking } from '../services/class-booking.service';
+import { TeacherProfile } from '../services/teacher.service';
 
 export class TestHelpers {
   static createMockUser(id: string = 'test-user-1', role: 'Student' | 'Teacher' | 'Admin' = 'Student'): User {

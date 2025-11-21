@@ -1,6 +1,6 @@
-import { Routes } from '@angular/router';
-import { AuthGuard } from './AuthGuard/auth.guard';
-import { RoleGuard } from './AuthGuard/role.guard';
+﻿import { Routes } from '@angular/router';
+import { AuthGuard } from './guards/auth.guard';
+import { RoleGuard } from './guards/role.guard';
 
 export const routes: Routes = [
   {
@@ -11,7 +11,7 @@ export const routes: Routes = [
   {
     path: 'auth',
     loadComponent: () =>
-      import('./Componat/auth/auth.component').then(m => m.AuthComponent),
+      import('./components/auth/auth.component').then(m => m.AuthComponent),
     data: { title: 'Authentication' }
   },
 
@@ -20,7 +20,7 @@ export const routes: Routes = [
     path: 'dashboard',
     canActivate: [AuthGuard],
     loadComponent: () =>
-      import('./Componat/dashboard/dashboard.component').then(
+      import('./components/dashboard/dashboard.component').then(
         m => m.DashboardComponent
       )
   },
@@ -31,7 +31,7 @@ export const routes: Routes = [
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['Student'] },
     loadComponent: () =>
-      import('./Componat/student-dashboard/student-dashboard.component').then(
+      import('./components/student-dashboard/student-dashboard.component').then(
         m => m.StudentDashboardComponent
       )
   },
@@ -40,7 +40,7 @@ export const routes: Routes = [
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['Student'] },
     loadComponent: () =>
-      import('./Componat/book-class/book-class.component').then(
+      import('./components/book-class/book-class.component').then(
         m => m.BookClassComponent
       )
   },
@@ -49,7 +49,7 @@ export const routes: Routes = [
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['Student', 'Teacher'] },
     loadComponent: () =>
-      import('./Componat/my-bookings/my-bookings.component').then(
+      import('./components/my-bookings/my-bookings.component').then(
         m => m.MyBookingsComponent
       )
   },
@@ -59,7 +59,7 @@ export const routes: Routes = [
     data: { roles: ['Student'] },
     loadComponent: () =>
       import(
-        './Componat/exam-preparation/exam-preparation.component'
+        './components/exam-preparation/exam-preparation.component'
       ).then(m => m.ExamPreparationComponent)
   },
   {
@@ -68,7 +68,7 @@ export const routes: Routes = [
     data: { roles: ['Student'] },
     loadComponent: () =>
       import(
-        './Componat/educational-content/educational-content.component'
+        './components/educational-content/educational-content.component'
       ).then(m => m.EducationalContentComponent)
   },
 
@@ -78,7 +78,7 @@ export const routes: Routes = [
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['Student', 'Teacher', 'Admin'] },
     loadComponent: () =>
-      import('./Componat/teacher-profile/teacher-profile.component').then(
+      import('./components/teacher-profile/teacher-profile.component').then(
         m => m.TeacherProfileComponent
       )
   },
@@ -89,19 +89,19 @@ export const routes: Routes = [
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['Teacher'] },
     loadComponent: () =>
-      import('./Componat/teacher-dashboard/teacher-dashboard.component').then(
+      import('./components/teacher-dashboard/teacher-dashboard.component').then(
         m => m.TeacherDashboardComponent
       )
   },
   
-  // ✅ UPDATED: Swapped old ManageProfile for your new 'Generic' one
+  // âœ… UPDATED: Swapped old ManageProfile for your new 'Generic' one
   {
     path: 'manage-profile',
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['Teacher', 'Student'] },
     loadComponent: () =>
       // Make sure the path below matches your folder structure exactly
-      import('./Componat/manage-profile-generic/manage-profile-generic.component').then(
+      import('./components/manage-profile-generic/manage-profile-generic.component').then(
         m => m.ManageProfileGenericComponent
       )
   },
@@ -111,7 +111,7 @@ export const routes: Routes = [
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['Teacher'] },
     loadComponent: () =>
-      import('./Componat/manage-schedule/manage-schedule.component').then(
+      import('./components/manage-schedule/manage-schedule.component').then(
         m => m.ManageScheduleComponent
       )
   },
@@ -120,7 +120,7 @@ export const routes: Routes = [
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['Teacher'] },
     loadComponent: () =>
-      import('./Componat/my-classes/my-classes.component').then(
+      import('./components/my-classes/my-classes.component').then(
         m => m.MyClassesComponent
       )
   },
@@ -129,7 +129,7 @@ export const routes: Routes = [
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['Teacher'] },
     loadComponent: () =>
-      import('./Componat/reviews-ratings/reviews-ratings.component').then(
+      import('./components/reviews-ratings/reviews-ratings.component').then(
         m => m.ReviewsRatingsComponent
       )
   },
@@ -138,7 +138,7 @@ export const routes: Routes = [
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['Teacher'] },
     loadComponent: () =>
-      import('./Componat/resources-upload/resources-upload.component').then(
+      import('./components/resources-upload/resources-upload.component').then(
         m => m.ResourcesUploadComponent
       )
   },
@@ -149,7 +149,7 @@ export const routes: Routes = [
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['Admin'] },
     loadComponent: () =>
-      import('./Componat/admin-dashboard/admin-dashboard.component').then(
+      import('./components/admin-dashboard/admin-dashboard.component').then(
         m => m.AdminDashboardComponent
       )
   },
@@ -158,7 +158,7 @@ export const routes: Routes = [
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['Admin'] },
     loadComponent: () =>
-      import('./Componat/user-management/user-management.component').then(
+      import('./components/user-management/user-management.component').then(
         m => m.UserManagementComponent
       )
   },
@@ -167,7 +167,7 @@ export const routes: Routes = [
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['Admin'] },
     loadComponent: () =>
-      import('./Componat/timetable-management/timetable-management.component').then(
+      import('./components/timetable-management/timetable-management.component').then(
         m => m.TimetableManagementComponent
       )
   },
@@ -176,7 +176,7 @@ export const routes: Routes = [
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['Admin'] },
     loadComponent: () =>
-      import('./Componat/reports/reports.component').then(
+      import('./components/reports/reports.component').then(
         m => m.ReportsComponent
       )
   },
@@ -185,7 +185,7 @@ export const routes: Routes = [
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['Admin'] },
     loadComponent: () =>
-      import('./Componat/admin-reports-viewer/admin-reports-viewer.component').then(
+      import('./components/admin-reports-viewer/admin-reports-viewer.component').then(
         m => m.AdminReportsViewerComponent
       )
   },
@@ -194,7 +194,7 @@ export const routes: Routes = [
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['Admin'] },
     loadComponent: () =>
-      import('./Componat/system-settings/system-settings.component').then(
+      import('./components/system-settings/system-settings.component').then(
         m => m.SystemSettingsComponent
       )
   },
@@ -205,7 +205,7 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
     loadComponent: () =>
       // Note: You might want to point this to ManageProfileGeneric too?
-      import('./Componat/student-dashboard/student-dashboard.component').then(
+      import('./components/student-dashboard/student-dashboard.component').then(
         m => m.StudentDashboardComponent
       )
   },
@@ -213,7 +213,7 @@ export const routes: Routes = [
     path: 'support',
     canActivate: [AuthGuard],
     loadComponent: () =>
-      import('./Componat/student-dashboard/student-dashboard.component').then(
+      import('./components/student-dashboard/student-dashboard.component').then(
         m => m.StudentDashboardComponent
       )
   }

@@ -1,8 +1,8 @@
-import { HttpEvent, HttpRequest, HttpErrorResponse } from '@angular/common/http';
+﻿import { HttpEvent, HttpRequest, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError, timer } from 'rxjs';
 import { timeout, retry, catchError } from 'rxjs/operators';
 import { inject } from '@angular/core';
-import { NotificationService } from '../Service/notification.service';
+import { NotificationService } from '../services/notification.service';
 
 const REQUEST_TIMEOUT = 30000; // 30 seconds
 const MAX_RETRIES = 1;

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+﻿import { Injectable } from '@angular/core';
 import {
   HttpRequest,
   HttpHandler,
@@ -9,7 +9,7 @@ import {
 import { Observable, throwError, BehaviorSubject } from 'rxjs';
 import { catchError, filter, take, switchMap } from 'rxjs/operators';
 import { inject } from '@angular/core';
-import { AuthService } from '../Service/auth.service';
+import { AuthService } from '../services/auth.service';
 
 export function authInterceptor(req: HttpRequest<any>, next: any): Observable<HttpEvent<any>> {
   const authService = inject(AuthService);
