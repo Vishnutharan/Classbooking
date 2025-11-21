@@ -1,7 +1,8 @@
 ﻿import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { NotificationService } from '../../services/notification.service';
-import { AdminService, DashboardStats } from '../../services/admin.service';
+import { DashboardStats } from '../../services/admin.service';
+import { DemoDataService } from '../../services/demo-data.service';
 import { Router } from '@angular/router';
 
 @Component({
@@ -12,7 +13,7 @@ import { Router } from '@angular/router';
   styleUrl: './admin-dashboard.component.css'
 })
 export class AdminDashboardComponent implements OnInit {
-  private adminService = inject(AdminService);
+  private demoDataService = inject(DemoDataService);
   private notificationService = inject(NotificationService);
   private router = inject(Router);
 
@@ -40,18 +41,28 @@ export class AdminDashboardComponent implements OnInit {
 
   private loadDashboard(): void {
     this.isLoading = true;
-    this.adminService.getDashboardStats().subscribe({
-      next: (stats) => {
-        this.stats = stats;
-        this.generateMockCharts();
-        this.loadActivities();
-        this.isLoading = false;
-      },
-      error: () => {
-        this.notificationService.showError('Failed to load dashboard');
-        this.isLoading = false;
-      }
-    });
+
+    const users = this.demoDataService.getUsers();
+    const classes = this.demoDataService.getClasses();
+
+    this.stats.totalUsers = users.length;
+    this.stats.totalStudents = users.filter(u => u.role === 'Student').length;
+    this.stats.totalTeachers = users.filter(u => u.role === 'Teacher').length;
+
+    const bookings = classes.filter(c => c.status === 'booked' || c.status === 'completed');
+    this.stats.totalBookings = bookings.length;
+    this.stats.pendingBookings = classes.filter(c => c.status === 'booked').length;
+    this.stats.completedBookings = classes.filter(c => c.status === 'completed').length;
+
+    // Simplified revenue calculation (e.g., 1000 per class)
+    this.stats.totalRevenue = this.stats.completedBookings * 1000;
+
+    // Mock average rating calculation
+    this.stats.averageRating = 4.5;
+
+    this.generateMockCharts();
+    this.loadActivities();
+    this.isLoading = false;
   }
 
   private generateMockCharts(): void {
@@ -82,19 +93,21 @@ export class AdminDashboardComponent implements OnInit {
       { month: 'Jun', revenue: 85000 }
     ];
 
-    this.topTeachers = [
-      { name: 'Mr. Silva', rating: 4.9, classes: 145 },
-      { name: 'Ms. Perera', rating: 4.8, classes: 132 },
-      { name: 'Mr. Jayasinghe', rating: 4.7, classes: 120 }
-    ];
+    // Get top teachers from demo data if possible, otherwise mock
+    const teachers = this.demoDataService.getUsers().filter(u => u.role === 'Teacher');
+    this.topTeachers = teachers.slice(0, 3).map(t => ({
+      name: t.fullName,
+      rating: (Math.random() * (5.0 - 4.0) + 4.0), // Random rating 4.0-5.0
+      classes: Math.floor(Math.random() * 100) + 50
+    }));
   }
 
   private loadActivities(): void {
     this.recentActivities = [
-      { icon: 'ðŸ‘¤', message: 'New student registered', time: '5 minutes ago' },
-      { icon: 'ðŸ“š', message: 'Class booking confirmed', time: '15 minutes ago' },
-      { icon: 'âŒ', message: 'Booking cancelled', time: '1 hour ago' },
-      { icon: 'âœ…', message: 'Teacher verified', time: '2 hours ago' }
+      { icon: '👤', message: 'New student registered', time: '5 minutes ago' },
+      { icon: '📚', message: 'Class booking confirmed', time: '15 minutes ago' },
+      { icon: '❌', message: 'Booking cancelled', time: '1 hour ago' },
+      { icon: '✅', message: 'Teacher verified', time: '2 hours ago' }
     ];
   }
 

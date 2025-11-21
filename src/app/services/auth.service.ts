@@ -5,6 +5,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap, of } from 'rxjs';
 import { Router } from '@angular/router';
+import { DemoDataService } from './demo-data.service';
 
 export interface LoginRequest {
   email: string;
@@ -38,6 +39,7 @@ export class AuthService {
   private http = inject(HttpClient);
   private router = inject(Router);
   private platformId = inject(PLATFORM_ID);
+  private demoDataService = inject(DemoDataService);
   private isBrowser: boolean;
 
   private currentUserSubject = new BehaviorSubject<User | null>(this.getUserFromToken());
@@ -61,35 +63,25 @@ export class AuthService {
       .pipe(tap(response => this.handleAuthResponse(response)));
   }
 
-  // 🔐 TEMPORARY DEV LOGIN: hardcoded credentials for each role
   login(credentials: LoginRequest): Observable<AuthResponse> {
     const email = credentials.email.toLowerCase();
+    const user = this.demoDataService.getUserByEmail(email);
 
-    const tempUsers: {
-      [email: string]: { password: string; role: 'Student' | 'Teacher' | 'Admin'; fullName: string };
-    } = {
-      'student@test.com': { password: 'Student@123', role: 'Student', fullName: 'Temporary Student' },
-      'teacher@test.com': { password: 'Teacher@123', role: 'Teacher', fullName: 'Temporary Teacher' },
-      'admin@test.com':   { password: 'Admin@123',   role: 'Admin',   fullName: 'Temporary Admin' }
-    };
-
-    const match = tempUsers[email];
-
-    if (match && credentials.password === match.password) {
-      // Build a fake JWT-like token with 1-hour expiry so hasValidToken() passes
-      const exp = Math.floor(Date.now() / 1000) + 60 * 60;
-      const payload = { exp };
+    if (user && user.password === credentials.password) {
+      // Build a fake JWT-like token
+      const exp = Math.floor(Date.now() / 1000) + 60 * 60 * 24; // 24 hours
+      const payload = { exp, role: user.role, id: user.id };
       const token = `fake.${btoa(JSON.stringify(payload))}.token`;
 
       const response: AuthResponse = {
         token,
         refreshToken: 'dev-refresh-token',
         user: {
-          id: `temp-${match.role.toLowerCase()}`,
-          email: credentials.email,
-          fullName: match.fullName,
-          role: match.role,
-          profilePicture: ''
+          id: user.id,
+          email: user.email,
+          fullName: user.fullName,
+          role: user.role,
+          profilePicture: user.profilePicture
         }
       };
 
@@ -97,10 +89,11 @@ export class AuthService {
       return of(response);
     }
 
-    // 🧑‍💻 Real backend login (kept for later)
-    return this.http
-      .post<AuthResponse>(`${this.apiUrl}/login`, credentials)
-      .pipe(tap(response => this.handleAuthResponse(response)));
+    return of({} as AuthResponse).pipe(
+      tap(() => {
+        throw new Error('Invalid credentials');
+      })
+    );
   }
 
   logout(): void {

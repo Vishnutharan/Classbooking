@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ManageProfileComponent } from './manage-profile.component';
+import { ManageProfileGenericComponent } from './manage-profile-generic.component';
 
-describe('ManageProfileComponent', () => {
-  let component: ManageProfileComponent;
-  let fixture: ComponentFixture<ManageProfileComponent>;
+describe('ManageProfileGenericComponent', () => {
+  let component: ManageProfileGenericComponent;
+  let fixture: ComponentFixture<ManageProfileGenericComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ManageProfileComponent]
+      imports: [ManageProfileGenericComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(ManageProfileComponent);
+    fixture = TestBed.createComponent(ManageProfileGenericComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

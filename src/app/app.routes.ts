@@ -93,19 +93,18 @@ export const routes: Routes = [
         m => m.TeacherDashboardComponent
       )
   },
-  
+
   // âœ… UPDATED: Swapped old ManageProfile for your new 'Generic' one
   {
     path: 'manage-profile',
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['Teacher', 'Student'] },
     loadComponent: () =>
-      // Make sure the path below matches your folder structure exactly
-      import('./components/manage-profile-generic/manage-profile-generic.component').then(
-        m => m.ManageProfileGenericComponent
+      import('./components/manage-profile/manage-profile.component').then(
+        m => m.ManageProfileComponent
       )
   },
-  
+
   {
     path: 'manage-schedule',
     canActivate: [AuthGuard, RoleGuard],

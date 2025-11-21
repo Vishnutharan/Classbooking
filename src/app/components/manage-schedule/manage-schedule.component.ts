@@ -1,132 +1,82 @@
 ﻿import { Component, inject, OnInit } from '@angular/core';
 import { NotificationService } from '../../services/notification.service';
-import { TeacherAvailability, TeacherService } from '../../services/teacher.service';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { AuthService } from '../../services/auth.service';
+import { DemoDataService, ClassSession } from '../../services/demo-data.service';
+import { CalendarComponent } from '../shared/calendar/calendar.component';
+import { EventInput, DateSelectArg, EventClickArg } from '@fullcalendar/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-manage-schedule',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, CalendarComponent],
   templateUrl: './manage-schedule.component.html',
   styleUrl: './manage-schedule.component.css'
 })
 export class ManageScheduleComponent implements OnInit {
-  private teacherService = inject(TeacherService);
+  private demoDataService = inject(DemoDataService);
   private notificationService = inject(NotificationService);
+  private authService = inject(AuthService);
 
-  days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-
-  // Allow undefined so optional chaining (?.) in the template is valid
-  availability: { [key: string]: TeacherAvailability | undefined } = {};
-
-  isLoading = false;
-  isSaving = false;
-
-  selectedDaysForCopy: string[] = [];
-  copyFromDay = 'Monday';
+  calendarEvents: EventInput[] = [];
+  currentUser: any;
 
   ngOnInit(): void {
+    this.currentUser = this.authService.getCurrentUser();
     this.loadSchedule();
   }
 
-  private loadSchedule(): void {
-    this.isLoading = true;
-    this.teacherService.getMyProfile().subscribe({
-      next: (profile) => {
-        this.days.forEach(day => {
-          const slot = profile.availability.find((a: TeacherAvailability) => a.dayOfWeek === day);
-          this.availability[day] = slot || {
-            dayOfWeek: day,
-            startTime: '09:00',
-            endTime: '17:00'
-          };
-        });
-        this.isLoading = false;
-      },
-      error: () => {
-        this.notificationService.showError('Failed to load schedule');
-        this.isLoading = false;
+  public loadSchedule(): void {
+    if (!this.currentUser) return;
+
+    const allClasses = this.demoDataService.getClasses();
+    // Filter classes for this teacher
+    const myClasses = allClasses.filter(c => c.teacherId === this.currentUser.id);
+
+    this.calendarEvents = myClasses.map(c => ({
+      id: c.id,
+      title: c.title || 'Available Slot',
+      start: c.start,
+      end: c.end,
+      backgroundColor: c.status === 'booked' ? '#ff9f89' : '#3788d8',
+      borderColor: c.status === 'booked' ? '#ff9f89' : '#3788d8',
+      extendedProps: {
+        status: c.status
       }
-    });
+    }));
   }
 
-  updateSlot(day: string, field: 'startTime' | 'endTime', value: string): void {
-    const slot = this.availability[day];
-    if (slot) {
-      slot[field] = value;
-    }
+  onSlotSelected(arg: DateSelectArg): void {
+    if (!this.currentUser) return;
+
+    const newClass: ClassSession = {
+      id: `slot-${Date.now()}`,
+      title: 'Available Slot',
+      teacherId: this.currentUser.id,
+      start: arg.startStr,
+      end: arg.endStr,
+      status: 'available'
+    };
+
+    this.demoDataService.addClass(newClass);
+    this.notificationService.showSuccess('Availability slot added');
+    this.loadSchedule();
   }
 
-  getHoursForDay(day: string): number {
-    const slot = this.availability[day];
-    if (!slot) return 0;
+  onEventClicked(arg: EventClickArg): void {
+    const eventId = arg.event.id;
+    const eventProps = arg.event.extendedProps;
 
-    const [startHourStr] = slot.startTime.split(':');
-    const [endHourStr] = slot.endTime.split(':');
-
-    const startHour = parseInt(startHourStr, 10);
-    const endHour = parseInt(endHourStr, 10);
-
-    if (Number.isNaN(startHour) || Number.isNaN(endHour)) return 0;
-
-    const diff = endHour - startHour;
-    return diff >= 0 ? diff : 0;
-  }
-
-  toggleDay(day: string): void {
-    const index = this.selectedDaysForCopy.indexOf(day);
-    if (index > -1) {
-      this.selectedDaysForCopy.splice(index, 1);
-    } else {
-      this.selectedDaysForCopy.push(day);
-    }
-  }
-
-  copyAvailability(): void {
-    if (!this.copyFromDay || this.selectedDaysForCopy.length === 0) {
-      this.notificationService.showWarning('Select source day and target days');
+    if (eventProps['status'] === 'booked') {
+      this.notificationService.showWarning('Cannot delete a booked slot');
       return;
     }
 
-    const sourceSlot = this.availability[this.copyFromDay];
-    if (!sourceSlot) {
-      this.notificationService.showWarning('Source day has no availability');
-      return;
+    if (confirm('Delete this availability slot?')) {
+      this.demoDataService.deleteClass(eventId);
+      this.notificationService.showSuccess('Slot removed');
+      this.loadSchedule();
     }
-
-    this.selectedDaysForCopy.forEach(day => {
-      this.availability[day] = {
-        ...sourceSlot,
-        dayOfWeek: day
-      };
-    });
-
-    this.notificationService.showSuccess('Availability copied successfully');
-    this.selectedDaysForCopy = [];
-  }
-
-  saveSchedule(): void {
-    this.isSaving = true;
-    const slots = Object.values(this.availability).filter(
-      (slot): slot is TeacherAvailability => slot !== undefined
-    );
-
-    this.teacherService.updateAvailability(slots).subscribe({
-      next: () => {
-        this.notificationService.showSuccess('Schedule updated successfully');
-        this.isSaving = false;
-      },
-      error: () => {
-        this.notificationService.showError('Failed to update schedule');
-        this.isSaving = false;
-      }
-    });
-  }
-
-  getSlotDisplay(day: string): string {
-    const slot = this.availability[day];
-    return slot ? `${slot.startTime} - ${slot.endTime}` : 'Not set';
   }
 }
 
