@@ -3,12 +3,10 @@
 import { Injectable, inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, tap, of } from 'rxjs';
+import { BehaviorSubject, Observable, tap, of, catchError, throwError } from 'rxjs';
 import { Router } from '@angular/router';
-import { DemoDataService } from './demo-data.service';
 import { User } from '../models/user.models';
 import { LoginRequest, AuthResponse } from '../models/auth.models';
-
 
 @Injectable({
   providedIn: 'root'
@@ -17,7 +15,6 @@ export class AuthService {
   private http = inject(HttpClient);
   private router = inject(Router);
   private platformId = inject(PLATFORM_ID);
-  private demoDataService = inject(DemoDataService);
   private isBrowser: boolean;
 
   private currentUserSubject = new BehaviorSubject<User | null>(this.getUserFromToken());
@@ -26,7 +23,7 @@ export class AuthService {
   currentUser$ = this.currentUserSubject.asObservable();
   isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
 
-  private apiUrl = 'api/auth';
+  private apiUrl = 'http://localhost:5197/api/auth'; // Update port if needed
   private tokenKey = 'access_token';
   private refreshTokenKey = 'refresh_token';
   private userKey = 'current_user';
@@ -36,50 +33,17 @@ export class AuthService {
   }
 
   register(userData: any): Observable<AuthResponse> {
-    // Mock register
-    const newUser: User = {
-      id: `user-${Date.now()}`,
-      email: userData.email,
-      fullName: userData.fullName,
-      role: userData.role,
-      password: userData.password,
-      status: 'Active',
-      createdAt: new Date()
-    };
-    this.demoDataService.addUser(newUser);
-
-    const response: AuthResponse = {
-      token: 'mock-token',
-      refreshToken: 'mock-refresh',
-      user: newUser
-    };
-    this.handleAuthResponse(response);
-    return of(response).pipe(tap(() => { }));
+    return this.http.post<AuthResponse>(`${this.apiUrl}/register`, userData).pipe(
+      tap(response => {
+        this.handleAuthResponse(response);
+      })
+    );
   }
 
   login(credentials: LoginRequest): Observable<AuthResponse> {
-    const email = credentials.email.toLowerCase();
-    const user = this.demoDataService.getUserByEmail(email);
-
-    if (user && user.password === credentials.password) {
-      // Build a fake JWT-like token
-      const exp = Math.floor(Date.now() / 1000) + 60 * 60 * 24; // 24 hours
-      const payload = { exp, role: user.role, id: user.id };
-      const token = `fake.${btoa(JSON.stringify(payload))}.token`;
-
-      const response: AuthResponse = {
-        token,
-        refreshToken: 'dev-refresh-token',
-        user: user
-      };
-
-      this.handleAuthResponse(response);
-      return of(response);
-    }
-
-    return of({} as AuthResponse).pipe(
-      tap(() => {
-        throw new Error('Invalid credentials');
+    return this.http.post<AuthResponse>(`${this.apiUrl}/login`, credentials).pipe(
+      tap(response => {
+        this.handleAuthResponse(response);
       })
     );
   }
@@ -96,16 +60,9 @@ export class AuthService {
   }
 
   refreshToken(): Observable<AuthResponse> {
-    // Mock refresh
-    const user = this.getCurrentUser();
-    if (user) {
-      return of({
-        token: 'new-mock-token',
-        refreshToken: 'new-mock-refresh',
-        user
-      });
-    }
-    return of({} as AuthResponse);
+    // TODO: Implement real refresh token endpoint in backend
+    // For now, we just return an error or mock it if needed, but let's keep it simple
+    return throwError(() => new Error('Refresh token not implemented yet'));
   }
 
   getToken(): string | null {
