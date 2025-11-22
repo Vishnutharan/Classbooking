@@ -1,10 +1,10 @@
-﻿import { CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { TeacherService } from '../../services/teacher.service';
-import { ClassBookingService } from '../../services/class-booking.service';
-import { TeacherProfile, ClassBooking } from '../../models/shared.models';
-import { NotificationService } from '../../services/notification.service';
+import { TeacherService } from '../../core/services/teacher.service';
+import { ClassBookingService } from '../../core/services/class-booking.service';
+import { TeacherProfile, ClassBooking } from '../../core/models/shared.models';
+import { NotificationService } from '../../core/services/notification.service';
 
 @Component({
   selector: 'app-teacher-dashboard',

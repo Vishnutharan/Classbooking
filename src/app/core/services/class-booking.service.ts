@@ -1,8 +1,9 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, BehaviorSubject, of, throwError } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import { delay } from 'rxjs/operators';
 import { DemoDataService } from './demo-data.service';
 import { ClassBooking } from '../models/shared.models';
+import { AuthService } from './auth.service';
 
 export interface BookingRequest {
   teacherId: string;
@@ -26,16 +27,23 @@ export interface BookingResponse {
 })
 export class ClassBookingService {
   private demoData = inject(DemoDataService);
+  private authService = inject(AuthService);
 
   getStudentBookings(): Observable<ClassBooking[]> {
-    // Filter for current student (mock: student-1)
-    const bookings = this.demoData.getBookings().filter(b => b.studentId === 'student-1');
+    const user = this.authService.getCurrentUser();
+    if (!user) return throwError(() => new Error('User not authenticated'));
+
+    // Filter for current student
+    const bookings = this.demoData.getBookings().filter(b => b.studentId === user.id);
     return of(bookings).pipe(delay(500));
   }
 
   getTeacherBookings(): Observable<ClassBooking[]> {
-    // Filter for current teacher (mock: teacher-1)
-    const bookings = this.demoData.getBookings().filter(b => b.teacherId === 'teacher-1');
+    const user = this.authService.getCurrentUser();
+    if (!user) return throwError(() => new Error('User not authenticated'));
+
+    // Filter for current teacher
+    const bookings = this.demoData.getBookings().filter(b => b.teacherId === user.id);
     return of(bookings).pipe(delay(500));
   }
 
@@ -50,9 +58,12 @@ export class ClassBookingService {
   }
 
   createBooking(request: BookingRequest): Observable<BookingResponse> {
+    const user = this.authService.getCurrentUser();
+    if (!user) return throwError(() => new Error('User not authenticated'));
+
     const newBooking: ClassBooking = {
       id: 'bk-' + Date.now(),
-      studentId: 'student-1', // Mock ID
+      studentId: user.id,
       teacherId: request.teacherId,
       subject: request.subject,
       date: request.date,
@@ -62,6 +73,7 @@ export class ClassBookingService {
       classType: request.classType,
       recurringDays: request.recurringDays,
       notes: request.notes,
+      meetingLink: 'https://meet.google.com/new-class-link', // Mock link
       createdAt: new Date(),
       updatedAt: new Date()
     };

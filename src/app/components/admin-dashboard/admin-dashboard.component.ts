@@ -1,7 +1,7 @@
-﻿import { CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
-import { NotificationService } from '../../services/notification.service';
-import { AdminService, DashboardStats } from '../../services/admin.service';
+import { NotificationService } from '../../core/services/notification.service';
+import { AdminService, DashboardStats } from '../../core/services/admin.service';
 import { Router } from '@angular/router';
 
 @Component({
@@ -93,10 +93,10 @@ export class AdminDashboardComponent implements OnInit {
 
   private loadActivities(): void {
     this.recentActivities = [
-      { icon: '👤', message: 'New student registered', time: '5 minutes ago' },
-      { icon: '📚', message: 'Class booking confirmed', time: '15 minutes ago' },
-      { icon: '❌', message: 'Booking cancelled', time: '1 hour ago' },
-      { icon: '✅', message: 'Teacher verified', time: '2 hours ago' }
+      { icon: '??', message: 'New student registered', time: '5 minutes ago' },
+      { icon: '??', message: 'Class booking confirmed', time: '15 minutes ago' },
+      { icon: '?', message: 'Booking cancelled', time: '1 hour ago' },
+      { icon: '?', message: 'Teacher verified', time: '2 hours ago' }
     ];
   }
 

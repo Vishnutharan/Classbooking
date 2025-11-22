@@ -1,7 +1,7 @@
-﻿import { CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { NotificationService } from '../../services/notification.service';
+import { NotificationService } from '../../core/services/notification.service';
 
 interface UploadedResource {
   id: string;

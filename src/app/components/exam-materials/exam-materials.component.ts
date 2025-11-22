@@ -2,10 +2,10 @@ import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { StudentService } from '../../services/student.service';
-import { DemoDataService } from '../../services/demo-data.service';
-import { Resource, ExamPreparation } from '../../models/shared.models';
-import { NotificationService } from '../../services/notification.service';
+import { StudentService } from '../../core/services/student.service';
+import { DemoDataService } from '../../core/services/demo-data.service';
+import { Resource, ExamPreparation } from '../../core/models/shared.models';
+import { NotificationService } from '../../core/services/notification.service';
 
 @Component({
     selector: 'app-exam-materials',

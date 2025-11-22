@@ -1,9 +1,9 @@
-﻿import { CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { NotificationService } from '../../services/notification.service';
-import { StudentService } from '../../services/student.service';
-import { Resource } from '../../models/shared.models';
+import { NotificationService } from '../../core/services/notification.service';
+import { StudentService } from '../../core/services/student.service';
+import { Resource } from '../../core/models/shared.models';
 
 @Component({
   selector: 'app-educational-content',

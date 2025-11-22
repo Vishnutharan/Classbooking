@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
+import { AuthService } from './auth.service';
 import { Observable, of, throwError } from 'rxjs';
-import { delay, map } from 'rxjs/operators';
+import { delay } from 'rxjs/operators';
 import { DemoDataService } from './demo-data.service';
 import { TeacherProfile, TeacherSubject, TeacherAvailability } from '../models/shared.models';
 
@@ -18,6 +19,7 @@ export interface UpdateTeacherRequest {
 })
 export class TeacherService {
   private demoData = inject(DemoDataService);
+  private authService = inject(AuthService);
 
   getAllTeachers(): Observable<TeacherProfile[]> {
     return of(this.demoData.getTeachers()).pipe(delay(500));
@@ -46,15 +48,19 @@ export class TeacherService {
   }
 
   getMyProfile(): Observable<TeacherProfile> {
-    // For demo, return the first teacher or find by logged in user if we had auth state here
-    // Assuming 'teacher-1' is the logged in teacher for demo purposes
-    const teacher = this.demoData.getTeacherById('teacher-1');
+    const user = this.authService.getCurrentUser();
+    if (!user) return throwError(() => new Error('User not authenticated'));
+
+    const teacher = this.demoData.getTeacherById(user.id);
     if (!teacher) return throwError(() => new Error('Teacher profile not found'));
     return of(teacher).pipe(delay(300));
   }
 
   updateProfile(update: UpdateTeacherRequest): Observable<TeacherProfile> {
-    const teacher = this.demoData.getTeacherById('teacher-1');
+    const user = this.authService.getCurrentUser();
+    if (!user) return throwError(() => new Error('User not authenticated'));
+
+    const teacher = this.demoData.getTeacherById(user.id);
     if (!teacher) return throwError(() => new Error('Teacher not found'));
 
     const updatedTeacher = { ...teacher, ...update, updatedAt: new Date() };
@@ -63,7 +69,10 @@ export class TeacherService {
   }
 
   addSubject(subject: TeacherSubject): Observable<TeacherProfile> {
-    const teacher = this.demoData.getTeacherById('teacher-1');
+    const user = this.authService.getCurrentUser();
+    if (!user) return throwError(() => new Error('User not authenticated'));
+
+    const teacher = this.demoData.getTeacherById(user.id);
     if (!teacher) return throwError(() => new Error('Teacher not found'));
 
     teacher.subjects.push(subject);
@@ -72,7 +81,10 @@ export class TeacherService {
   }
 
   removeSubject(subjectId: string): Observable<TeacherProfile> {
-    const teacher = this.demoData.getTeacherById('teacher-1');
+    const user = this.authService.getCurrentUser();
+    if (!user) return throwError(() => new Error('User not authenticated'));
+
+    const teacher = this.demoData.getTeacherById(user.id);
     if (!teacher) return throwError(() => new Error('Teacher not found'));
 
     teacher.subjects = teacher.subjects.filter(s => s.id !== subjectId);
@@ -81,7 +93,10 @@ export class TeacherService {
   }
 
   updateAvailability(availability: TeacherAvailability[]): Observable<TeacherProfile> {
-    const teacher = this.demoData.getTeacherById('teacher-1');
+    const user = this.authService.getCurrentUser();
+    if (!user) return throwError(() => new Error('User not authenticated'));
+
+    const teacher = this.demoData.getTeacherById(user.id);
     if (!teacher) return throwError(() => new Error('Teacher not found'));
 
     teacher.availability = availability;

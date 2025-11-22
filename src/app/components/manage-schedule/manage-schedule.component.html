@@ -11,11 +11,42 @@
     Click and drag on the calendar to create availability slots. Click on a slot to remove it.
   </div>
 
-  <app-calendar
-    [events]="calendarEvents"
-    [editable]="true"
-    [selectable]="true"
-    (slotSelected)="onSlotSelected($event)"
+  <app-calendar [events]="calendarEvents" [editable]="true" [selectable]="true" (slotSelected)="onSlotSelected($event)"
     (eventClicked)="onEventClicked($event)">
   </app-calendar>
+
+  <!-- Availability Modal -->
+  <div class="modal" *ngIf="showAvailabilityModal"
+    style="display: block; background: rgba(0,0,0,0.5); position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1050;">
+    <div class="modal-dialog"
+      style="margin: 10% auto; max-width: 500px; background: white; padding: 20px; border-radius: 8px;">
+      <div class="modal-content">
+        <div class="modal-header mb-3">
+          <h5 class="modal-title">Add Availability</h5>
+          <button type="button" class="btn-close" (click)="closeAvailabilityModal()"
+            style="float: right;">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Day of Week</label>
+            <select class="form-select" [(ngModel)]="availabilityForm.dayOfWeek">
+              <option *ngFor="let day of daysOfWeek" [value]="day">{{ day }}</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Start Time</label>
+            <input type="time" class="form-control" [(ngModel)]="availabilityForm.startTime">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">End Time</label>
+            <input type="time" class="form-control" [(ngModel)]="availabilityForm.endTime">
+          </div>
+        </div>
+        <div class="modal-footer mt-3 text-end">
+          <button type="button" class="btn btn-secondary me-2" (click)="closeAvailabilityModal()">Cancel</button>
+          <button type="button" class="btn btn-primary" (click)="saveAvailability()">Save Availability</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

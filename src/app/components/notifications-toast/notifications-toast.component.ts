@@ -1,6 +1,6 @@
-﻿import { CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
-import { NotificationService, ToastNotification } from '../../services/notification.service';
+import { NotificationService, ToastNotification } from '../../core/services/notification.service';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -29,10 +29,10 @@ export class NotificationsToastComponent implements OnInit, OnDestroy {
 
   getIcon(type: ToastNotification['type']): string {
     const icons: Record<ToastNotification['type'], string> = {
-      success: 'âœ…',
-      error: 'âŒ',
-      info: 'â„¹ï¸',
-      warning: 'âš ï¸'
+      success: '✅',
+      error: '❌',
+      info: 'ℹ️',
+      warning: '⚠️'
     };
     return icons[type];
   }

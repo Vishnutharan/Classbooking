@@ -1,12 +1,12 @@
-﻿// src/app/Componat/auth/auth.component.ts
+// src/app/Componat/auth/auth.component.ts
 
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { AuthService, AuthResponse, LoginRequest } from '../../services/auth.service';
-import { NotificationService } from '../../services/notification.service';
+import { AuthService, AuthResponse, LoginRequest } from '../../core/services/auth.service';
+import { NotificationService } from '../../core/services/notification.service';
 
 @Component({
   selector: 'app-auth',

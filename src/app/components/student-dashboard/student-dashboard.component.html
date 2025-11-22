@@ -43,12 +43,23 @@
           <p><strong>Type:</strong> {{ booking.classType }}</p>
           <p *ngIf="booking.notes"><strong>Notes:</strong> {{ booking.notes }}</p>
         </div>
-        <button class="card-btn" (click)="viewBooking(booking.id)">View Details</button>
+        <div class="card-actions" style="display: flex; gap: 10px; margin-top: 15px;">
+          <button class="card-btn" (click)="viewBooking(booking.id)" style="flex: 1;">View Details</button>
+          <a class="card-btn join-btn" [href]="booking.meetingLink" target="_blank"
+            *ngIf="booking.status === 'Confirmed' && booking.meetingLink"
+            style="flex: 1; text-align: center; text-decoration: none; background: #28a745; display: flex; align-items: center; justify-content: center;">
+            🎥 Join Class
+          </a>
+        </div>
       </div>
+    </div>
+    <div class="section-actions" style="margin-top: 20px; text-align: center;" *ngIf="upcomingClasses.length > 0">
+      <button class="action-btn primary" (click)="bookClass()">➕ Book Another Class</button>
     </div>
     <ng-template #noUpcoming>
       <div class="empty-state">
-        <p>No upcoming classes. <a href="#" (click)="bookClass(); $event.preventDefault()">Book one now!</a></p>
+        <p>No upcoming classes found.</p>
+        <button class="action-btn primary mt-2" (click)="bookClass()">Book one now!</button>
       </div>
     </ng-template>
   </div>
@@ -58,7 +69,8 @@
     <div class="teachers-carousel" *ngIf="recommendedTeachers.length > 0">
       <div class="teacher-card" *ngFor="let teacher of recommendedTeachers">
         <div class="teacher-header">
-          <img [src]="teacher.profilePicture || 'https://via.placeholder.com/100'" alt="{{ teacher.fullName }}" class="teacher-avatar">
+          <img [src]="teacher.profilePicture || 'https://via.placeholder.com/100'" alt="{{ teacher.fullName }}"
+            class="teacher-avatar">
           <div class="teacher-info">
             <h4>{{ teacher.fullName }}</h4>
             <p class="rating">⭐ {{ (teacher.averageRating) | number:'1.1-1' }} ({{ teacher.totalReviews }} reviews)</p>

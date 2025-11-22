@@ -1,9 +1,9 @@
-﻿import { CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { AdminService } from '../../services/admin.service';
-import { ExamSeason, PublicHoliday } from '../../models/shared.models';
-import { NotificationService } from '../../services/notification.service';
+import { AdminService } from '../../core/services/admin.service';
+import { ExamSeason, PublicHoliday } from '../../core/models/shared.models';
+import { NotificationService } from '../../core/services/notification.service';
 
 @Component({
   selector: 'app-timetable-management',

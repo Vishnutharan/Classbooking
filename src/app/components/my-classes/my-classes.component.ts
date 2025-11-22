@@ -1,10 +1,10 @@
-﻿import { Component, inject, OnInit } from '@angular/core';
-import { NotificationService } from '../../services/notification.service';
+import { Component, inject, OnInit } from '@angular/core';
+import { NotificationService } from '../../core/services/notification.service';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { AuthService } from '../../services/auth.service';
-import { ClassBookingService } from '../../services/class-booking.service';
-import { ClassBooking } from '../../models/shared.models';
+import { AuthService } from '../../core/services/auth.service';
+import { ClassBookingService } from '../../core/services/class-booking.service';
+import { ClassBooking } from '../../core/models/shared.models';
 
 @Component({
   selector: 'app-my-classes',

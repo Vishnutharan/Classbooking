@@ -1,10 +1,10 @@
-﻿import { CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { StudentService } from '../../services/student.service';
-import { ExamPreparation, Resource } from '../../models/shared.models';
-import { NotificationService } from '../../services/notification.service';
+import { StudentService } from '../../core/services/student.service';
+import { ExamPreparation, Resource } from '../../core/models/shared.models';
+import { NotificationService } from '../../core/services/notification.service';
 
 @Component({
   selector: 'app-exam-preparation',
@@ -113,13 +113,13 @@ export class ExamPreparationComponent implements OnInit {
 
   getResourceTypeIcon(type: string): string {
     const icons: { [key: string]: string } = {
-      'Video': 'ðŸ“¹',
-      'PDF': 'ðŸ“„',
-      'Quiz': 'â“',
-      'Notes': 'ðŸ“',
-      'PastPaper': 'ðŸ“‹'
+      'Video': '📹',
+      'PDF': '📄',
+      'Quiz': '❓',
+      'Notes': '📝',
+      'PastPaper': '📋'
     };
-    return icons[type] || 'ðŸ“¦';
+    return icons[type] || '📦';
   }
 
   getPreparationsByExam(): ExamPreparation[] {

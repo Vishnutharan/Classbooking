@@ -1,8 +1,8 @@
-﻿import { CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { AdminService } from '../../services/admin.service';
-import { NotificationService } from '../../services/notification.service';
+import { AdminService } from '../../core/services/admin.service';
+import { NotificationService } from '../../core/services/notification.service';
 
 @Component({
   selector: 'app-reports',

@@ -1,14 +1,15 @@
-﻿import { CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { NotificationService } from '../../services/notification.service';
-import { AuthService } from '../../services/auth.service';
-import { ClassBookingService, BookingRequest } from '../../services/class-booking.service';
-import { TeacherService } from '../../services/teacher.service';
+import { NotificationService } from '../../core/services/notification.service';
+import { AuthService } from '../../core/services/auth.service';
+import { ClassBookingService, BookingRequest } from '../../core/services/class-booking.service';
+import { TeacherService } from '../../core/services/teacher.service';
 import { CalendarComponent } from '../shared/calendar/calendar.component';
 import { EventInput, EventClickArg } from '@fullcalendar/core';
-import { TeacherProfile } from '../../models/shared.models';
+import { TeacherProfile } from '../../core/models/shared.models';
+import { forkJoin } from 'rxjs';
 
 
 @Component({
@@ -44,20 +45,18 @@ export class BookClassComponent implements OnInit {
   }
 
   public loadAvailableClasses(): void {
-    // Load teachers and their availability
-    this.teacherService.getAllTeachers().subscribe({
-      next: (teachers) => {
+    // Load teachers and bookings in parallel to avoid race conditions
+    forkJoin({
+      teachers: this.teacherService.getAllTeachers(),
+      bookings: this.bookingService.getAllBookings()
+    }).subscribe({
+      next: ({ teachers, bookings }) => {
         this.teachers = teachers;
-        this.generateCalendarEvents(teachers);
-      },
-      error: () => {
-        this.notificationService.showError('Failed to load available teachers');
-      }
-    });
 
-    // Also load existing bookings to show as grey
-    this.bookingService.getAllBookings().subscribe({
-      next: (bookings) => {
+        // 1. Generate availability events
+        const availabilityEvents = this.generateAvailabilityEvents(teachers);
+
+        // 2. Generate booking events
         const bookingEvents = bookings.map(b => ({
           id: 'booking-' + b.id,
           title: `${b.subject} - ${b.status}`,
@@ -72,12 +71,17 @@ export class BookClassComponent implements OnInit {
             studentId: b.studentId
           }
         }));
-        this.calendarEvents = [...this.calendarEvents, ...bookingEvents];
+
+        // 3. Combine events
+        this.calendarEvents = [...availabilityEvents, ...bookingEvents];
+      },
+      error: () => {
+        this.notificationService.showError('Failed to load calendar data');
       }
     });
   }
 
-  private generateCalendarEvents(teachers: TeacherProfile[]): void {
+  private generateAvailabilityEvents(teachers: TeacherProfile[]): EventInput[] {
     const events: EventInput[] = [];
     const today = new Date();
 
@@ -89,18 +93,30 @@ export class BookClassComponent implements OnInit {
       const dateStr = this.formatDate(currentDate);
 
       teachers.forEach(teacher => {
+        if (!teacher.availability) return;
+
         teacher.availability.forEach(avail => {
           if (avail.dayOfWeek.toLowerCase() === dayName.toLowerCase()) {
-            // Create hourly slots within availability window
-            const startHour = parseInt(avail.startTime.split(':')[0]);
-            const endHour = parseInt(avail.endTime.split(':')[0]);
+            // Parse start and end times
+            const [startHour, startMinute] = avail.startTime.split(':').map(Number);
+            const [endHour, endMinute] = avail.endTime.split(':').map(Number);
 
-            for (let hour = startHour; hour < endHour; hour++) {
-              const slotStart = `${hour.toString().padStart(2, '0')}:00`;
-              const slotEnd = `${(hour + 1).toString().padStart(2, '0')}:00`;
+            // Create slots in 1-hour increments
+            // For simplicity, we'll start at the start time and add 1 hour until we reach end time
+            let currentHour = startHour;
+            let currentMinute = startMinute;
+
+            while (currentHour < endHour || (currentHour === endHour && currentMinute < endMinute)) {
+              const nextHour = currentHour + 1;
+
+              // Stop if the slot goes beyond end time
+              if (nextHour > endHour || (nextHour === endHour && currentMinute > endMinute)) break;
+
+              const slotStart = `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}`;
+              const slotEnd = `${nextHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}`;
 
               events.push({
-                id: `slot-${teacher.id}-${dateStr}-${hour}`,
+                id: `slot-${teacher.id}-${dateStr}-${slotStart}`,
                 title: `${teacher.fullName.split(' ')[1] || teacher.fullName} - Available`,
                 start: `${dateStr}T${slotStart}`,
                 end: `${dateStr}T${slotEnd}`,
@@ -117,13 +133,15 @@ export class BookClassComponent implements OnInit {
                   endTime: slotEnd
                 }
               });
+
+              currentHour = nextHour;
             }
           }
         });
       });
     }
 
-    this.calendarEvents = events;
+    return events;
   }
 
   private formatDate(date: Date | string): string {

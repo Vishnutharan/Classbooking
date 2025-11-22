@@ -1,9 +1,9 @@
-﻿import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Component, inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
-import { AuthService } from '../../services/auth.service';
-import { User } from '../../models/shared.models';
-import { NotificationService } from '../../services/notification.service';
+import { AuthService } from '../../core/services/auth.service';
+import { User } from '../../core/models/shared.models';
+import { NotificationService } from '../../core/services/notification.service';
 
 interface MenuItem {
   icon: string;
@@ -29,28 +29,28 @@ export class SidebarComponent implements OnInit {
   menuSections: { title: string; items: MenuItem[] }[] = [];
 
   private studentMenuItems: MenuItem[] = [
-    { icon: 'ðŸ ', label: 'Dashboard', route: '/dashboard/student', roles: ['Student'] },
-    { icon: 'ðŸ“š', label: 'Book Class', route: '/book-class', roles: ['Student'] },
-    { icon: 'ðŸ“–', label: 'My Bookings', route: '/my-bookings', roles: ['Student'] },
-    { icon: 'ðŸŽ“', label: 'Exam Prep', route: '/exam-preparation', roles: ['Student'] },
-    { icon: 'ðŸ“„', label: 'Educational Content', route: '/educational-content', roles: ['Student'] }
+    { icon: '🏠', label: 'Dashboard', route: '/dashboard/student', roles: ['Student'] },
+    { icon: '📚', label: 'Book Class', route: '/book-class', roles: ['Student'] },
+    { icon: '📖', label: 'My Bookings', route: '/my-bookings', roles: ['Student'] },
+    { icon: '🎓', label: 'Exam Prep', route: '/exam-preparation', roles: ['Student'] },
+    { icon: '📄', label: 'Educational Content', route: '/educational-content', roles: ['Student'] }
   ];
 
   private teacherMenuItems: MenuItem[] = [
-    { icon: 'ðŸ ', label: 'Dashboard', route: '/dashboard/teacher', roles: ['Teacher'] },
-    { icon: 'ðŸ‘¤', label: 'My Profile', route: '/manage-profile', roles: ['Teacher'] },
-    { icon: 'ðŸ“…', label: 'Manage Schedule', route: '/manage-schedule', roles: ['Teacher'] },
-    { icon: 'ðŸ‘¥', label: 'My Classes', route: '/my-classes', roles: ['Teacher'] },
-    { icon: 'â­', label: 'Reviews & Ratings', route: '/reviews-ratings', roles: ['Teacher'] },
-    { icon: 'ðŸ“¤', label: 'Upload Resources', route: '/resources-upload', roles: ['Teacher'] }
+    { icon: '🏠', label: 'Dashboard', route: '/dashboard/teacher', roles: ['Teacher'] },
+    { icon: '👤', label: 'My Profile', route: '/manage-profile', roles: ['Teacher'] },
+    { icon: '📅', label: 'Manage Schedule', route: '/manage-schedule', roles: ['Teacher'] },
+    { icon: '👥', label: 'My Classes', route: '/my-classes', roles: ['Teacher'] },
+    { icon: '⭐', label: 'Reviews & Ratings', route: '/reviews-ratings', roles: ['Teacher'] },
+    { icon: '📤', label: 'Upload Resources', route: '/resources-upload', roles: ['Teacher'] }
   ];
 
   private adminMenuItems: MenuItem[] = [
-    { icon: 'ðŸ ', label: 'Dashboard', route: '/dashboard/admin', roles: ['Admin'] },
-    { icon: 'ðŸ‘¥', label: 'User Management', route: '/admin/users', roles: ['Admin'] },
-    { icon: 'ðŸ“…', label: 'Timetable', route: '/admin/timetable', roles: ['Admin'] },
-    { icon: 'ðŸ“Š', label: 'Reports', route: '/admin/reports', roles: ['Admin'] },
-    { icon: 'âš™ï¸', label: 'Settings', route: '/admin/settings', roles: ['Admin'] }
+    { icon: '🏠', label: 'Dashboard', route: '/dashboard/admin', roles: ['Admin'] },
+    { icon: '👥', label: 'User Management', route: '/admin/users', roles: ['Admin'] },
+    { icon: '📅', label: 'Timetable', route: '/admin/timetable', roles: ['Admin'] },
+    { icon: '📊', label: 'Reports', route: '/admin/reports', roles: ['Admin'] },
+    { icon: '⚙️', label: 'Settings', route: '/admin/settings', roles: ['Admin'] }
   ];
 
   constructor() {
