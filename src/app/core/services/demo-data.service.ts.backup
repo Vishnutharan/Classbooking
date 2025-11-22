@@ -1,0 +1,501 @@
+import { Injectable, PLATFORM_ID, inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { BehaviorSubject, Observable, of } from 'rxjs';
+import {
+    User, TeacherProfile, StudentProfile, ClassBooking,
+    Resource, ExamPreparation, PublicHoliday, ExamSeason, SystemSettings,
+    StudyGoal, SubjectPerformance
+} from '../models/shared.models';
+
+@Injectable({
+    providedIn: 'root'
+})
+export class DemoDataService {
+    private platformId = inject(PLATFORM_ID);
+    private isBrowser = isPlatformBrowser(this.platformId);
+
+    private KEYS = {
+        USERS: 'demo_users',
+        TEACHERS: 'demo_teachers',
+        STUDENTS: 'demo_students',
+        BOOKINGS: 'demo_bookings',
+        RESOURCES: 'demo_resources',
+        EXAM_PREP: 'demo_exam_prep',
+        SETTINGS: 'demo_settings',
+        STUDY_GOALS: 'demo_study_goals',
+        SUBJECT_PERFORMANCE: 'demo_subject_performance'
+    };
+
+    constructor() {
+        if (this.isBrowser) {
+            this.initData();
+        }
+    }
+
+    private initData() {
+        if (!localStorage.getItem(this.KEYS.USERS)) {
+            this.seedUsers();
+        }
+        if (!localStorage.getItem(this.KEYS.TEACHERS)) {
+            this.seedTeachers();
+        }
+        if (!localStorage.getItem(this.KEYS.STUDENTS)) {
+            this.seedStudents();
+        }
+        if (!localStorage.getItem(this.KEYS.BOOKINGS)) {
+            this.seedBookings();
+        }
+        if (!localStorage.getItem(this.KEYS.EXAM_PREP)) {
+            this.seedExamPreparation();
+        }
+        if (!localStorage.getItem(this.KEYS.SETTINGS)) {
+            this.seedSettings();
+        }
+        if (!localStorage.getItem(this.KEYS.STUDY_GOALS)) {
+            this.seedStudyGoals();
+        }
+        if (!localStorage.getItem(this.KEYS.SUBJECT_PERFORMANCE)) {
+            this.seedSubjectPerformance();
+        }
+    }
+
+    // --- SEEDING METHODS ---
+
+    private seedUsers() {
+        const users: User[] = [
+            // Students
+            { id: 'student-1', email: 'student@test.com', password: 'Student@123', fullName: 'Alice Fernando', role: 'Student', profilePicture: 'assets/student-avatar.png', status: 'Active', createdAt: new Date() },
+            { id: 'student-2', email: 'student2@test.com', password: 'Student@123', fullName: 'Kamal Silva', role: 'Student', status: 'Active', createdAt: new Date() },
+            { id: 'student-3', email: 'student3@test.com', password: 'Student@123', fullName: 'Nimal Perera', role: 'Student', status: 'Active', createdAt: new Date() },
+            { id: 'student-4', email: 'student4@test.com', password: 'Student@123', fullName: 'Saman Jayawardena', role: 'Student', status: 'Active', createdAt: new Date() },
+            { id: 'student-5', email: 'student5@test.com', password: 'Student@123', fullName: 'Dilini Rajapaksha', role: 'Student', status: 'Active', createdAt: new Date() },
+            // Teachers
+            { id: 'teacher-1', email: 'teacher@test.com', password: 'Teacher@123', fullName: 'Mr. Bob Fernando', role: 'Teacher', profilePicture: 'assets/teacher-avatar.png', status: 'Active', createdAt: new Date() },
+            { id: 'teacher-2', email: 'teacher2@test.com', password: 'Teacher@123', fullName: 'Mrs. Sarah Silva', role: 'Teacher', status: 'Active', createdAt: new Date() },
+            { id: 'teacher-3', email: 'teacher3@test.com', password: 'Teacher@123', fullName: 'Dr. Rohan Perera', role: 'Teacher', status: 'Active', createdAt: new Date() },
+            { id: 'teacher-4', email: 'teacher4@test.com', password: 'Teacher@123', fullName: 'Ms. Kumari De Silva', role: 'Teacher', status: 'Active', createdAt: new Date() },
+            // Admin
+            { id: 'admin-1', email: 'admin@test.com', password: 'Admin@123', fullName: 'Charlie Admin', role: 'Admin', status: 'Active', createdAt: new Date() }
+        ];
+        localStorage.setItem(this.KEYS.USERS, JSON.stringify(users));
+    }
+
+    private seedTeachers() {
+        const teachers: TeacherProfile[] = [
+            // O/L and A/L Mathematics
+            {
+                id: 'teacher-1', userId: 'teacher-1', fullName: 'Mr. Chaminda Fernando', email: 'teacher@test.com', phoneNumber: '0771234567',
+                profilePicture: 'assets/teacher-avatar.png', bio: 'Expert in Mathematics with 10 years of experience. Specialized in O/L and A/L preparation.',
+                qualifications: ['BSc Mathematics (University of Colombo)', 'PGDE'], subjects: [{ id: 's1', name: 'Mathematics', medium: 'English', level: 'OLevel' }, { id: 's2', name: 'Combined Mathematics', medium: 'English', level: 'ALevel' }],
+                hourlyRate: 1500, experienceYears: 10, averageRating: 4.8, totalReviews: 25, totalClasses: 150, isAvailable: true,
+                availability: [{ dayOfWeek: 'Monday', startTime: '16:00', endTime: '20:00' }, { dayOfWeek: 'Wednesday', startTime: '16:00', endTime: '20:00' }, { dayOfWeek: 'Saturday', startTime: '09:00', endTime: '17:00' }],
+                verificationStatus: 'Verified', createdAt: new Date(), updatedAt: new Date()
+            },
+            // O/L Science and A/L Biology
+            {
+                id: 'teacher-2', userId: 'teacher-2', fullName: 'Mrs. Anjali Silva', email: 'teacher2@test.com', phoneNumber: '0772345678',
+                profilePicture: 'assets/teacher-avatar.png', bio: 'Science specialist with focus on Biology and Chemistry. Former lecturer at University of Peradeniya.',
+                qualifications: ['BSc Biology (University of Peradeniya)', 'MSc Biochemistry'], subjects: [{ id: 's3', name: 'Science', medium: 'English', level: 'OLevel' }, { id: 's4', name: 'Biology', medium: 'English', level: 'ALevel' }],
+                hourlyRate: 1800, experienceYears: 8, averageRating: 4.9, totalReviews: 30, totalClasses: 120, isAvailable: true,
+                availability: [{ dayOfWeek: 'Tuesday', startTime: '15:00', endTime: '19:00' }, { dayOfWeek: 'Thursday', startTime: '15:00', endTime: '19:00' }],
+                verificationStatus: 'Verified', createdAt: new Date(), updatedAt: new Date()
+            },
+            // A/L Physics and Combined Maths
+            {
+                id: 'teacher-3', userId: 'teacher-3', fullName: 'Dr. Rohan Perera', email: 'teacher3@test.com', phoneNumber: '0773456789',
+                profilePicture: 'assets/teacher-avatar.png', bio: 'Physics and Combined Mathematics expert with PhD. 12 years teaching A/L students.',
+                qualifications: ['BSc Physics (University of Moratuwa)', 'PhD Physics'], subjects: [{ id: 's5', name: 'Physics', medium: 'English', level: 'ALevel' }, { id: 's6', name: 'Combined Mathematics', medium: 'English', level: 'ALevel' }],
+                hourlyRate: 2000, experienceYears: 12, averageRating: 4.7, totalReviews: 18, totalClasses: 90, isAvailable: true,
+                availability: [{ dayOfWeek: 'Friday', startTime: '16:00', endTime: '20:00' }, { dayOfWeek: 'Sunday', startTime: '10:00', endTime: '16:00' }],
+                verificationStatus: 'Verified', createdAt: new Date(), updatedAt: new Date()
+            },
+            // O/L and A/L English
+            {
+                id: 'teacher-4', userId: 'teacher-4', fullName: 'Ms. Kumari De Silva', email: 'teacher4@test.com', phoneNumber: '0774567890',
+                profilePicture: 'assets/teacher-avatar.png', bio: 'English Language and Literature specialist with 7 years experience preparing students for O/L and A/L.',
+                qualifications: ['BA English (University of Kelaniya)', 'MA Literature'], subjects: [{ id: 's7', name: 'English', medium: 'English', level: 'OLevel' }, { id: 's8', name: 'English', medium: 'English', level: 'ALevel' }],
+                hourlyRate: 1400, experienceYears: 7, averageRating: 4.6, totalReviews: 22, totalClasses: 110, isAvailable: true,
+                availability: [{ dayOfWeek: 'Monday', startTime: '17:00', endTime: '20:00' }, { dayOfWeek: 'Wednesday', startTime: '17:00', endTime: '20:00' }],
+                verificationStatus: 'Verified', createdAt: new Date(), updatedAt: new Date()
+            },
+            // A/L Chemistry
+            {
+                id: 'teacher-5', userId: 'teacher-5', fullName: 'Dr. Nimal Wickramasinghe', email: 'teacher5@test.com', phoneNumber: '0775678901',
+                profilePicture: 'assets/teacher-avatar.png', bio: 'Chemistry expert with PhD. Specializes in A/L Chemistry for all streams.',
+                qualifications: ['BSc Chemistry (University of Colombo)', 'PhD Organic Chemistry'], subjects: [{ id: 's9', name: 'Chemistry', medium: 'English', level: 'ALevel' }, { id: 's10', name: 'Science', medium: 'English', level: 'OLevel' }],
+                hourlyRate: 1900, experienceYears: 11, averageRating: 4.8, totalReviews: 28, totalClasses: 95, isAvailable: true,
+                availability: [{ dayOfWeek: 'Tuesday', startTime: '16:00', endTime: '20:00' }, { dayOfWeek: 'Saturday', startTime: '10:00', endTime: '14:00' }],
+                verificationStatus: 'Verified', createdAt: new Date(), updatedAt: new Date()
+            },
+            // A/L Commerce - Accounting
+            {
+                id: 'teacher-6', userId: 'teacher-6', fullName: 'Mr. Sunil Jayasekara', email: 'teacher6@test.com', phoneNumber: '0776789012',
+                profilePicture: 'assets/teacher-avatar.png', bio: 'Chartered Accountant with 9 years teaching experience. A/L Accounting specialist.',
+                qualifications: ['B.Com (University of Sri Jayewardenepura)', 'ACA', 'PGDE'], subjects: [{ id: 's11', name: 'Accounting', medium: 'English', level: 'ALevel' }, { id: 's12', name: 'Business & Accounting Studies', medium: 'English', level: 'OLevel' }],
+                hourlyRate: 1700, experienceYears: 9, averageRating: 4.7, totalReviews: 24, totalClasses: 105, isAvailable: true,
+                availability: [{ dayOfWeek: 'Wednesday', startTime: '18:00', endTime: '21:00' }, { dayOfWeek: 'Sunday', startTime: '09:00', endTime: '13:00' }],
+                verificationStatus: 'Verified', createdAt: new Date(), updatedAt: new Date()
+            },
+            // A/L Commerce - Business Studies
+            {
+                id: 'teacher-7', userId: 'teacher-7', fullName: 'Mrs. Priyani Rathnayake', email: 'teacher7@test.com', phoneNumber: '0777890123',
+                profilePicture: 'assets/teacher-avatar.png', bio: 'Business Studies and Economics specialist. MBA holder with corporate experience.',
+                qualifications: ['B.Com (University of Colombo)', 'MBA'], subjects: [{ id: 's13', name: 'Business Studies', medium: 'English', level: 'ALevel' }, { id: 's14', name: 'Economics', medium: 'English', level: 'ALevel' }],
+                hourlyRate: 1600, experienceYears: 8, averageRating: 4.5, totalReviews: 20, totalClasses: 88, isAvailable: true,
+                availability: [{ dayOfWeek: 'Thursday', startTime: '17:00', endTime: '20:00' }, { dayOfWeek: 'Saturday', startTime: '14:00', endTime: '18:00' }],
+                verificationStatus: 'Verified', createdAt: new Date(), updatedAt: new Date()
+            },
+            // O/L ICT and A/L ICT
+            {
+                id: 'teacher-8', userId: 'teacher-8', fullName: 'Mr. Udara Bandara', email: 'teacher8@test.com', phoneNumber: '0778901234',
+                profilePicture: 'assets/teacher-avatar.png', bio: 'IT professional with 6 years teaching experience. O/L and A/L ICT specialist.',
+                qualifications: ['BIT (University of Moratuwa)', 'MSc IT'], subjects: [{ id: 's15', name: 'ICT', medium: 'English', level: 'OLevel' }, { id: 's16', name: 'ICT', medium: 'English', level: 'ALevel' }],
+                hourlyRate: 1500, experienceYears: 6, averageRating: 4.6, totalReviews: 19, totalClasses: 75, isAvailable: true,
+                availability: [{ dayOfWeek: 'Monday', startTime: '18:00', endTime: '21:00' }, { dayOfWeek: 'Friday', startTime: '18:00', endTime: '21:00' }],
+                verificationStatus: 'Verified', createdAt: new Date(), updatedAt: new Date()
+            },
+            // O/L History and Geography
+            {
+                id: 'teacher-9', userId: 'teacher-9', fullName: 'Mr. Arjuna Weerasinghe', email: 'teacher9@test.com', phoneNumber: '0779012345',
+                profilePicture: 'assets/teacher-avatar.png', bio: 'History and Geography teacher with 10 years experience in O/L preparation.',
+                qualifications: ['BA History (University of Peradeniya)', 'PGDE'], subjects: [{ id: 's17', name: 'History', medium: 'English', level: 'OLevel' }, { id: 's18', name: 'Geography', medium: 'English', level: 'OLevel' }],
+                hourlyRate: 1300, experienceYears: 10, averageRating: 4.4, totalReviews: 16, totalClasses: 92, isAvailable: true,
+                availability: [{ dayOfWeek: 'Tuesday', startTime: '17:00', endTime: '20:00' }, { dayOfWeek: 'Sunday', startTime: '10:00', endTime: '13:00' }],
+                verificationStatus: 'Verified', createdAt: new Date(), updatedAt: new Date()
+            },
+            // O/L Sinhala
+            {
+                id: 'teacher-10', userId: 'teacher-10', fullName: 'Mr. Gayan Dissanayake', email: 'teacher10@test.com', phoneNumber: '0770123456',
+                profilePicture: 'assets/teacher-avatar.png', bio: 'Sinhala language expert. Specializes in O/L Sinhala Language and Literature.',
+                qualifications: ['BA Sinhala (University of Kelaniya)', 'PGDE'], subjects: [{ id: 's19', name: 'Sinhala', medium: 'Sinhala', level: 'OLevel' }, { id: 's20', name: 'Sinhala Literature', medium: 'Sinhala', level: 'OLevel' }],
+                hourlyRate: 1200, experienceYears: 8, averageRating: 4.5, totalReviews: 15, totalClasses: 70, isAvailable: true,
+                availability: [{ dayOfWeek: 'Wednesday', startTime: '16:00', endTime: '19:00' }, { dayOfWeek: 'Saturday', startTime: '09:00', endTime: '12:00' }],
+                verificationStatus: 'Verified', createdAt: new Date(), updatedAt: new Date()
+            },
+            // O/L Buddhism
+            {
+                id: 'teacher-11', userId: 'teacher-11', fullName: 'Ven. Mahanama Thero', email: 'teacher11@test.com', phoneNumber: '0771234568',
+                profilePicture: 'assets/teacher-avatar.png', bio: 'Buddhist Studies scholar. 12 years teaching O/L Buddhism.',
+                qualifications: ['BA Buddhist Studies (University of Kelaniya)', 'MA Buddhism'], subjects: [{ id: 's21', name: 'Buddhism', medium: 'Sinhala', level: 'OLevel' }, { id: 's22', name: 'Buddhism', medium: 'English', level: 'OLevel' }],
+                hourlyRate: 1100, experienceYears: 12, averageRating: 4.9, totalReviews: 21, totalClasses: 88, isAvailable: true,
+                availability: [{ dayOfWeek: 'Thursday', startTime: '16:00', endTime: '19:00' }, { dayOfWeek: 'Sunday', startTime: '14:00', endTime: '17:00' }],
+                verificationStatus: 'Verified', createdAt: new Date(), updatedAt: new Date()
+            },
+            // O/L Tamil
+            {
+                id: 'teacher-12', userId: 'teacher-12', fullName: 'Mrs. Saranya Rajan', email: 'teacher12@test.com', phoneNumber: '0772345879',
+                profilePicture: 'assets/teacher-avatar.png', bio: 'Tamil language specialist with 7 years experience.',
+                qualifications: ['BA Tamil (University of Jaffna)', 'PGDE'], subjects: [{ id: 's23', name: 'Tamil', medium: 'Tamil', level: 'OLevel' }, { id: 's24', name: 'Tamil Literature', medium: 'Tamil', level: 'OLevel' }],
+                hourlyRate: 1200, experienceYears: 7, averageRating: 4.6, totalReviews: 14, totalClasses: 65, isAvailable: true,
+                availability: [{ dayOfWeek: 'Monday', startTime: '17:00', endTime: '20:00' }, { dayOfWeek: 'Friday', startTime: '17:00', endTime: '20:00' }],
+                verificationStatus: 'Verified', createdAt: new Date(), updatedAt: new Date()
+            },
+            // A/L Arts - Political Science
+            {
+                id: 'teacher-13', userId: 'teacher-13', fullName: 'Dr. Mahinda Wijesinghe', email: 'teacher13@test.com', phoneNumber: '0773456780',
+                profilePicture: 'assets/teacher-avatar.png', bio: 'Political Science and Economics expert. Former university lecturer.',
+                qualifications: ['BA Political Science (University of Colombo)', 'PhD Political Science'], subjects: [{ id: 's25', name: 'Political Science', medium: 'English', level: 'ALevel' }, { id: 's26', name: 'Economics', medium: 'English', level: 'ALevel' }],
+                hourlyRate: 1750, experienceYears: 14, averageRating: 4.8, totalReviews: 23, totalClasses: 97, isAvailable: true,
+                availability: [{ dayOfWeek: 'Wednesday', startTime: '17:00', endTime: '20:00' }, { dayOfWeek: 'Saturday', startTime: '10:00', endTime: '14:00' }],
+                verificationStatus: 'Verified', createdAt: new Date(), updatedAt: new Date()
+            },
+            // A/L Arts - Geography and History
+            {
+                id: 'teacher-14', userId: 'teacher-14', fullName: 'Mrs. Dilrukshi Amarasinghe', email: 'teacher14@test.com', phoneNumber: '0774567891',
+                profilePicture: 'assets/teacher-avatar.png', bio: 'Geography and History specialist for A/L Arts stream.',
+                qualifications: ['BA Geography (University of Peradeniya)', 'MA Geography'], subjects: [{ id: 's27', name: 'Geography', medium: 'English', level: 'ALevel' }, {
+                    id: 's28', name: '
+
+History', medium: 'English', level: 'ALevel' }],
+                hourlyRate: 1550, experienceYears: 9, averageRating: 4.5, totalReviews: 17, totalClasses: 82, isAvailable: true,
+                    availability: [{ dayOfWeek: 'Tuesday', startTime: '16:00', endTime: '19:00' }, { dayOfWeek: 'Sunday', startTime: '10:00', endTime: '14:00' }],
+                    verificationStatus: 'Verified', createdAt: new Date(), updatedAt: new Date()
+                },
+                // A/L Arts - Logic  
+                {
+                    id: 'teacher-15', userId: 'teacher-15', fullName: 'Mr. Asanka Gunasekara', email: 'teacher15@test.com', phoneNumber: '0775678902',
+                    profilePicture: 'assets/teacher-avatar.png', bio: 'Logic and Scientific Method specialist with philosophy background.',
+                    qualifications: ['BA Philosophy (University of Kelaniya)', 'MA Logic'], subjects: [{ id: 's29', name: 'Logic & Scientific Method', medium: 'English', level: 'ALevel' }],
+                    hourlyRate: 1400, experienceYears: 6, averageRating: 4.4, totalReviews: 12, totalClasses: 58, isAvailable: true,
+                    availability: [{ dayOfWeek: 'Thursday', startTime: '18:00', endTime: '21:00' }, { dayOfWeek: 'Saturday', startTime: '14:00', endTime: '17:00' }],
+                    verificationStatus: 'Verified', createdAt: new Date(), updatedAt: new Date()
+                },
+                // Primary Mathematics and Science
+                {
+                    id: 'teacher-16', userId: 'teacher-16', fullName: 'Mrs. Lakmini Perera', email: 'teacher16@test.com', phoneNumber: '0776789013',
+                    profilePicture: 'assets/teacher-avatar.png', bio: 'Primary education specialist. Grade 5 Scholarship exam expert.',
+                    qualifications: ['BEd (National Institute of Education)', 'Dip. Primary Education'], subjects: [{ id: 's30', name: 'Mathematics', medium: 'Sinhala', level: 'Primary' }, { id: 's31', name: 'Science', medium: 'Sinhala', level: 'Primary' }],
+                    hourlyRate: 1100, experienceYears: 11, averageRating: 4.7, totalReviews: 26, totalClasses: 115, isAvailable: true,
+                    availability: [{ dayOfWeek: 'Monday', startTime: '15:00', endTime: '18:00' }, { dayOfWeek: 'Friday', startTime: '15:00', endTime: '18:00' }],
+                    verificationStatus: 'Verified', createdAt: new Date(), updatedAt: new Date()
+                },
+                // A/L Technology Stream
+                {
+                    id: 'teacher-17', userId: 'teacher-17', fullName: 'Eng. Tharaka Samaraweera', email: 'teacher17@test.com', phoneNumber: '0777890124',
+                    profilePicture: 'assets/teacher-avatar.png', bio: 'Engineering Technology specialist. Chartered Engineer with teaching experience.',
+                    qualifications: ['BEng (University of Moratuwa)', 'CEng', 'PGDE'], subjects: [{ id: 's32', name: 'Engineering Technology', medium: 'English', level: 'ALevel' }, { id: 's33', name: 'Science for Technology', medium: 'English', level: 'ALevel' }],
+                    hourlyRate: 1850, experienceYears: 7, averageRating: 4.6, totalReviews: 13, totalClasses: 54, isAvailable: true,
+                    availability: [{ dayOfWeek: 'Wednesday', startTime: '18:00', endTime: '21:00' }, { dayOfWeek: 'Sunday', startTime: '09:00', endTime: '12:00' }],
+                    verificationStatus: 'Verified', createdAt: new Date(), updatedAt: new Date()
+                },
+                // A/L Agriculture Science
+                {
+                    id: 'teacher-18', userId: 'teacher-18', fullName: 'Dr. Sampath Wickramarachchi', email: 'teacher18@test.com', phoneNumber: '0778901235',
+                    profilePicture: 'assets/teacher-avatar.png', bio: 'Agriculture Science expert with PhD. 10 years teaching A/L Agricultural Science.',
+                    qualifications: ['BSc Agriculture (University of Peradeniya)', 'PhD Agricultural Science'], subjects: [{ id: 's34', name: 'Agriculture Science', medium: 'English', level: 'ALevel' }, { id: 's35', name: 'Bio-system Technology', medium: 'English', level: 'ALevel' }],
+                    hourlyRate: 1700, experienceYears: 10, averageRating: 4.7, totalReviews: 18, totalClasses: 76, isAvailable: true,
+                    availability: [{ dayOfWeek: 'Friday', startTime: '16:00', endTime: '19:00' }, { dayOfWeek: 'Saturday', startTime: '09:00', endTime: '13:00' }],
+                    verificationStatus: 'Verified', createdAt: new Date(), updatedAt: new Date()
+                }
+                ];
+                localStorage.setItem(this.KEYS.TEACHERS, JSON.stringify(teachers));
+            }
+
+    private seedStudents() {
+                const students: StudentProfile[] = [
+                    {
+                        id: 'student-1', userId: 'student-1', fullName: 'Alice Fernando', email: 'student@test.com', phoneNumber: '0719876543', profilePicture: 'assets/student-avatar.png',
+                        gradeLevel: 'OLevel', school: 'Colombo International School', focusAreas: ['Mathematics', 'Science'], targetExams: ['O/L 2025'], createdAt: new Date(), updatedAt: new Date()
+                    },
+                    {
+                        id: 'student-2', userId: 'student-2', fullName: 'Kamal Silva', email: 'student2@test.com', phoneNumber: '0719876544', gradeLevel: 'ALevel', school: 'Royal College',
+                        focusAreas: ['Physics', 'Combined Mathematics'], targetExams: ['A/L 2024'], createdAt: new Date(), updatedAt: new Date()
+                    },
+                    {
+                        id: 'student-3', userId: 'student-3', fullName: 'Nimal Perera', email: 'student3@test.com', phoneNumber: '0719876545', gradeLevel: 'OLevel', school: 'Ananda College',
+                        focusAreas: ['English', 'History'], targetExams: ['O/L 2026'], createdAt: new Date(), updatedAt: new Date()
+                    },
+                    {
+                        id: 'student-4', userId: 'student-4', fullName: 'Saman Jayawardena', email: 'student4@test.com', phoneNumber: '0719876546', gradeLevel: 'Primary', school: 'Gateway College',
+                        focusAreas: ['Mathematics', 'English'], targetExams: ['Scholarship 2024'], createdAt: new Date(), updatedAt: new Date()
+                    },
+                    {
+                        id: 'student-5', userId: 'student-5', fullName: 'Dilini Rajapaksha', email: 'student5@test.com', phoneNumber: '0719876547', gradeLevel: 'ALevel', school: 'Ladies College',
+                        focusAreas: ['Biology', 'Chemistry'], targetExams: ['A/L 2025'], createdAt: new Date(), updatedAt: new Date()
+                    }
+                ];
+                localStorage.setItem(this.KEYS.STUDENTS, JSON.stringify(students));
+            }
+
+    private seedBookings() {
+                const today = new Date();
+                const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
+                const nextWeek = new Date(today); nextWeek.setDate(nextWeek.getDate() + 7);
+                const lastWeek = new Date(today); lastWeek.setDate(lastWeek.getDate() - 7);
+
+                const bookings: ClassBooking[] = [
+                    // Confirmed upcoming bookings
+                    {
+                        id: 'bk-1', studentId: 'student-1', teacherId: 'teacher-1', subject: 'Mathematics', date: tomorrow, startTime: '16:00', endTime: '17:00',
+                        status: 'Confirmed', classType: 'OneTime', meetingLink: 'https://meet.google.com/abc-123', createdAt: new Date(), updatedAt: new Date()
+                    },
+                    {
+                        id: 'bk-2', studentId: 'student-2', teacherId: 'teacher-3', subject: 'Physics', date: nextWeek, startTime: '16:00', endTime: '17:30',
+                        status: 'Confirmed', classType: 'OneTime', meetingLink: 'https://meet.google.com/def-456', createdAt: new Date(), updatedAt: new Date()
+                    },
+                    {
+                        id: 'bk-3', studentId: 'student-3', teacherId: 'teacher-4', subject: 'English', date: tomorrow, startTime: '17:00', endTime: '18:00',
+                        status: 'Confirmed', classType: 'Recurring', meetingLink: 'https://meet.google.com/ghi-789', createdAt: new Date(), updatedAt: new Date()
+                    },
+                    // Pending bookings
+                    {
+                        id: 'bk-4', studentId: 'student-4', teacherId: 'teacher-1', subject: 'Mathematics', date: nextWeek, startTime: '10:00', endTime: '11:00',
+                        status: 'Pending', classType: 'OneTime', createdAt: new Date(), updatedAt: new Date()
+                    },
+                    // Completed bookings
+                    {
+                        id: 'bk-5', studentId: 'student-1', teacherId: 'teacher-2', subject: 'Science', date: lastWeek, startTime: '15:00', endTime: '16:00',
+                        status: 'Completed', classType: 'OneTime', notes: 'Covered photosynthesis topic', createdAt: new Date(), updatedAt: new Date()
+                    },
+                    {
+                        id: 'bk-6', studentId: 'student-2', teacherId: 'teacher-3', subject: 'Combined Mathematics', date: lastWeek, startTime: '11:00', endTime: '12:30',
+                        status: 'Completed', classType: 'OneTime', notes: 'Calculus practice', createdAt: new Date(), updatedAt: new Date()
+                    }
+                ];
+                localStorage.setItem(this.KEYS.BOOKINGS, JSON.stringify(bookings));
+            }
+
+    private seedExamPreparation() {
+                const examPreparations: ExamPreparation[] = [
+                    // O-Level Resources
+                    {
+                        id: 'exam-olevel-1', examType: 'OLevel', subject: 'Mathematics',
+                        description: 'Comprehensive O-Level Mathematics preparation materials',
+                        resources: [
+                            { id: 'res-1', title: 'O/L Mathematics 2023 Past Paper', type: 'PastPaper', url: '#', description: 'Paper I & II - English Medium', uploadedAt: new Date('2023-12-01'), uploadedBy: 'admin-1' },
+                            { id: 'res-2', title: 'O/L Mathematics 2022 Past Paper', type: 'PastPaper', url: '#', description: 'Paper I & II', uploadedAt: new Date('2023-01-15'), uploadedBy: 'admin-1' },
+                            { id: 'res-3', title: 'Algebra Complete Guide', type: 'PDF', url: '#', description: 'Comprehensive algebra notes', uploadedAt: new Date('2024-01-10'), uploadedBy: 'teacher-1' },
+                            { id: 'res-4', title: 'Geometry Video Tutorials', type: 'Video', url: '#', description: '15-part video series', uploadedAt: new Date('2024-02-05'), uploadedBy: 'teacher-1' }
+                        ]
+                    },
+                    {
+                        id: 'exam-olevel-2', examType: 'OLevel', subject: 'Science',
+                        description: 'O-Level Science exam preparation',
+                        resources: [
+                            { id: 'res-5', title: 'O/L Science 2023 Past Paper', type: 'PastPaper', url: '#', description: 'All sections', uploadedAt: new Date('2023-12-01'), uploadedBy: 'admin-1' },
+                            { id: 'res-6', title: 'O/L Science 2022 Past Paper', type: 'PastPaper', url: '#', description: 'All sections', uploadedAt: new Date('2023-01-15'), uploadedBy: 'admin-1' },
+                            { id: 'res-7', title: 'Biology Notes - Plants', type: 'PDF', url: '#', description: 'Complete plant biology notes', uploadedAt: new Date('2024-01-20'), uploadedBy: 'teacher-2' }
+                        ]
+                    },
+                    {
+                        id: 'exam-olevel-3', examType: 'OLevel', subject: 'English',
+                        description: 'O-Level English preparation materials',
+                        resources: [
+                            { id: 'res-8', title: 'O/L English 2023 Past Paper', type: 'PastPaper', url: '#', description: 'Paper I & II', uploadedAt: new Date('2023-12-01'), uploadedBy: 'admin-1' },
+                            { id: 'res-9', title: 'O/L English 2022 Past Paper', type: 'PastPaper', url: '#', description: 'Paper I & II', uploadedAt: new Date('2023-01-15'), uploadedBy: 'admin-1' },
+                            { id: 'res-10', title: 'Essay Writing Techniques', type: 'PDF', url: '#', description: 'Effective essay guide', uploadedAt: new Date('2024-01-05'), uploadedBy: 'teacher-4' }
+                        ]
+                    },
+                    // A-Level Resources
+                    {
+                        id: 'exam-alevel-1', examType: 'ALevel', subject: 'Combined Mathematics',
+                        description: 'A-Level Combined Mathematics resources',
+                        resources: [
+                            { id: 'res-11', title: 'A/L Combined Maths 2023 Past Paper', type: 'PastPaper', url: '#', description: 'Paper I & II', uploadedAt: new Date('2023-12-01'), uploadedBy: 'admin-1' },
+                            { id: 'res-12', title: 'A/L Combined Maths 2022 Past Paper', type: 'PastPaper', url: '#', description: 'Paper I & II', uploadedAt: new Date('2023-01-15'), uploadedBy: 'admin-1' },
+                            { id: 'res-13', title: 'Calculus Mastery Course', type: 'Video', url: '#', description: '20-hour video course', uploadedAt: new Date('2024-01-15'), uploadedBy: 'teacher-3' }
+                        ]
+                    },
+                    {
+                        id: 'exam-alevel-2', examType: 'ALevel', subject: 'Physics',
+                        description: 'A-Level Physics exam preparation',
+                        resources: [
+                            { id: 'res-14', title: 'A/L Physics 2023 Past Paper', type: 'PastPaper', url: '#', description: 'Paper I, II & III', uploadedAt: new Date('2023-12-01'), uploadedBy: 'admin-1' },
+                            { id: 'res-15', title: 'A/L Physics 2022 Past Paper', type: 'PastPaper', url: '#', description: 'Paper I, II & III', uploadedAt: new Date('2023-01-15'), uploadedBy: 'admin-1' },
+                            { id: 'res-16', title: 'Quantum Mechanics Explained', type: 'Video', url: '#', description: 'Video series on quantum physics', uploadedAt: new Date('2024-01-25'), uploadedBy: 'teacher-3' }
+                        ]
+                    },
+                    {
+                        id: 'exam-alevel-3', examType: 'ALevel', subject: 'Biology',
+                        description: 'A-Level Biology preparation',
+                        resources: [
+                            { id: 'res-17', title: 'A/L Biology 2023 Past Paper', type: 'PastPaper', url: '#', description: 'Paper I, II & III', uploadedAt: new Date('2023-12-01'), uploadedBy: 'admin-1' },
+                            { id: 'res-18', title: 'A/L Biology 2022 Past Paper', type: 'PastPaper', url: '#', description: 'Paper I, II & III', uploadedAt: new Date('2023-01-15'), uploadedBy: 'admin-1' }
+                        ]
+                    },
+                    // Scholarship Resources
+                    {
+                        id: 'exam-scholarship-1', examType: 'Scholarship', subject: 'General',
+                        description: 'Grade 5 Scholarship exam preparation',
+                        resources: [
+                            { id: 'res-19', title: 'Scholarship 2023 Past Paper', type: 'PastPaper', url: '#', description: 'Complete paper with answers', uploadedAt: new Date('2023-12-01'), uploadedBy: 'admin-1' },
+                            { id: 'res-20', title: 'Scholarship 2022 Past Paper', type: 'PastPaper', url: '#', description: 'Complete paper with answers', uploadedAt: new Date('2023-01-15'), uploadedBy: 'admin-1' },
+                            { id: 'res-21', title: 'Mental Ability Practice', type: 'Quiz', url: '#', description: '50 mental ability questions', uploadedAt: new Date('2024-01-10'), uploadedBy: 'teacher-1' }
+                        ]
+                    }
+                ];
+                localStorage.setItem(this.KEYS.EXAM_PREP, JSON.stringify(examPreparations));
+            }
+
+    private seedSettings() {
+                const settings: SystemSettings = {
+                    id: 'sys-1', platformName: 'ClassBooking', platformEmail: 'support@classbooking.com',
+                    defaultHourlyRate: 1000, maxClassDurationMinutes: 120, minClassDurationMinutes: 30,
+                    cancellationDeadlineHours: 24, platformCommissionPercentage: 10
+                };
+                localStorage.setItem(this.KEYS.SETTINGS, JSON.stringify(settings));
+            }
+
+    // --- GENERIC GET/SET HELPERS ---
+
+    private getItem<T>(key: string): T[] {
+                if(!this.isBrowser) return [];
+                const data = localStorage.getItem(key);
+                return data ? JSON.parse(data) : [];
+            }
+
+    private setItem<T>(key: string, data: T[]) {
+                if(this.isBrowser) {
+                localStorage.setItem(key, JSON.stringify(data));
+            }
+    }
+
+    // --- PUBLIC API ---
+
+    // Users
+    getUsers(): User[] { return this.getItem<User>(this.KEYS.USERS); }
+    getUserByEmail(email: string): User | undefined {
+        return this.getUsers().find(u => u.email.toLowerCase() === email.toLowerCase());
+    }
+    addUser(user: User) {
+        const users = this.getUsers();
+        users.push(user);
+        this.setItem(this.KEYS.USERS, users);
+    }
+    updateUser(user: User) {
+        const users = this.getUsers();
+        const index = users.findIndex(u => u.id === user.id);
+        if (index !== -1) {
+            users[index] = user;
+            this.setItem(this.KEYS.USERS, users);
+        }
+    }
+
+    // Teachers
+    getTeachers(): TeacherProfile[] { return this.getItem<TeacherProfile>(this.KEYS.TEACHERS); }
+    getTeacherById(id: string): TeacherProfile | undefined {
+        return this.getTeachers().find(t => t.id === id);
+    }
+    updateTeacher(teacher: TeacherProfile) {
+        const teachers = this.getTeachers();
+        const index = teachers.findIndex(t => t.id === teacher.id);
+        if (index !== -1) {
+            teachers[index] = teacher;
+            this.setItem(this.KEYS.TEACHERS, teachers);
+        }
+    }
+
+    // Students
+    getStudents(): StudentProfile[] { return this.getItem<StudentProfile>(this.KEYS.STUDENTS); }
+    getStudentById(id: string): StudentProfile | undefined {
+        return this.getStudents().find(s => s.id === id);
+    }
+    getStudentByUserId(userId: string): StudentProfile | undefined {
+        return this.getStudents().find(s => s.userId === userId);
+    }
+    updateStudent(student: StudentProfile) {
+        const students = this.getStudents();
+        const index = students.findIndex(s => s.id === student.id);
+        if (index !== -1) {
+            students[index] = student;
+            this.setItem(this.KEYS.STUDENTS, students);
+        }
+    }
+
+    // Bookings
+    getBookings(): ClassBooking[] {
+        const bookings = this.getItem<ClassBooking>(this.KEYS.BOOKINGS);
+        // Restore Date objects
+        return bookings.map(b => ({
+            ...b,
+            date: new Date(b.date),
+            createdAt: new Date(b.createdAt),
+            updatedAt: new Date(b.updatedAt)
+        }));
+    }
+    addBooking(booking: ClassBooking) {
+        const bookings = this.getBookings();
+        bookings.push(booking);
+        this.setItem(this.KEYS.BOOKINGS, bookings);
+    }
+    updateBooking(booking: ClassBooking) {
+        const bookings = this.getBookings();
+        const index = bookings.findIndex(b => b.id === booking.id);
+        if (index !== -1) {
+            bookings[index] = booking;
+            this.setItem(this.KEYS.BOOKINGS, bookings);
+        }
+    }
+
+    // Exam Preparations
+    getExamPreparations(): ExamPreparation[] {
+        const preps = this.getItem<ExamPreparation>(this.KEYS.EXAM_PREP);
+        return preps;
+    }
+
+    // Settings
+    getSettings(): SystemSettings {
+        const settings = localStorage.getItem(this.KEYS.SETTINGS);
+        return settings ? JSON.parse(settings) : {} as SystemSettings;
+    }
+}

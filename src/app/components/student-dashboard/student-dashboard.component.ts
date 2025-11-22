@@ -25,7 +25,8 @@ export class StudentDashboardComponent implements OnInit {
     totalClassesBooked: 0,
     completedClasses: 0,
     hoursStudied: 0,
-    averageRating: 0
+    averageRating: 0,
+    progressPercentage: 0
   };
   recentActivity: any[] = [];
   isLoading = false;
@@ -94,5 +95,13 @@ export class StudentDashboardComponent implements OnInit {
 
   viewBooking(bookingId: string): void {
     this.router.navigate(['/my-bookings']);
+  }
+
+  viewMyProgress(): void {
+    this.router.navigate(['/student/progress']);
+  }
+
+  viewMyReviews(): void {
+    this.router.navigate(['/my-reviews']);
   }
 }

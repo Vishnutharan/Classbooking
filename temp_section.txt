@@ -1,0 +1,7 @@
+﻿  <div class="actions-section">
+    <button class="action-btn primary" (click)="bookClass()">📚 Book a Class</button>
+    <button class="action-btn" (click)="viewMyProgress()">📊 My Progress</button>
+    <button class="action-btn" (click)="viewMyReviews()">⭐ My Reviews</button>
+    <button class="action-btn" (click)="viewExamMaterials()">📖 Exam Materials</button>
+    <button class="action-btn" (click)="seePastPapers()">📄 Past Papers</button>
+  </div>

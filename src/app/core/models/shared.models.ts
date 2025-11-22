@@ -56,9 +56,14 @@ export interface StudentProfile {
     phoneNumber: string;
     profilePicture?: string;
     gradeLevel: 'Primary' | 'OLevel' | 'ALevel';
+    specificGrade?: number; // 1-13 for Sri Lankan system
+    stream?: 'Science' | 'Commerce' | 'Arts' | 'Technology'; // For A/L students
     school?: string;
     focusAreas: string[];
     targetExams: string[];
+    examYear?: number; // Target O/L or A/L exam year
+    targetUniversity?: string; // For A/L students
+    medium?: 'Sinhala' | 'Tamil' | 'English'; // Medium of instruction preference
     createdAt: Date;
     updatedAt: Date;
 }
@@ -122,4 +127,38 @@ export interface SystemSettings {
     minClassDurationMinutes: number;
     cancellationDeadlineHours: number;
     platformCommissionPercentage: number;
+}
+
+export interface SubjectCombination {
+    id: string;
+    stream: 'Science' | 'Commerce' | 'Arts' | 'Technology';
+    name: string;
+    subjects: string[];
+    description?: string;
+}
+
+export interface StudyGoal {
+    id: string;
+    studentId: string;
+    title: string;
+    description?: string;
+    targetDate: Date;
+    subject?: string;
+    goalType: 'StudyHours' | 'ChapterCompletion' | 'MockExam' | 'PastPaper' | 'Other';
+    targetValue?: number; // For study hours or completion percentage
+    currentValue?: number;
+    status: 'NotStarted' | 'InProgress' | 'Completed' | 'Overdue';
+    createdAt: Date;
+    updatedAt: Date;
+}
+
+export interface SubjectPerformance {
+    subject: string;
+    averageScore: number; // 0-100
+    totalClasses: number;
+    studyHours: number;
+    lastClassDate?: Date;
+    performanceLevel: 'Excellent' | 'Good' | 'Average' | 'NeedsImprovement';
+    weakAreas?: string[];
+    recommendations?: string[];
 }

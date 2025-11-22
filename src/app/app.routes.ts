@@ -89,6 +89,24 @@ export const routes: Routes = [
         './components/educational-content/educational-content.component'
       ).then(m => m.EducationalContentComponent)
   },
+  {
+    path: 'student/progress',
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['Student'] },
+    loadComponent: () =>
+      import('./components/student-progress-tracker/student-progress-tracker.component').then(
+        m => m.StudentProgressTrackerComponent
+      )
+  },
+  {
+    path: 'my-reviews',
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['Student'] },
+    loadComponent: () =>
+      import('./components/reviews-ratings/reviews-ratings.component').then(
+        m => m.ReviewsRatingsComponent
+      )
+  },
 
   // TEACHER & STUDENT PROFILE
   {
