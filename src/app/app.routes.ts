@@ -178,6 +178,53 @@ export const routes: Routes = [
       )
   },
 
+  // NEW TEACHER FEATURE ROUTES
+  {
+    path: 'teacher/attendance',
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['Teacher'] },
+    loadComponent: () =>
+      import('./components/teacher-attendance/teacher-attendance.component').then(
+        m => m.TeacherAttendanceComponent
+      )
+  },
+  {
+    path: 'teacher/students',
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['Teacher'] },
+    loadComponent: () =>
+      import('./components/teacher-students/teacher-students.component').then(
+        m => m.TeacherStudentsComponent
+      )
+  },
+  {
+    path: 'teacher/lesson-planner',
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['Teacher'] },
+    loadComponent: () =>
+      import('./components/lesson-planner/lesson-planner.component').then(
+        m => m.LessonPlannerComponent
+      )
+  },
+  {
+    path: 'teacher/analytics',
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['Teacher'] },
+    loadComponent: () =>
+      import('./components/teacher-analytics/teacher-analytics.component').then(
+        m => m.TeacherAnalyticsComponent
+      )
+  },
+  {
+    path: 'teacher/messages',
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['Teacher'] },
+    loadComponent: () =>
+      import('./components/teacher-messages/teacher-messages.component').then(
+        m => m.TeacherMessagesComponent
+      )
+  },
+
   // ADMIN ROUTES
   {
     path: 'dashboard/admin',

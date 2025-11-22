@@ -1,0 +1,125 @@
+<div class="attendance-container">
+    <div class="header">
+        <h1>📊 Attendance Management</h1>
+        <div class="header-actions">
+            <button class="tab-btn" [class.active]="currentView === 'mark'" (click)="switchView('mark')">
+                Mark Attendance
+            </button>
+            <button class="tab-btn" [class.active]="currentView === 'history'" (click)="switchView('history')">
+                Attendance History
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">📅</div>
+            <h3>{{ stats.totalSessions }}</h3>
+            <p>Total Sessions</p>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">✅</div>
+            <h3>{{ stats.averageAttendance }}%</h3>
+            <p>Average Attendance</p>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">👥</div>
+            <h3>{{ stats.presentCount }}</h3>
+            <p>Total Present</p>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">❌</div>
+            <h3>{{ stats.absentCount }}</h3>
+            <p>Total Absent</p>
+        </div>
+    </div>
+
+    <!-- Mark Attendance View -->
+    <div *ngIf="currentView === 'mark'" class="mark-attendance-section">
+        <div class="section-header">
+            <h2>Mark Today's Attendance</h2>
+            <div class="date-selector">
+                <label>Select Date:</label>
+                <input type="date" [value]="selectedDate | date:'yyyy-MM-dd'" (change)="onDateChange($event)"
+                    class="date-input">
+            </div>
+        </div>
+
+        <div class="bulk-actions">
+            <button class="btn-bulk" (click)="markAllPresent()">✓ Mark All Present</button>
+            <button class="btn-bulk" (click)="markAllAbsent()">✗ Mark All Absent</button>
+        </div>
+
+        <div class="students-list">
+            <div class="student-attendance-card" *ngFor="let student of studentsToMark">
+                <div class="student-info">
+                    <div class="student-avatar">{{ student.name.charAt(0) }}</div>
+                    <div class="student-details">
+                        <h3>{{ student.name }}</h3>
+                        <p>Student ID: {{ student.id }}</p>
+                    </div>
+                </div>
+                <div class="attendance-controls">
+                    <label class="status-option">
+                        <input type="radio" [name]="'status-' + student.id" value="Present"
+                            [(ngModel)]="student.status">
+                        <span class="status-label present">Present</span>
+                    </label>
+                    <label class="status-option">
+                        <input type="radio" [name]="'status-' + student.id" value="Absent" [(ngModel)]="student.status">
+                        <span class="status-label absent">Absent</span>
+                    </label>
+                    <label class="status-option">
+                        <input type="radio" [name]="'status-' + student.id" value="Late" [(ngModel)]="student.status">
+                        <span class="status-label late">Late</span>
+                    </label>
+                    <label class="status-option">
+                        <input type="radio" [name]="'status-' + student.id" value="Excused"
+                            [(ngModel)]="student.status">
+                        <span class="status-label excused">Excused</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <button class="btn-primary" (click)="saveAttendance()">💾 Save Attendance</button>
+            <button class="btn-secondary" routerLink="/dashboard/teacher">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Attendance History View -->
+    <div *ngIf="currentView === 'history'" class="history-section">
+        <div class="section-header">
+            <h2>Attendance History</h2>
+            <div class="date-selector">
+                <label>Filter by Date:</label>
+                <input type="date" [value]="selectedDate | date:'yyyy-MM-dd'" (change)="onDateChange($event)"
+                    class="date-input">
+            </div>
+        </div>
+
+        <div *ngIf="isLoading" class="loading-spinner">Loading...</div>
+
+        <div class="history-list" *ngIf="!isLoading">
+            <div *ngIf="displayRecords.length === 0" class="empty-state">
+                <p>No attendance records found for this date.</p>
+            </div>
+
+            <div class="history-card" *ngFor="let record of displayRecords">
+                <div class="history-info">
+                    <div class="student-name">{{ record.studentName }}</div>
+                    <div class="record-details">
+                        <span class="subject">{{ record.subject }}</span>
+                        <span class="date">{{ record.date | date:'MMM dd, yyyy' }}</span>
+                        <span class="time">{{ record.markedAt | date:'HH:mm' }}</span>
+                    </div>
+                </div>
+                <div class="status-badge" [ngClass]="getStatusBadgeClass(record.status)">
+                    {{ record.status }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
