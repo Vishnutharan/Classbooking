@@ -280,6 +280,24 @@ export const routes: Routes = [
         m => m.SystemSettingsComponent
       )
   },
+  {
+    path: 'admin/fees',
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['Admin'] },
+    loadComponent: () =>
+      import('./components/fee-management/fee-management.component').then(
+        m => m.FeeManagementComponent
+      )
+  },
+  {
+    path: 'admin/exams',
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['Admin'] },
+    loadComponent: () =>
+      import('./components/exam-results/exam-results.component').then(
+        m => m.ExamResultsComponent
+      )
+  },
 
   // MISC
   {

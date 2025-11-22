@@ -1,5 +1,5 @@
-import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { Component, inject, OnInit, PLATFORM_ID, Inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { StudentService } from '../../core/services/student.service';
 import { TeacherService } from '../../core/services/teacher.service';
@@ -18,6 +18,7 @@ export class StudentDashboardComponent implements OnInit {
   private bookingService = inject(ClassBookingService);
   private teacherService = inject(TeacherService);
   private router = inject(Router);
+  private platformId = inject(PLATFORM_ID);
 
   upcomingClasses: ClassBooking[] = [];
   recommendedTeachers: TeacherProfile[] = [];
@@ -32,7 +33,10 @@ export class StudentDashboardComponent implements OnInit {
   isLoading = false;
 
   ngOnInit(): void {
-    this.loadDashboardData();
+    // Only load data on the browser, not during SSR
+    if (isPlatformBrowser(this.platformId)) {
+      this.loadDashboardData();
+    }
   }
 
   private loadDashboardData(): void {

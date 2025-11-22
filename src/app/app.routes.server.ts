@@ -21,6 +21,8 @@ export const serverRoutes: ServerRoute[] = [
   { path: 'my-bookings', renderMode: RenderMode.Server },
   { path: 'book-class', renderMode: RenderMode.Server },
   { path: 'exam-preparation', renderMode: RenderMode.Server },
+  { path: 'exam-materials', renderMode: RenderMode.Server },
+  { path: 'past-papers', renderMode: RenderMode.Server },
   { path: 'educational-content', renderMode: RenderMode.Server },
 
   // Teacher & Student Profiles
@@ -38,6 +40,20 @@ export const serverRoutes: ServerRoute[] = [
   { path: 'admin/reports/view', renderMode: RenderMode.Server }, // Added specifically for viewer
   { path: 'admin/settings', renderMode: RenderMode.Server },
   { path: 'dashboard/admin', renderMode: RenderMode.Server },
+  { path: 'admin/fees', renderMode: RenderMode.Server },
+  { path: 'admin/exams', renderMode: RenderMode.Server },
+
+  // NEW TEACHER FEATURE ROUTES
+  { path: 'teacher/attendance', renderMode: RenderMode.Server },
+  { path: 'teacher/students', renderMode: RenderMode.Server },
+  { path: 'teacher/lesson-planner', renderMode: RenderMode.Server },
+  { path: 'teacher/analytics', renderMode: RenderMode.Server },
+  { path: 'teacher/messages', renderMode: RenderMode.Server },
+
+  // STUDENT PROGRESS & REVIEWS
+  { path: 'student/progress', renderMode: RenderMode.Server },
+  { path: 'my-reviews', renderMode: RenderMode.Server },
+
 
   // Anything else can be prerendered
   { path: '**', renderMode: RenderMode.Prerender }
