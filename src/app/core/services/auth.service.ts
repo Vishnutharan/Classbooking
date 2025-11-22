@@ -6,18 +6,9 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap, of } from 'rxjs';
 import { Router } from '@angular/router';
 import { DemoDataService } from './demo-data.service';
-import { User } from '../models/shared.models';
+import { User } from '../models/user.models';
+import { LoginRequest, AuthResponse } from '../models/auth.models';
 
-export interface LoginRequest {
-  email: string;
-  password: string;
-}
-
-export interface AuthResponse {
-  token: string;
-  refreshToken: string;
-  user: User;
-}
 
 @Injectable({
   providedIn: 'root'

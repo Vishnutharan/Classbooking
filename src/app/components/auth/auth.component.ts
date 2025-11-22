@@ -5,7 +5,8 @@ import { Component, inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { AuthService, AuthResponse, LoginRequest } from '../../core/services/auth.service';
+import { AuthService } from '../../core/services/auth.service';
+import { AuthResponse, LoginRequest } from '../../core/models/auth.models';
 import { NotificationService } from '../../core/services/notification.service';
 
 @Component({
@@ -56,7 +57,7 @@ export class AuthComponent implements OnInit {
     const demoMap: Record<'Student' | 'Teacher' | 'Admin', { email: string; password: string }> = {
       Student: { email: 'student@test.com', password: 'Student@123' },
       Teacher: { email: 'teacher@test.com', password: 'Teacher@123' },
-      Admin:   { email: 'admin@test.com',   password: 'Admin@123' }
+      Admin: { email: 'admin@test.com', password: 'Admin@123' }
     };
 
     const creds = demoMap[role];
