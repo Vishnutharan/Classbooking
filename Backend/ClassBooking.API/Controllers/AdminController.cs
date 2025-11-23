@@ -2,6 +2,7 @@ using ClassBooking.API.Models.Dto;
 using ClassBooking.API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ClassBooking.API.Repositories;
 
 namespace ClassBooking.API.Controllers
 {
