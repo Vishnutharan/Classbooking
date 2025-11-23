@@ -131,11 +131,27 @@ export class TeacherDashboardComponent implements OnInit {
   }
 
   private updateMonthlyTrend(bookings: ClassBooking[]): void {
+    const now = new Date();
+    const currentYear = now.getFullYear();
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
-    this.monthlyEarnings = months.map((month, index) => ({
-      month,
-      earnings: Math.floor(Math.random() * 50000) + 20000
-    }));
+
+    this.monthlyEarnings = months.map((month, index) => {
+      const monthBookings = bookings.filter(b => {
+        const bookingDate = new Date(b.date);
+        return bookingDate.getMonth() === index &&
+          bookingDate.getFullYear() === currentYear &&
+          b.status === 'Completed';
+      });
+
+      const earnings = monthBookings.reduce((sum, b) => {
+        const [startHour] = b.startTime.split(':').map(Number);
+        const [endHour] = b.endTime.split(':').map(Number);
+        const hours = endHour - startHour;
+        return sum + (hours * (this.teacherProfile?.hourlyRate || 0));
+      }, 0);
+
+      return { month, earnings };
+    });
   }
 
   acceptRequest(booking: ClassBooking): void {

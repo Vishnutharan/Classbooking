@@ -3,6 +3,8 @@ import { Component, inject, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { SubjectPerformance, StudyGoal } from '../../core/models/shared.models';
 import { AuthService } from '../../core/services/auth.service';
+import { StudentService } from '../../core/services/student.service';
+import { forkJoin } from 'rxjs';
 
 interface ProgressMetrics {
     overallAverage: number;
@@ -33,6 +35,8 @@ export class StudentProgressTrackerComponent implements OnInit {
     };
     isLoading = false;
 
+    private studentService = inject(StudentService);
+
     ngOnInit(): void {
         this.currentUser = this.authService.getCurrentUser();
         if (!this.currentUser) {
@@ -45,123 +49,21 @@ export class StudentProgressTrackerComponent implements OnInit {
     private loadProgressData(): void {
         this.isLoading = true;
 
-        // Demo data for subject performance - in production, this would come from API
-        this.subjectPerformance = [
-            {
-                subject: 'Mathematics',
-                averageScore: 78,
-                totalClasses: 12,
-                studyHours: 24,
-                lastClassDate: new Date('2025-11-20'),
-                performanceLevel: 'Good',
-                weakAreas: ['Calculus', 'Trigonometry'],
-                recommendations: ['Practice more calculus problems', 'Review trigonometric identities']
+        forkJoin({
+            progress: this.studentService.getProgressReport(),
+            goals: this.studentService.getStudyGoals()
+        }).subscribe({
+            next: ({ progress, goals }) => {
+                this.subjectPerformance = progress;
+                this.studyGoals = goals;
+                this.calculateProgressMetrics();
+                this.isLoading = false;
             },
-            {
-                subject: 'Physics',
-                averageScore: 65,
-                totalClasses: 10,
-                studyHours: 18,
-                lastClassDate: new Date('2025-11-19'),
-                performanceLevel: 'Average',
-                weakAreas: ['Quantum Mechanics', 'Thermodynamics'],
-                recommendations: ['Focus on quantum mechanics concepts', 'Complete thermodynamics assignments']
-            },
-            {
-                subject: 'Chemistry',
-                averageScore: 85,
-                totalClasses: 14,
-                studyHours: 28,
-                lastClassDate: new Date('2025-11-21'),
-                performanceLevel: 'Excellent',
-                weakAreas: [],
-                recommendations: ['Maintain current study pace', 'Help peers with chemistry']
-            },
-            {
-                subject: 'Combined Mathematics',
-                averageScore: 72,
-                totalClasses: 15,
-                studyHours: 30,
-                lastClassDate: new Date('2025-11-18'),
-                performanceLevel: 'Good',
-                weakAreas: ['Integration', 'Differential Equations'],
-                recommendations: ['More practice on integration techniques', 'Review differential equations theory']
-            },
-            {
-                subject: 'English',
-                averageScore: 88,
-                totalClasses: 8,
-                studyHours: 16,
-                lastClassDate: new Date('2025-11-17'),
-                performanceLevel: 'Excellent',
-                weakAreas: [],
-                recommendations: ['Excellent performance', 'Consider advanced literature']
+            error: (error) => {
+                console.error('Error loading progress data', error);
+                this.isLoading = false;
             }
-        ];
-
-        // Demo data for study goals
-        this.studyGoals = [
-            {
-                id: 'goal-1',
-                studentId: this.currentUser.id,
-                title: 'Complete Physics Chapter 5',
-                description: 'Finish all exercises in Quantum Mechanics chapter',
-                targetDate: new Date('2025-11-30'),
-                subject: 'Physics',
-                goalType: 'ChapterCompletion',
-                targetValue: 100,
-                currentValue: 65,
-                status: 'InProgress',
-                createdAt: new Date('2025-11-15'),
-                updatedAt: new Date('2025-11-20')
-            },
-            {
-                id: 'goal-2',
-                studentId: this.currentUser.id,
-                title: 'Study 20 hours this week',
-                description: 'Maintain weekly study schedule',
-                targetDate: new Date('2025-11-28'),
-                goalType: 'StudyHours',
-                targetValue: 20,
-                currentValue: 12,
-                status: 'InProgress',
-                createdAt: new Date('2025-11-18'),
-                updatedAt: new Date('2025-11-22')
-            },
-            {
-                id: 'goal-3',
-                studentId: this.currentUser.id,
-                title: 'Complete 2023 A/L Past Paper',
-                description: 'Attempt and review 2023 A/L Physics past paper',
-                targetDate: new Date('2025-12-05'),
-                subject: 'Physics',
-                goalType: 'PastPaper',
-                targetValue: 1,
-                currentValue: 0,
-                status: 'NotStarted',
-                createdAt: new Date('2025-11-20'),
-                updatedAt: new Date('2025-11-20')
-            },
-            {
-                id: 'goal-4',
-                studentId: this.currentUser.id,
-                title: 'Improve Chemistry score to 90%',
-                description: 'Target 90% average in Chemistry',
-                targetDate: new Date('2025-12-31'),
-                subject: 'Chemistry',
-                goalType: 'Other',
-                targetValue: 90,
-                currentValue: 85,
-                status: 'InProgress',
-                createdAt: new Date('2025-11-01'),
-                updatedAt: new Date('2025-11-21')
-            }
-        ];
-
-        // Calculate metrics
-        this.calculateProgressMetrics();
-
-        this.isLoading = false;
+        });
     }
 
     private calculateProgressMetrics(): void {

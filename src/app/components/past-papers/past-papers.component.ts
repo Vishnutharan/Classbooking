@@ -3,7 +3,6 @@ import { Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { StudentService } from '../../core/services/student.service';
-import { DemoDataService } from '../../core/services/demo-data.service';
 import { Resource, ExamPreparation } from '../../core/models/shared.models';
 import { NotificationService } from '../../core/services/notification.service';
 
@@ -16,7 +15,6 @@ import { NotificationService } from '../../core/services/notification.service';
 })
 export class PastPapersComponent implements OnInit {
     private studentService = inject(StudentService);
-    private demoDataService = inject(DemoDataService);
     private notificationService = inject(NotificationService);
     private router = inject(Router);
 
@@ -40,15 +38,20 @@ export class PastPapersComponent implements OnInit {
     private loadPastPapers(): void {
         this.isLoading = true;
 
-        // Get exam preparations from demo data
-        const allPreps = this.demoDataService.getExamPreparations();
-        this.preparations = allPreps.filter((p: ExamPreparation) => p.examType === this.selectedExam);
-
-        // Extract unique subjects
-        this.subjects = ['All', ...Array.from(new Set(this.preparations.map(p => p.subject)))];
-
-        this.filterPapers();
-        this.isLoading = false;
+        this.studentService.getExamPreparations(this.selectedExam).subscribe({
+            next: (preps) => {
+                this.preparations = preps;
+                // Extract unique subjects
+                this.subjects = ['All', ...Array.from(new Set(this.preparations.map(p => p.subject)))];
+                this.filterPapers();
+                this.isLoading = false;
+            },
+            error: (err) => {
+                console.error('Error loading past papers', err);
+                this.notificationService.showError('Failed to load past papers');
+                this.isLoading = false;
+            }
+        });
     }
 
     onExamChange(): void {

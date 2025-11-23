@@ -1,8 +1,8 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, of, throwError } from 'rxjs';
-import { delay } from 'rxjs/operators';
-import { DemoDataService } from './demo-data.service';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
 import { User, PublicHoliday, ExamSeason, SystemSettings } from '../models/shared.models';
+import { environment } from '../../../environments/environment';
 
 export interface DashboardStats {
   totalUsers: number;
@@ -27,178 +27,129 @@ export interface CreateUserRequest {
   providedIn: 'root'
 })
 export class AdminService {
-  private demoData = inject(DemoDataService);
+  private http = inject(HttpClient);
+  private apiUrl = `${environment.apiUrl}/admin`;
 
   // User Management
   getAllUsers(page: number = 1, pageSize: number = 10): Observable<any> {
-    const users = this.demoData.getUsers();
-    const start = (page - 1) * pageSize;
-    const end = start + pageSize;
-    return of({
-      users: users.slice(start, end),
-      total: users.length,
-      page,
-      pageSize
-    }).pipe(delay(500));
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('pageSize', pageSize.toString());
+    return this.http.get<any>(`${this.apiUrl}/users`, { params });
   }
 
   getUserById(id: string): Observable<User> {
-    const user = this.demoData.getUsers().find(u => u.id === id);
-    if (!user) return throwError(() => new Error('User not found'));
-    return of(user).pipe(delay(300));
+    return this.http.get<User>(`${this.apiUrl}/users/${id}`);
   }
 
   createUser(request: CreateUserRequest): Observable<User> {
-    const newUser: User = {
-      id: `user-${Date.now()}`,
-      email: request.email,
-      // password: request.password, // Password should not be stored directly in User interface or returned
-      fullName: request.fullName,
-      role: request.role,
-      phoneNumber: request.phoneNumber,
-      status: 'Active',
-      createdAt: new Date(),
-      lastLogin: new Date() // Added lastLogin to match User interface
-    };
-    this.demoData.addUser(newUser);
-    return of(newUser).pipe(delay(500));
+    return this.http.post<User>(`${this.apiUrl}/users`, request);
   }
 
   updateUser(id: string, updates: Partial<User>): Observable<User> {
-    const user = this.demoData.getUsers().find(u => u.id === id);
-    if (!user) return throwError(() => new Error('User not found'));
-
-    const updatedUser = { ...user, ...updates };
-    this.demoData.updateUser(updatedUser);
-    return of(updatedUser).pipe(delay(500));
+    return this.http.put<User>(`${this.apiUrl}/users/${id}`, updates);
   }
 
   deleteUser(id: string): Observable<any> {
-    // In a real app, we might delete. For demo, maybe just disable?
-    // But DemoDataService doesn't have deleteUser yet.
-    // Let's just simulate success for now or add delete to DemoDataService if needed.
-    // For now, let's set status to Inactive
-    const user = this.demoData.getUsers().find(u => u.id === id);
-    if (user) {
-      user.status = 'Inactive';
-      this.demoData.updateUser(user);
-    }
-    return of({ success: true }).pipe(delay(500));
+    return this.http.delete(`${this.apiUrl}/users/${id}`);
   }
 
   suspendUser(id: string, reason: string): Observable<any> {
-    const user = this.demoData.getUsers().find(u => u.id === id);
-    if (user) {
-      user.status = 'Suspended';
-      this.demoData.updateUser(user);
-    }
-    return of({ success: true }).pipe(delay(500));
+    return this.http.post(`${this.apiUrl}/users/${id}/suspend`, { reason });
   }
 
   activateUser(id: string): Observable<any> {
-    const user = this.demoData.getUsers().find(u => u.id === id);
-    if (user) {
-      user.status = 'Active';
-      this.demoData.updateUser(user);
-    }
-    return of({ success: true }).pipe(delay(500));
+    return this.http.post(`${this.apiUrl}/users/${id}/activate`, {});
   }
 
   searchUsers(query: string): Observable<User[]> {
-    const users = this.demoData.getUsers().filter(u =>
-      u.fullName.toLowerCase().includes(query.toLowerCase()) ||
-      u.email.toLowerCase().includes(query.toLowerCase())
-    );
-    return of(users).pipe(delay(500));
+    return this.http.get<User[]>(`${this.apiUrl}/users/search`, {
+      params: { query }
+    });
   }
 
   // Timetable Management
   getPublicHolidays(): Observable<PublicHoliday[]> {
-    return of([]).pipe(delay(300));
+    return this.http.get<PublicHoliday[]>(`${this.apiUrl}/holidays`);
   }
 
   createPublicHoliday(holiday: PublicHoliday): Observable<PublicHoliday> {
-    return of(holiday).pipe(delay(300));
+    return this.http.post<PublicHoliday>(`${this.apiUrl}/holidays`, holiday);
   }
 
   updatePublicHoliday(id: string, holiday: Partial<PublicHoliday>): Observable<PublicHoliday> {
-    return of({ ...holiday, id } as PublicHoliday).pipe(delay(300));
+    return this.http.put<PublicHoliday>(`${this.apiUrl}/holidays/${id}`, holiday);
   }
 
   deletePublicHoliday(id: string): Observable<any> {
-    return of({ success: true }).pipe(delay(300));
+    return this.http.delete(`${this.apiUrl}/holidays/${id}`);
   }
 
   // Exam Seasons
   getExamSeasons(): Observable<ExamSeason[]> {
-    return of([]).pipe(delay(300));
+    return this.http.get<ExamSeason[]>(`${this.apiUrl}/exam-seasons`);
   }
 
   createExamSeason(season: ExamSeason): Observable<ExamSeason> {
-    return of(season).pipe(delay(300));
+    return this.http.post<ExamSeason>(`${this.apiUrl}/exam-seasons`, season);
   }
 
   updateExamSeason(id: string, season: Partial<ExamSeason>): Observable<ExamSeason> {
-    return of({ ...season, id } as ExamSeason).pipe(delay(300));
+    return this.http.put<ExamSeason>(`${this.apiUrl}/exam-seasons/${id}`, season);
   }
 
   deleteExamSeason(id: string): Observable<any> {
-    return of({ success: true }).pipe(delay(300));
+    return this.http.delete(`${this.apiUrl}/exam-seasons/${id}`);
   }
 
   // System Settings
   getSystemSettings(): Observable<SystemSettings> {
-    return of(this.demoData.getSettings()).pipe(delay(300));
+    return this.http.get<SystemSettings>(`${this.apiUrl}/settings`);
   }
 
   updateSystemSettings(settings: Partial<SystemSettings>): Observable<SystemSettings> {
-    // In a real app, we'd merge and save. 
-    // DemoDataService doesn't have updateSettings exposed publicly yet, but let's assume it's fine for now
-    return of({ ...this.demoData.getSettings(), ...settings }).pipe(delay(300));
+    return this.http.put<SystemSettings>(`${this.apiUrl}/settings`, settings);
   }
 
   // Reports and Statistics
   getDashboardStats(): Observable<DashboardStats> {
-    const users = this.demoData.getUsers();
-    const bookings = this.demoData.getBookings();
-
-    return of({
-      totalUsers: users.length,
-      totalStudents: users.filter(u => u.role === 'Student').length,
-      totalTeachers: users.filter(u => u.role === 'Teacher').length,
-      totalBookings: bookings.length,
-      pendingBookings: bookings.filter(b => b.status === 'Pending').length,
-      completedBookings: bookings.filter(b => b.status === 'Completed').length,
-      totalRevenue: 150000, // Mock
-      averageRating: 4.5
-    }).pipe(delay(500));
+    return this.http.get<DashboardStats>(`${this.apiUrl}/stats/dashboard`);
   }
 
   getUserStats(period: 'daily' | 'weekly' | 'monthly'): Observable<any> {
-    return of({ labels: ['Mon', 'Tue', 'Wed'], data: [10, 15, 8] }).pipe(delay(500));
+    return this.http.get<any>(`${this.apiUrl}/stats/users`, { params: { period } });
   }
 
   getBookingStats(period: 'daily' | 'weekly' | 'monthly'): Observable<any> {
-    return of({ labels: ['Mon', 'Tue', 'Wed'], data: [5, 12, 20] }).pipe(delay(500));
+    return this.http.get<any>(`${this.apiUrl}/stats/bookings`, { params: { period } });
   }
 
   getRevenueStats(period: 'daily' | 'weekly' | 'monthly'): Observable<any> {
-    return of({ labels: ['Mon', 'Tue', 'Wed'], data: [5000, 12000, 20000] }).pipe(delay(500));
+    return this.http.get<any>(`${this.apiUrl}/stats/revenue`, { params: { period } });
   }
 
   getTeacherPerformanceStats(): Observable<any> {
-    return of([]).pipe(delay(500));
+    return this.http.get<any>(`${this.apiUrl}/stats/teacher-performance`);
   }
 
   exportBookingReport(format: 'pdf' | 'excel'): Observable<Blob> {
-    return of(new Blob(['Mock Report'], { type: 'text/plain' })).pipe(delay(1000));
+    return this.http.get(`${this.apiUrl}/reports/bookings`, {
+      params: { format },
+      responseType: 'blob'
+    });
   }
 
   exportUserReport(format: 'pdf' | 'excel'): Observable<Blob> {
-    return of(new Blob(['Mock Report'], { type: 'text/plain' })).pipe(delay(1000));
+    return this.http.get(`${this.apiUrl}/reports/users`, {
+      params: { format },
+      responseType: 'blob'
+    });
   }
 
   exportRevenueReport(format: 'pdf' | 'excel'): Observable<Blob> {
-    return of(new Blob(['Mock Report'], { type: 'text/plain' })).pipe(delay(1000));
+    return this.http.get(`${this.apiUrl}/reports/revenue`, {
+      params: { format },
+      responseType: 'blob'
+    });
   }
 }

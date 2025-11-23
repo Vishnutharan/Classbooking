@@ -47,7 +47,8 @@ namespace ClassBooking.API.Services
                 Role = request.Role
             };
 
-            int userId = await _userRepository.CreateUserAsync(newUser);
+
+            string userId = await _userRepository.CreateUserAsync(newUser);
             newUser.Id = userId;
 
             // Generate token

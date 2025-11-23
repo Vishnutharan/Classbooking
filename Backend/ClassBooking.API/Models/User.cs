@@ -4,7 +4,7 @@ namespace ClassBooking.API.Models
 {
     public class User
     {
-        public int Id { get; set; }
+        public string Id { get; set; } = Guid.NewGuid().ToString();
         public string Email { get; set; } = string.Empty;
         public string PasswordHash { get; set; } = string.Empty;
         public string FullName { get; set; } = string.Empty;

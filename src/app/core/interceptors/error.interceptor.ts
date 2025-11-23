@@ -24,7 +24,7 @@ export function errorInterceptor(
         } else if (error.status === 400) {
           errorMessage = error.error?.message || 'Invalid request. Please check your input.';
         } else if (error.status === 401) {
-          errorMessage = 'Unauthorized. Please log in again.';
+          errorMessage = error.error?.message || 'Unauthorized. Please log in again.';
         } else if (error.status === 403) {
           errorMessage = 'You do not have permission to perform this action.';
         } else if (error.status === 404) {

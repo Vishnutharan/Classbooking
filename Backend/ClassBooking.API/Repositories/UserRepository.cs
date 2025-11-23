@@ -7,8 +7,8 @@ namespace ClassBooking.API.Repositories
     public interface IUserRepository
     {
         Task<User?> GetByEmailAsync(string email);
-        Task<User?> GetByIdAsync(int id);
-        Task<int> CreateUserAsync(User user);
+        Task<User?> GetByIdAsync(string id);
+        Task<string> CreateUserAsync(User user);
     }
 
     public class UserRepository : IUserRepository
@@ -25,13 +25,14 @@ namespace ClassBooking.API.Repositories
             return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
         }
 
-        public async Task<User?> GetByIdAsync(int id)
+        public async Task<User?> GetByIdAsync(string id)
         {
             return await _context.Users.FindAsync(id);
         }
 
-        public async Task<int> CreateUserAsync(User user)
+        public async Task<string> CreateUserAsync(User user)
         {
+            user.Id = Guid.NewGuid().ToString();
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
             return user.Id;

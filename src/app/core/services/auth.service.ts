@@ -7,6 +7,7 @@ import { BehaviorSubject, Observable, tap, of, catchError, throwError } from 'rx
 import { Router } from '@angular/router';
 import { User } from '../models/user.models';
 import { LoginRequest, AuthResponse } from '../models/auth.models';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -23,7 +24,7 @@ export class AuthService {
   currentUser$ = this.currentUserSubject.asObservable();
   isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
 
-  private apiUrl = 'http://localhost:5197/api/auth'; // Update port if needed
+  private apiUrl = `${environment.apiUrl}/auth`;
   private tokenKey = 'access_token';
   private refreshTokenKey = 'refresh_token';
   private userKey = 'current_user';

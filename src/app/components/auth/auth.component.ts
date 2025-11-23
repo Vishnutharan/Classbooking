@@ -51,24 +51,7 @@ export class AuthComponent implements OnInit {
     this.errorMessage = null;
   }
 
-  useDemoCredentials(role: 'Student' | 'Teacher' | 'Admin'): void {
-    this.isLoginMode = true;
 
-    const demoMap: Record<'Student' | 'Teacher' | 'Admin', { email: string; password: string }> = {
-      Student: { email: 'student@test.com', password: 'Student@123' },
-      Teacher: { email: 'teacher@test.com', password: 'Teacher@123' },
-      Admin: { email: 'admin@test.com', password: 'Admin@123' }
-    };
-
-    const creds = demoMap[role];
-
-    this.authForm.patchValue({
-      email: creds.email,
-      password: creds.password
-    });
-
-    this.notificationService.showInfo(`${role} demo credentials loaded.`);
-  }
 
   togglePassword(): void {
     this.showPassword = !this.showPassword;
