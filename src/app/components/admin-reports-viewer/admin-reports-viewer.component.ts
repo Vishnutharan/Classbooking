@@ -1,5 +1,5 @@
-import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { Component, inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NotificationService } from '../../core/services/notification.service';
 
@@ -16,11 +16,13 @@ interface ReportHistory {
   selector: 'app-admin-reports-viewer',
   standalone: true,
   imports: [CommonModule, FormsModule],
-    templateUrl: './admin-reports-viewer.component.html',
+  templateUrl: './admin-reports-viewer.component.html',
   styleUrl: './admin-reports-viewer.component.css'
 })
 export class AdminReportsViewerComponent implements OnInit {
   private notificationService = inject(NotificationService);
+  private platformId = inject(PLATFORM_ID);
+  private isBrowser: boolean;
 
   reportHistory: ReportHistory[] = [];
   selectedReport: ReportHistory | null = null;
@@ -31,8 +33,15 @@ export class AdminReportsViewerComponent implements OnInit {
   scheduleFrequency: 'daily' | 'weekly' | 'monthly' = 'weekly';
   reportType = 'bookings';
 
+  constructor() {
+    this.isBrowser = isPlatformBrowser(this.platformId);
+  }
+
   ngOnInit(): void {
-    this.loadReportHistory();
+    // Only load data if in browser
+    if (this.isBrowser) {
+      this.loadReportHistory();
+    }
   }
 
   private loadReportHistory(): void {
@@ -89,6 +98,8 @@ export class AdminReportsViewerComponent implements OnInit {
   }
 
   downloadReport(report: ReportHistory): void {
+    if (!this.isBrowser) return;
+
     const filename = `${report.name}.${report.type === 'pdf' ? 'pdf' : 'xlsx'}`;
     this.notificationService.showSuccess(`Downloading: ${filename}`);
 
@@ -151,7 +162,7 @@ export class AdminReportsViewerComponent implements OnInit {
   }
 
   getStatusIcon(status: string): string {
-    switch(status) {
+    switch (status) {
       case 'ready': return '✓';
       case 'generating': return '⏳';
       case 'failed': return '✕';

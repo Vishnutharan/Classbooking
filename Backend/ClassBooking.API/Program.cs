@@ -2,6 +2,8 @@ using System.Text;
 using ClassBooking.API.Repositories;
 using ClassBooking.API.Services;
 using ClassBooking.API.Data;
+using ClassBooking.API.Filters;
+using ClassBooking.API.Middleware;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -9,7 +11,10 @@ using Microsoft.IdentityModel.Tokens;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add<ValidationFilter>(); // Add automatic validation filter
+});
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -97,19 +102,18 @@ if (app.Environment.IsDevelopment())
 // ✅ IMPORTANT: UseHttpsRedirection AFTER Swagger but BEFORE CORS
 app.UseHttpsRedirection();
 
+// ✅ Global Exception Handler (MUST be early in pipeline)
+app.UseGlobalExceptionHandler();
+
 // ✅ CORS MUST be called BEFORE Authentication & Authorization
 app.UseCors("AllowAngularApp");
 
 app.UseAuthentication();
 app.UseAuthorization();
 
-// ✅ Global Exception Handling (Optional but recommended)
-app.UseExceptionHandler("/error");
-app.UseStatusCodePages();
-
 app.MapControllers();
 
-// ✅ Optional: Health check endpoint
+// ✅ Health check endpoint
 app.MapGet("/health", () => Results.Ok(new { status = "Backend is running!" }))
    .WithName("HealthCheck")
    .WithOpenApi();
