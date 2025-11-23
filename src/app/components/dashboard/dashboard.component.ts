@@ -1,10 +1,10 @@
-﻿import { CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { NavbarComponent } from '../navbar/navbar.component';
 import { SidebarComponent } from '../sidebar/sidebar.component';
-import { AuthService } from '../../services/auth.service';
-import { User } from '../../models/shared.models';
+import { AuthService } from '../../core/services/auth.service';
+import { User } from '../../core/models/shared.models';
 
 @Component({
   selector: 'app-dashboard',

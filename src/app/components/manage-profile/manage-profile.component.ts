@@ -1,9 +1,9 @@
-﻿import { CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms'; // âœ… Added FormsModule
-import { AuthService } from '../../services/auth.service';
-import { User } from '../../models/shared.models';
-import { NotificationService } from '../../services/notification.service';
+import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms'; // ✅ Added FormsModule
+import { AuthService } from '../../core/services/auth.service';
+import { User } from '../../core/models/shared.models';
+import { NotificationService } from '../../core/services/notification.service';
 
 @Component({
   selector: 'app-manage-profile',
@@ -25,7 +25,7 @@ export class ManageProfileComponent implements OnInit {
   isLoading = false;
   isSaving = false;
 
-  // âœ… Fix: Typed explicitly to allow null
+  // ✅ Fix: Typed explicitly to allow null
   profilePicture: string | null = null;
 
   showDeleteModal = false;
@@ -40,7 +40,7 @@ export class ManageProfileComponent implements OnInit {
   private initForms(): void {
     this.profileForm = this.fb.group({
       fullName: ['', [Validators.required, Validators.minLength(2)]],
-      // âœ… Note: 'disabled: true' here handles the HTML disabled state automatically
+      // ✅ Note: 'disabled: true' here handles the HTML disabled state automatically
       email: [{ value: '', disabled: true }],
       phoneNumber: [''],
       hourlyRate: [0],
@@ -64,7 +64,7 @@ export class ManageProfileComponent implements OnInit {
   private loadProfile(): void {
     this.isLoading = true;
     if (this.currentUser) {
-      // âœ… Fix: safely cast to any if properties are missing from your User interface
+      // ✅ Fix: safely cast to any if properties are missing from your User interface
       const user: any = this.currentUser;
 
       this.profileForm.patchValue({
@@ -73,7 +73,7 @@ export class ManageProfileComponent implements OnInit {
         phoneNumber: user.phoneNumber || ''
       });
 
-      // âœ… Fix: Handle undefined vs null mismatch
+      // ✅ Fix: Handle undefined vs null mismatch
       this.profilePicture = user.profilePicture || null;
     }
     this.isLoading = false;

@@ -1,8 +1,8 @@
-﻿import { CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { TeacherService } from '../../services/teacher.service';
-import { NotificationService } from '../../services/notification.service';
+import { TeacherService } from '../../core/services/teacher.service';
+import { NotificationService } from '../../core/services/notification.service';
 
 interface Review {
   id: string;

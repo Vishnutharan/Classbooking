@@ -1,12 +1,13 @@
-﻿// src/app/Componat/auth/auth.component.ts
+// src/app/Componat/auth/auth.component.ts
 
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { AuthService, AuthResponse, LoginRequest } from '../../services/auth.service';
-import { NotificationService } from '../../services/notification.service';
+import { AuthService } from '../../core/services/auth.service';
+import { AuthResponse, LoginRequest } from '../../core/models/auth.models';
+import { NotificationService } from '../../core/services/notification.service';
 
 @Component({
   selector: 'app-auth',
@@ -50,24 +51,7 @@ export class AuthComponent implements OnInit {
     this.errorMessage = null;
   }
 
-  useDemoCredentials(role: 'Student' | 'Teacher' | 'Admin'): void {
-    this.isLoginMode = true;
 
-    const demoMap: Record<'Student' | 'Teacher' | 'Admin', { email: string; password: string }> = {
-      Student: { email: 'student@test.com', password: 'Student@123' },
-      Teacher: { email: 'teacher@test.com', password: 'Teacher@123' },
-      Admin:   { email: 'admin@test.com',   password: 'Admin@123' }
-    };
-
-    const creds = demoMap[role];
-
-    this.authForm.patchValue({
-      email: creds.email,
-      password: creds.password
-    });
-
-    this.notificationService.showInfo(`${role} demo credentials loaded.`);
-  }
 
   togglePassword(): void {
     this.showPassword = !this.showPassword;

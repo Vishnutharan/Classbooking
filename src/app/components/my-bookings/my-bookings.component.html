@@ -27,7 +27,8 @@
       <p>No bookings found matching your criteria.</p>
     </div>
 
-    <div class="booking-card" *ngFor="let booking of getDisplayedBookings()" [class]="'status-' + getStatusClass(booking.status)">
+    <div class="booking-card" *ngFor="let booking of getDisplayedBookings()"
+      [class]="'status-' + getStatusClass(booking.status)">
       <div class="card-header">
         <h3>{{ booking.subject }}</h3>
         <span class="status-badge" [class]="'badge-' + getStatusClass(booking.status)">{{ booking.status }}</span>
@@ -53,15 +54,21 @@
       </div>
 
       <div class="card-actions">
-        <button class="action-btn cancel" (click)="openCancelModal(booking)" *ngIf="booking.status === 'Confirmed' || booking.status === 'Pending'">
+        <button class="action-btn cancel" (click)="openCancelModal(booking)"
+          *ngIf="booking.status === 'Confirmed' || booking.status === 'Pending'">
           ✕ Cancel
         </button>
-        <button class="action-btn reschedule" (click)="openRescheduleModal(booking)" *ngIf="booking.status === 'Confirmed'">
+        <button class="action-btn reschedule" (click)="openRescheduleModal(booking)"
+          *ngIf="booking.status === 'Confirmed'">
           📅 Reschedule
         </button>
         <button class="action-btn review" (click)="openReviewModal(booking)" *ngIf="booking.status === 'Completed'">
           ⭐ Review
         </button>
+        <a class="action-btn join" [href]="booking.meetingLink" target="_blank"
+          *ngIf="booking.status === 'Confirmed' && booking.meetingLink">
+          🎥 Join Class
+        </a>
       </div>
     </div>
   </div>
@@ -92,9 +99,14 @@
           <td>{{ booking.classType }}</td>
           <td>
             <div class="action-buttons">
-              <button class="btn-small" (click)="openCancelModal(booking)" *ngIf="booking.status === 'Confirmed' || booking.status === 'Pending'" title="Cancel">✕</button>
-              <button class="btn-small" (click)="openRescheduleModal(booking)" *ngIf="booking.status === 'Confirmed'" title="Reschedule">📅</button>
-              <button class="btn-small" (click)="openReviewModal(booking)" *ngIf="booking.status === 'Completed'" title="Review">⭐</button>
+              <button class="btn-small" (click)="openCancelModal(booking)"
+                *ngIf="booking.status === 'Confirmed' || booking.status === 'Pending'" title="Cancel">✕</button>
+              <button class="btn-small" (click)="openRescheduleModal(booking)" *ngIf="booking.status === 'Confirmed'"
+                title="Reschedule">📅</button>
+              <button class="btn-small" (click)="openReviewModal(booking)" *ngIf="booking.status === 'Completed'"
+                title="Review">⭐</button>
+              <a class="btn-small" [href]="booking.meetingLink" target="_blank"
+                *ngIf="booking.status === 'Confirmed' && booking.meetingLink" title="Join Class">🎥</a>
             </div>
           </td>
         </tr>
@@ -115,7 +127,8 @@
     <div class="modal-content">
       <h2>Cancel Booking</h2>
       <p>Are you sure you want to cancel this booking?</p>
-      <textarea [(ngModel)]="cancelReason" placeholder="Please provide a reason for cancellation..." class="modal-textarea"></textarea>
+      <textarea [(ngModel)]="cancelReason" placeholder="Please provide a reason for cancellation..."
+        class="modal-textarea"></textarea>
       <div class="modal-actions">
         <button class="btn cancel" (click)="closeCancelModal()">Keep Booking</button>
         <button class="btn confirm" (click)="confirmCancel()">Confirm Cancel</button>
@@ -155,10 +168,7 @@
       <h2>Rate Your Class</h2>
       <div class="rating-section">
         <div class="stars">
-          <span *ngFor="let i of [1,2,3,4,5]" 
-                class="star" 
-                [class.active]="i <= ratingValue"
-                (click)="setRating(i)">
+          <span *ngFor="let i of [1,2,3,4,5]" class="star" [class.active]="i <= ratingValue" (click)="setRating(i)">
             ★
           </span>
         </div>

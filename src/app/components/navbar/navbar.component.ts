@@ -1,10 +1,10 @@
-﻿import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Component, inject, OnInit, OnDestroy, PLATFORM_ID } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { AuthService } from '../../services/auth.service';
-import { User } from '../../models/shared.models';
-import { NotificationService } from '../../services/notification.service';
+import { AuthService } from '../../core/services/auth.service';
+import { User } from '../../core/models/shared.models';
+import { NotificationService } from '../../core/services/notification.service';
 
 @Component({
   selector: 'app-navbar',
@@ -29,9 +29,9 @@ export class NavbarComponent implements OnInit, OnDestroy {
   notificationCount = 3;
 
   notifications = [
-    { icon: 'ðŸ“š', title: 'New class booked with Mr. Perera', time: '5 minutes ago' },
-    { icon: 'â­', title: 'Your profile was verified', time: '1 hour ago' },
-    { icon: 'ðŸ’¬', title: 'New message from student', time: '2 hours ago' }
+    { icon: '📚', title: 'New class booked with Mr. Perera', time: '5 minutes ago' },
+    { icon: '⭐', title: 'Your profile was verified', time: '1 hour ago' },
+    { icon: '💬', title: 'New message from student', time: '2 hours ago' }
   ];
 
   constructor() {

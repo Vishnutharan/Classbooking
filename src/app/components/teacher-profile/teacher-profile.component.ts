@@ -1,8 +1,8 @@
-﻿import { CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
-import { TeacherService } from '../../services/teacher.service';
-import { TeacherProfile } from '../../models/shared.models';
-import { NotificationService } from '../../services/notification.service';
+import { TeacherService } from '../../core/services/teacher.service';
+import { TeacherProfile } from '../../core/models/shared.models';
+import { NotificationService } from '../../core/services/notification.service';
 import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({

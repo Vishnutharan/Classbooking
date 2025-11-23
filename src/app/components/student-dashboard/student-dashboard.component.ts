@@ -1,10 +1,10 @@
-﻿import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { Component, inject, OnInit, PLATFORM_ID, Inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { StudentService } from '../../services/student.service';
-import { TeacherService } from '../../services/teacher.service';
-import { ClassBookingService } from '../../services/class-booking.service';
-import { TeacherProfile, ClassBooking } from '../../models/shared.models';
+import { StudentService } from '../../core/services/student.service';
+import { TeacherService } from '../../core/services/teacher.service';
+import { ClassBookingService } from '../../core/services/class-booking.service';
+import { TeacherProfile, ClassBooking } from '../../core/models/shared.models';
 
 @Component({
   selector: 'app-student-dashboard',
@@ -18,6 +18,7 @@ export class StudentDashboardComponent implements OnInit {
   private bookingService = inject(ClassBookingService);
   private teacherService = inject(TeacherService);
   private router = inject(Router);
+  private platformId = inject(PLATFORM_ID);
 
   upcomingClasses: ClassBooking[] = [];
   recommendedTeachers: TeacherProfile[] = [];
@@ -25,13 +26,17 @@ export class StudentDashboardComponent implements OnInit {
     totalClassesBooked: 0,
     completedClasses: 0,
     hoursStudied: 0,
-    averageRating: 0
+    averageRating: 0,
+    progressPercentage: 0
   };
   recentActivity: any[] = [];
   isLoading = false;
 
   ngOnInit(): void {
-    this.loadDashboardData();
+    // Only load data on the browser, not during SSR
+    if (isPlatformBrowser(this.platformId)) {
+      this.loadDashboardData();
+    }
   }
 
   private loadDashboardData(): void {
@@ -94,5 +99,13 @@ export class StudentDashboardComponent implements OnInit {
 
   viewBooking(bookingId: string): void {
     this.router.navigate(['/my-bookings']);
+  }
+
+  viewMyProgress(): void {
+    this.router.navigate(['/student/progress']);
+  }
+
+  viewMyReviews(): void {
+    this.router.navigate(['/my-reviews']);
   }
 }

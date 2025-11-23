@@ -1,160 +1,124 @@
 <div class="auth-container">
-      <div class="auth-card">
-        <div class="auth-header">
-          <h1>{{ isLoginMode ? 'Welcome Back' : 'Create Account' }}</h1>
-          <p>{{ isLoginMode ? 'Sign in to continue' : 'Join our learning platform' }}</p>
-        </div>
-
-        <!-- Demo Credentials Section (Login Mode Only) -->
-        <div *ngIf="isLoginMode" class="demo-section">
-          <p class="demo-label">🎯 Try Demo Accounts</p>
-          <div class="demo-buttons">
-            <button type="button" class="demo-btn student" (click)="useDemoCredentials('Student')" title="Load Student Demo">
-              👨‍🎓 Student
-            </button>
-            <button type="button" class="demo-btn teacher" (click)="useDemoCredentials('Teacher')" title="Load Teacher Demo">
-              👨‍🏫 Teacher
-            </button>
-            <button type="button" class="demo-btn admin" (click)="useDemoCredentials('Admin')" title="Load Admin Demo">
-              🔐 Admin
-            </button>
-          </div>
-        </div>
-
-        <form [formGroup]="authForm" (ngSubmit)="onSubmit()" class="auth-form">
-          <!-- Full Name (Register only) -->
-          <div class="form-group" *ngIf="!isLoginMode">
-            <label for="fullName">Full Name</label>
-            <input
-              id="fullName"
-              type="text"
-              formControlName="fullName"
-              placeholder="Enter your full name"
-              [class.error]="authForm.get('fullName')?.invalid && authForm.get('fullName')?.touched"
-            />
-            <span class="error-message" *ngIf="authForm.get('fullName')?.invalid && authForm.get('fullName')?.touched">
-              Full name is required
-            </span>
-          </div>
-
-          <!-- Email -->
-          <div class="form-group">
-            <label for="email">Email Address</label>
-            <input
-              id="email"
-              type="email"
-              formControlName="email"
-              placeholder="Enter your email"
-              [class.error]="authForm.get('email')?.invalid && authForm.get('email')?.touched"
-            />
-            <span class="error-message" *ngIf="authForm.get('email')?.invalid && authForm.get('email')?.touched">
-              Valid email is required
-            </span>
-          </div>
-
-          <!-- Phone Number (Register only) -->
-          <div class="form-group" *ngIf="!isLoginMode">
-            <label for="phoneNumber">Phone Number</label>
-            <input
-              id="phoneNumber"
-              type="tel"
-              formControlName="phoneNumber"
-              placeholder="+94 XX XXX XXXX"
-              [class.error]="authForm.get('phoneNumber')?.invalid && authForm.get('phoneNumber')?.touched"
-            />
-            <span class="error-message" *ngIf="authForm.get('phoneNumber')?.invalid && authForm.get('phoneNumber')?.touched">
-              Valid phone number is required
-            </span>
-          </div>
-
-          <!-- Role Selection (Register only) -->
-          <div class="form-group" *ngIf="!isLoginMode">
-            <label for="role">I am a</label>
-            <select id="role" formControlName="role" class="role-select">
-              <option value="" disabled>Select your role</option>
-              <option value="Student">Student</option>
-              <option value="Teacher">Teacher</option>
-            </select>
-            <span class="error-message" *ngIf="authForm.get('role')?.invalid && authForm.get('role')?.touched">
-              Please select a role
-            </span>
-          </div>
-
-          <!-- Password -->
-          <div class="form-group">
-            <label for="password">Password</label>
-            <div class="password-input">
-              <input
-                id="password"
-                [type]="showPassword ? 'text' : 'password'"
-                formControlName="password"
-                placeholder="Enter your password"
-                [class.error]="authForm.get('password')?.invalid && authForm.get('password')?.touched"
-              />
-              <button type="button" class="toggle-password" (click)="togglePassword()">
-                {{ showPassword ? '👁️' : '👁️‍🗨️' }}
-              </button>
-            </div>
-            <span class="error-message" *ngIf="authForm.get('password')?.invalid && authForm.get('password')?.touched">
-              Password must be at least 6 characters
-            </span>
-          </div>
-
-          <!-- Confirm Password (Register only) -->
-          <div class="form-group" *ngIf="!isLoginMode">
-            <label for="confirmPassword">Confirm Password</label>
-            <input
-              id="confirmPassword"
-              [type]="showPassword ? 'text' : 'password'"
-              formControlName="confirmPassword"
-              placeholder="Confirm your password"
-              [class.error]="authForm.get('confirmPassword')?.invalid && authForm.get('confirmPassword')?.touched"
-            />
-            <span class="error-message" *ngIf="authForm.get('confirmPassword')?.invalid && authForm.get('confirmPassword')?.touched">
-              Passwords must match
-            </span>
-          </div>
-
-          <!-- Forgot Password Link (Login only) -->
-          <div class="forgot-password" *ngIf="isLoginMode">
-            <a href="#" (click)="onForgotPassword($event)">Forgot Password?</a>
-          </div>
-
-          <!-- Error Message from API -->
-          <div class="api-error" *ngIf="errorMessage">
-            {{ errorMessage }}
-          </div>
-
-          <!-- Submit Button -->
-          <button type="submit" class="submit-btn" [disabled]="isLoading || authForm.invalid">
-            <span *ngIf="!isLoading">{{ isLoginMode ? 'Sign In' : 'Create Account' }}</span>
-            <span *ngIf="isLoading" class="loading-spinner">Processing...</span>
-          </button>
-
-          <!-- Social Login Placeholder -->
-          <div class="social-login">
-            <div class="divider">
-              <span>Or continue with</span>
-            </div>
-            <div class="social-buttons">
-              <button type="button" class="social-btn" (click)="onSocialLogin('google')">
-                <span>🔍</span> Google
-              </button>
-              <button type="button" class="social-btn" (click)="onSocialLogin('facebook')">
-                <span>📘</span> Facebook
-              </button>
-            </div>
-          </div>
-
-          <!-- Switch Mode -->
-          <div class="switch-mode">
-            <p>
-              {{ isLoginMode ? "Don't have an account?" : 'Already have an account?' }}
-              <a href="#" (click)="toggleMode($event)">
-                {{ isLoginMode ? 'Sign Up' : 'Sign In' }}
-              </a>
-            </p>
-          </div>
-        </form>
-      </div>
+  <div class="auth-card">
+    <div class="auth-header">
+      <h1>{{ isLoginMode ? 'Welcome Back' : 'Create Account' }}</h1>
+      <p>{{ isLoginMode ? 'Sign in to continue' : 'Join our learning platform' }}</p>
     </div>
+
+    <form [formGroup]="authForm" (ngSubmit)="onSubmit()" class="auth-form">
+      <!-- Full Name (Register only) -->
+      <div class="form-group" *ngIf="!isLoginMode">
+        <label for="fullName">Full Name</label>
+        <input id="fullName" type="text" formControlName="fullName" placeholder="Enter your full name"
+          [class.error]="authForm.get('fullName')?.invalid && authForm.get('fullName')?.touched" />
+        <span class="error-message" *ngIf="authForm.get('fullName')?.invalid && authForm.get('fullName')?.touched">
+          Full name is required
+        </span>
+      </div>
+
+      <!-- Email -->
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input id="email" type="email" formControlName="email" placeholder="Enter your email"
+          [class.error]="authForm.get('email')?.invalid && authForm.get('email')?.touched" />
+        <span class="error-message" *ngIf="authForm.get('email')?.invalid && authForm.get('email')?.touched">
+          Valid email is required
+        </span>
+      </div>
+
+      <!-- Phone Number (Register only) -->
+      <div class="form-group" *ngIf="!isLoginMode">
+        <label for="phoneNumber">Phone Number</label>
+        <input id="phoneNumber" type="tel" formControlName="phoneNumber" placeholder="+94 XX XXX XXXX"
+          [class.error]="authForm.get('phoneNumber')?.invalid && authForm.get('phoneNumber')?.touched" />
+        <span class="error-message"
+          *ngIf="authForm.get('phoneNumber')?.invalid && authForm.get('phoneNumber')?.touched">
+          Valid phone number is required
+        </span>
+      </div>
+
+      <!-- Role Selection (Register only) -->
+      <div class="form-group" *ngIf="!isLoginMode">
+        <label for="role">I am a</label>
+        <select id="role" formControlName="role" class="role-select">
+          <option value="" disabled>Select your role</option>
+          <option value="Student">Student</option>
+          <option value="Teacher">Teacher</option>
+          <option value="Admin">Admin</option>
+        </select>
+        <span class="error-message" *ngIf="authForm.get('role')?.invalid && authForm.get('role')?.touched">
+          Please select a role
+        </span>
+      </div>
+
+      <!-- Password -->
+      <div class="form-group">
+        <label for="password">Password</label>
+        <div class="password-input">
+          <input id="password" [type]="showPassword ? 'text' : 'password'" formControlName="password"
+            placeholder="Enter your password"
+            [class.error]="authForm.get('password')?.invalid && authForm.get('password')?.touched" />
+          <button type="button" class="toggle-password" (click)="togglePassword()">
+            {{ showPassword ? '👁️' : '👁️‍🗨️' }}
+          </button>
+        </div>
+        <span class="error-message" *ngIf="authForm.get('password')?.invalid && authForm.get('password')?.touched">
+          Password must be at least 6 characters
+        </span>
+      </div>
+
+      <!-- Confirm Password (Register only) -->
+      <div class="form-group" *ngIf="!isLoginMode">
+        <label for="confirmPassword">Confirm Password</label>
+        <input id="confirmPassword" [type]="showPassword ? 'text' : 'password'" formControlName="confirmPassword"
+          placeholder="Confirm your password"
+          [class.error]="authForm.get('confirmPassword')?.invalid && authForm.get('confirmPassword')?.touched" />
+        <span class="error-message"
+          *ngIf="authForm.get('confirmPassword')?.invalid && authForm.get('confirmPassword')?.touched">
+          Passwords must match
+        </span>
+      </div>
+
+      <!-- Forgot Password Link (Login only) -->
+      <div class="forgot-password" *ngIf="isLoginMode">
+        <a href="#" (click)="onForgotPassword($event)">Forgot Password?</a>
+      </div>
+
+      <!-- Error Message from API -->
+      <div class="api-error" *ngIf="errorMessage">
+        {{ errorMessage }}
+      </div>
+
+      <!-- Submit Button -->
+      <button type="submit" class="submit-btn" [disabled]="isLoading || authForm.invalid">
+        <span *ngIf="!isLoading">{{ isLoginMode ? 'Sign In' : 'Create Account' }}</span>
+        <span *ngIf="isLoading" class="loading-spinner">Processing...</span>
+      </button>
+
+      <!-- Social Login Placeholder -->
+      <div class="social-login">
+        <div class="divider">
+          <span>Or continue with</span>
+        </div>
+        <div class="social-buttons">
+          <button type="button" class="social-btn" (click)="onSocialLogin('google')">
+            <span>🔍</span> Google
+          </button>
+          <button type="button" class="social-btn" (click)="onSocialLogin('facebook')">
+            <span>📘</span> Facebook
+          </button>
+        </div>
+      </div>
+
+      <!-- Switch Mode -->
+      <div class="switch-mode">
+        <p>
+          {{ isLoginMode ? "Don't have an account?" : 'Already have an account?' }}
+          <a href="#" (click)="toggleMode($event)">
+            {{ isLoginMode ? 'Sign Up' : 'Sign In' }}
+          </a>
+        </p>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,6 +1,6 @@
 ﻿import { Routes } from '@angular/router';
-import { AuthGuard } from './guards/auth.guard';
-import { RoleGuard } from './guards/role.guard';
+import { AuthGuard } from './core/guards/auth.guard';
+import { RoleGuard } from './core/guards/role.guard';
 
 export const routes: Routes = [
   {
@@ -89,6 +89,24 @@ export const routes: Routes = [
         './components/educational-content/educational-content.component'
       ).then(m => m.EducationalContentComponent)
   },
+  {
+    path: 'student/progress',
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['Student'] },
+    loadComponent: () =>
+      import('./components/student-progress-tracker/student-progress-tracker.component').then(
+        m => m.StudentProgressTrackerComponent
+      )
+  },
+  {
+    path: 'my-reviews',
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['Student'] },
+    loadComponent: () =>
+      import('./components/reviews-ratings/reviews-ratings.component').then(
+        m => m.ReviewsRatingsComponent
+      )
+  },
 
   // TEACHER & STUDENT PROFILE
   {
@@ -160,6 +178,53 @@ export const routes: Routes = [
       )
   },
 
+  // NEW TEACHER FEATURE ROUTES
+  {
+    path: 'teacher/attendance',
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['Teacher'] },
+    loadComponent: () =>
+      import('./components/teacher-attendance/teacher-attendance.component').then(
+        m => m.TeacherAttendanceComponent
+      )
+  },
+  {
+    path: 'teacher/students',
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['Teacher'] },
+    loadComponent: () =>
+      import('./components/teacher-students/teacher-students.component').then(
+        m => m.TeacherStudentsComponent
+      )
+  },
+  {
+    path: 'teacher/lesson-planner',
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['Teacher'] },
+    loadComponent: () =>
+      import('./components/lesson-planner/lesson-planner.component').then(
+        m => m.LessonPlannerComponent
+      )
+  },
+  {
+    path: 'teacher/analytics',
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['Teacher'] },
+    loadComponent: () =>
+      import('./components/teacher-analytics/teacher-analytics.component').then(
+        m => m.TeacherAnalyticsComponent
+      )
+  },
+  {
+    path: 'teacher/messages',
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['Teacher'] },
+    loadComponent: () =>
+      import('./components/teacher-messages/teacher-messages.component').then(
+        m => m.TeacherMessagesComponent
+      )
+  },
+
   // ADMIN ROUTES
   {
     path: 'dashboard/admin',
@@ -213,6 +278,24 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./components/system-settings/system-settings.component').then(
         m => m.SystemSettingsComponent
+      )
+  },
+  {
+    path: 'admin/fees',
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['Admin'] },
+    loadComponent: () =>
+      import('./components/fee-management/fee-management.component').then(
+        m => m.FeeManagementComponent
+      )
+  },
+  {
+    path: 'admin/exams',
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['Admin'] },
+    loadComponent: () =>
+      import('./components/exam-results/exam-results.component').then(
+        m => m.ExamResultsComponent
       )
   },
 

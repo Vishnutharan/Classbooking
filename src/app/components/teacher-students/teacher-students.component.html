@@ -1,0 +1,111 @@
+<div class="students-container">
+    <div class="header">
+        <h1>👥 My Students</h1>
+        <div class="filters">
+            <input type="text" [(ngModel)]="searchTerm" (ngModelChange)="filterStudents()"
+                placeholder="🔍 Search students..." class="search-input">
+
+            <select [(ngModel)]="filterSubject" (ngModelChange)="filterStudents()" class="filter-select">
+                <option value="all">All Subjects</option>
+                <option value="Mathematics">Mathematics</option>
+                <option value="Physics">Physics</option>
+                <option value="Chemistry">Chemistry</option>
+                <option value="Biology">Biology</option>
+            </select>
+
+            <select [(ngModel)]="filterGrade" (ngModelChange)="filterStudents()" class="filter-select">
+                <option value="all">All Grades</option>
+                <option value="Grade 10">Grade 10</option>
+                <option value="Grade 11">Grade 11</option>
+                <option value="O/L">O/L</option>
+                <option value="A/L 1st Year">A/L 1st Year</option>
+                <option value="A/L 2nd Year">A/L 2nd Year</option>
+            </select>
+        </div>
+    </div>
+
+    <div *ngIf="isLoading" class="loading">Loading students...</div>
+
+    <div class="students-grid" *ngIf="!isLoading">
+        <div class="student-card" *ngFor="let student of filteredStudents" (click)="viewStudentDetails(student)">
+            <div class="student-avatar">{{ student.fullName.charAt(0) }}</div>
+            <div class="student-info">
+                <h3>{{ student.fullName }}</h3>
+                <p class="grade">{{ student.grade }}</p>
+                <div class="subjects">
+                    <span class="subject-tag" *ngFor="let subject of student.subjects">{{ subject }}</span>
+                </div>
+                <div class="performance" [ngClass]="getPerformanceClass(student.performanceLevel)">
+                    {{ student.performanceLevel }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Student Details Modal -->
+    <div class="modal-overlay" *ngIf="showDetails" (click)="closeDetails()">
+        <div class="modal-content" (click)="$event.stopPropagation()" *ngIf="selectedStudent">
+            <button class="close-btn" (click)="closeDetails()">×</button>
+
+            <div class="modal-header">
+                <div class="student-avatar large">{{ selectedStudent.fullName.charAt(0) }}</div>
+                <div>
+                    <h2>{{ selectedStudent.fullName }}</h2>
+                    <p>{{ selectedStudent.email }}</p>
+                    <p>{{ selectedStudent.phoneNumber }}</p>
+                </div>
+            </div>
+
+            <div class="modal-body" *ngIf="studentProgress">
+                <div class="progress-stats">
+                    <div class="stat">
+                        <h4>Overall Grade</h4>
+                        <p class="big-number">{{ studentProgress.overallGrade | number:'1.0-0' }}%</p>
+                    </div>
+                    <div class="stat">
+                        <h4>Attendance</h4>
+                        <p class="big-number">{{ studentProgress.attendanceRate | number:'1.0-0' }}%</p>
+                    </div>
+                    <div class="stat">
+                        <h4>Assignments</h4>
+                        <p class="big-number">{{ studentProgress.assignmentsCompleted }}/{{
+                            studentProgress.totalAssignments }}</p>
+                    </div>
+                    <div class="stat">
+                        <h4>Avg Score</h4>
+                        <p class="big-number">{{ studentProgress.averageScore | number:'1.0-0' }}%</p>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>Recent Performance</h3>
+                    <div class="performance-list">
+                        <div class="performance-item" *ngFor="let perf of studentProgress.recentPerformance">
+                            <div>
+                                <strong>{{ perf.title }}</strong>
+                                <span class="type">{{ perf.type }}</span>
+                            </div>
+                            <div class="score">{{ perf.score }}/{{ perf.maxScore }} ({{ perf.percentage | number:'1.0-0'
+                                }}%)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="strengths-weaknesses">
+                    <div class="section">
+                        <h3>💪 Strengths</h3>
+                        <ul>
+                            <li *ngFor="let strength of studentProgress.strengths">{{ strength }}</li>
+                        </ul>
+                    </div>
+                    <div class="section">
+                        <h3>📈 Areas for Improvement</h3>
+                        <ul>
+                            <li *ngFor="let weakness of studentProgress.weaknesses">{{ weakness }}</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

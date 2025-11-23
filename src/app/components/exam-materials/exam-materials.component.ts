@@ -2,10 +2,9 @@ import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { StudentService } from '../../services/student.service';
-import { DemoDataService } from '../../services/demo-data.service';
-import { Resource, ExamPreparation } from '../../models/shared.models';
-import { NotificationService } from '../../services/notification.service';
+import { StudentService } from '../../core/services/student.service';
+import { Resource, ExamPreparation } from '../../core/models/shared.models';
+import { NotificationService } from '../../core/services/notification.service';
 
 @Component({
     selector: 'app-exam-materials',
@@ -16,7 +15,6 @@ import { NotificationService } from '../../services/notification.service';
 })
 export class ExamMaterialsComponent implements OnInit {
     private studentService = inject(StudentService);
-    private demoDataService = inject(DemoDataService);
     private notificationService = inject(NotificationService);
     private router = inject(Router);
 
@@ -40,15 +38,20 @@ export class ExamMaterialsComponent implements OnInit {
     private loadExamMaterials(): void {
         this.isLoading = true;
 
-        // Get exam preparations from demo data
-        const allPreps = this.demoDataService.getExamPreparations();
-        this.preparations = allPreps.filter((p: ExamPreparation) => p.examType === this.selectedExam);
-
-        // Extract unique subjects
-        this.subjects = ['All', ...Array.from(new Set(this.preparations.map(p => p.subject)))];
-
-        this.filterResources();
-        this.isLoading = false;
+        this.studentService.getExamPreparations(this.selectedExam).subscribe({
+            next: (preps) => {
+                this.preparations = preps;
+                // Extract unique subjects
+                this.subjects = ['All', ...Array.from(new Set(this.preparations.map(p => p.subject)))];
+                this.filterResources();
+                this.isLoading = false;
+            },
+            error: (err) => {
+                console.error('Error loading exam materials', err);
+                this.notificationService.showError('Failed to load exam materials');
+                this.isLoading = false;
+            }
+        });
     }
 
     onExamChange(): void {

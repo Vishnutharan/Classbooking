@@ -1,10 +1,10 @@
-﻿import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { Component, inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { Router } from '@angular/router';
-import { TeacherService } from '../../services/teacher.service';
-import { ClassBookingService } from '../../services/class-booking.service';
-import { TeacherProfile, ClassBooking } from '../../models/shared.models';
-import { NotificationService } from '../../services/notification.service';
+import { TeacherService } from '../../core/services/teacher.service';
+import { ClassBookingService } from '../../core/services/class-booking.service';
+import { TeacherProfile, ClassBooking } from '../../core/models/shared.models';
+import { NotificationService } from '../../core/services/notification.service';
 
 @Component({
   selector: 'app-teacher-dashboard',
@@ -19,6 +19,7 @@ export class TeacherDashboardComponent implements OnInit {
   private bookingService = inject(ClassBookingService);
   private notificationService = inject(NotificationService);
   private router = inject(Router);
+  private platformId = inject(PLATFORM_ID);
 
   teacherProfile: TeacherProfile | null = null;
   upcomingClasses: ClassBooking[] = [];
@@ -43,7 +44,10 @@ export class TeacherDashboardComponent implements OnInit {
   monthlyEarnings: any[] = [];
 
   ngOnInit(): void {
-    this.loadDashboardData();
+    // Only load data on the browser, not during SSR
+    if (isPlatformBrowser(this.platformId)) {
+      this.loadDashboardData();
+    }
   }
 
   private loadDashboardData(): void {
@@ -127,11 +131,27 @@ export class TeacherDashboardComponent implements OnInit {
   }
 
   private updateMonthlyTrend(bookings: ClassBooking[]): void {
+    const now = new Date();
+    const currentYear = now.getFullYear();
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
-    this.monthlyEarnings = months.map((month, index) => ({
-      month,
-      earnings: Math.floor(Math.random() * 50000) + 20000
-    }));
+
+    this.monthlyEarnings = months.map((month, index) => {
+      const monthBookings = bookings.filter(b => {
+        const bookingDate = new Date(b.date);
+        return bookingDate.getMonth() === index &&
+          bookingDate.getFullYear() === currentYear &&
+          b.status === 'Completed';
+      });
+
+      const earnings = monthBookings.reduce((sum, b) => {
+        const [startHour] = b.startTime.split(':').map(Number);
+        const [endHour] = b.endTime.split(':').map(Number);
+        const hours = endHour - startHour;
+        return sum + (hours * (this.teacherProfile?.hourlyRate || 0));
+      }, 0);
+
+      return { month, earnings };
+    });
   }
 
   acceptRequest(booking: ClassBooking): void {

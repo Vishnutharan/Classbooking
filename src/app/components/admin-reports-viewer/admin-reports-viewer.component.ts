@@ -1,7 +1,7 @@
-﻿import { CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { NotificationService } from '../../services/notification.service';
+import { NotificationService } from '../../core/services/notification.service';
 
 interface ReportHistory {
   id: string;
@@ -152,9 +152,9 @@ export class AdminReportsViewerComponent implements OnInit {
 
   getStatusIcon(status: string): string {
     switch(status) {
-      case 'ready': return 'âœ“';
-      case 'generating': return 'â³';
-      case 'failed': return 'âœ•';
+      case 'ready': return '✓';
+      case 'generating': return '⏳';
+      case 'failed': return '✕';
       default: return '?';
     }
   }

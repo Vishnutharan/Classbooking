@@ -1,0 +1,166 @@
+<div class="progress-tracker-container">
+    <div class="header">
+        <h1>My Academic Progress</h1>
+        <p>Track your performance across subjects and study goals</p>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="loading">
+        <div class="spinner"></div>
+        <p>Loading progress data...</p>
+    </div>
+
+    <!-- Main Content -->
+    <div *ngIf="!isLoading" class="content">
+
+        <!-- Progress Metrics Cards -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-icon">📊</div>
+                <div class="metric-value">{{progressMetrics.overallAverage}}%</div>
+                <div class="metric-label">Overall Average</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon">⏱️</div>
+                <div class="metric-value">{{progressMetrics.totalStudyHours}}</div>
+                <div class="metric-label">Total Study Hours</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon">✓</div>
+                <div class="metric-value">{{progressMetrics.completedClasses}}</div>
+                <div class="metric-label">Completed Classes</div>
+            </div>
+            <div class="metric-card clickable" (click)="navigateToStudyGoals()">
+                <div class="metric-icon">🎯</div>
+                <div class="metric-value">{{studyGoals.length}}</div>
+                <div class="metric-label">Active Goals</div>
+            </div>
+        </div>
+
+        <!-- Subject Performance Section -->
+        <div class="section">
+            <div class="section-header">
+                <h2>Subject Performance</h2>
+                <button class="btn-primary" (click)="navigateToBookClass()">Book More Classes</button>
+            </div>
+
+            <div class="subjects-grid">
+                <div *ngFor="let subject of subjectPerformance" class="subject-card">
+                    <div class="subject-header">
+                        <h3>{{subject.subject}}</h3>
+                        <span class="performance-badge"
+                            [style.background-color]="getPerformanceColor(subject.performanceLevel)">
+                            {{subject.performanceLevel}}
+                        </span>
+                    </div>
+
+                    <div class="subject-stats">
+                        <div class="stat">
+                            <span class="stat-label">Average Score:</span>
+                            <span class="stat-value">{{subject.averageScore}}%</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Classes Completed:</span>
+                            <span class="stat-value">{{subject.totalClasses}}</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Study Hours:</span>
+                            <span class="stat-value">{{subject.studyHours}}h</span>
+                        </div>
+                        <div class="stat" *ngIf="subject.lastClassDate">
+                            <span class="stat-label">Last Class:</span>
+                            <span class="stat-value">{{subject.lastClassDate | date:'MMM d'}}</span>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" [style.width.%]="subject.averageScore"
+                            [style.background-color]="getPerformanceColor(subject.performanceLevel)"></div>
+                    </div>
+
+                    <!-- Weak Areas -->
+                    <div *ngIf="subject.weakAreas && subject.weakAreas.length > 0" class="weak-areas">
+                        <strong>Needs Attention:</strong>
+                        <ul>
+                            <li *ngFor="let area of subject.weakAreas">{{area}}</li>
+                        </ul>
+                    </div>
+
+                    <!-- Recommendations -->
+                    <div *ngIf="subject.recommendations && subject.recommendations.length > 0" class="recommendations">
+                        <strong>Recommendations:</strong>
+                        <ul>
+                            <li *ngFor="let rec of subject.recommendations">{{rec}}</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Study Goals Section -->
+        <div class="section">
+            <div class="section-header">
+                <h2>Study Goals</h2>
+                <button class="btn-secondary" (click)="navigateToStudyGoals()">Manage Goals</button>
+            </div>
+
+            <div class="goals-list">
+                <div *ngFor="let goal of studyGoals" class="goal-card" [class]="getGoalStatusClass(goal.status)">
+                    <div class="goal-header">
+                        <div class="goal-info">
+                            <h4>{{goal.title}}</h4>
+                            <span class="goal-subject" *ngIf="goal.subject">{{goal.subject}}</span>
+                        </div>
+                        <span class="goal-status-badge">{{goal.status}}</span>
+                    </div>
+
+                    <p class="goal-description" *ngIf="goal.description">{{goal.description}}</p>
+
+                    <div class="goal-progress">
+                        <div class="goal-progress-bar-container">
+                            <div class="goal-progress-bar" [style.width.%]="getGoalProgress(goal)"></div>
+                        </div>
+                        <span class="goal-progress-text">{{getGoalProgress(goal)}}%</span>
+                    </div>
+
+                    <div class="goal-meta">
+                        <span class="goal-deadline">
+                            <strong>Deadline:</strong> {{goal.targetDate | date:'MMM d, yyyy'}}
+                        </span>
+                        <span class="goal-type">{{goal.goalType}}</span>
+                    </div>
+                </div>
+
+                <div *ngIf="studyGoals.length === 0" class="empty-state">
+                    <p>No study goals yet. Set goals to track your progress!</p>
+                    <button class="btn-primary" (click)="navigateToStudyGoals()">Create Goal</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upcoming Exams Section -->
+        <div class="section">
+            <h2>Upcoming Exams</h2>
+
+            <div class="exams-list">
+                <div *ngFor="let exam of progressMetrics.upcomingExams" class="exam-card">
+                    <div class="exam-icon">📝</div>
+                    <div class="exam-info">
+                        <h4>{{exam.name}}</h4>
+                        <p>{{exam.date | date:'EEEE, MMMM d, yyyy'}}</p>
+                    </div>
+                    <div class="exam-countdown" [class.urgent]="exam.daysRemaining <= 7">
+                        <span class="days">{{exam.daysRemaining}}</span>
+                        <span class="label">days</span>
+                    </div>
+                </div>
+
+                <div *ngIf="progressMetrics.upcomingExams.length === 0" class="empty-state">
+                    <p>No upcoming exams scheduled.</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
