@@ -87,10 +87,13 @@ namespace ClassBooking.API.Services
 
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim("userId", user.Id.ToString()),  // Controllers expect "userId"
+                new Claim("email", user.Email),
+                new Claim("role", user.Role),            // Controllers expect "role"
+                new Claim("fullName", user.FullName),
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),  // Also add standard claims
                 new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.Role, user.Role),
-                new Claim("FullName", user.FullName)
+                new Claim(ClaimTypes.Role, user.Role)
             };
 
             var tokenDescriptor = new SecurityTokenDescriptor

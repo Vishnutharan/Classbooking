@@ -15,15 +15,21 @@ namespace ClassBooking.API.Controllers
         private readonly IStudentService _studentService;
         private readonly IStudentRepository _studentRepository;
         private readonly ITeacherRepository _teacherRepository;
+        private readonly IExamService _examService;
+        private readonly IResourceService _resourceService;
 
         public StudentController(
             IStudentService studentService,
             IStudentRepository studentRepository,
-            ITeacherRepository teacherRepository)
+            ITeacherRepository teacherRepository,
+            IExamService examService,
+            IResourceService resourceService)
         {
             _studentService = studentService;
             _studentRepository = studentRepository;
             _teacherRepository = teacherRepository;
+            _examService = examService;
+            _resourceService = resourceService;
         }
 
         [HttpGet("profile")]
@@ -107,22 +113,47 @@ namespace ClassBooking.API.Controllers
         [HttpGet("exam-preparations")]
         public async Task<ActionResult<List<ExamPreparation>>> GetExamPreparations([FromQuery] string? examType)
         {
-            // Return empty list for now - will be implemented with exam service
-            return Ok(new List<ExamPreparation>());
+            var entities = await _examService.GetExamPreparationsAsync(examType);
+            return Ok(entities.Select(e => new ExamPreparation
+            {
+                Id = e.Id,
+                ExamType = e.ExamType,
+                Subject = e.Subject,
+                Description = e.Description
+            }).ToList());
         }
 
         [HttpGet("study-materials")]
         public async Task<ActionResult<List<Resource>>> GetStudyMaterials([FromQuery] string? subject)
         {
-            // Return empty list for now - will be implemented with resource service
-            return Ok(new List<Resource>());
+            var entities = await _resourceService.GetResourcesAsync(subject, null, null, null);
+            return Ok(entities.Select(r => new Resource
+            {
+                Id = r.Id,
+                Title = r.Title,
+                Type = r.Type,
+                Url = r.Url,
+                Description = r.Description,
+                Subject = r.Subject,
+                UploadedAt = r.UploadedAt
+            }).ToList());
         }
 
         [HttpGet("past-papers")]
         public async Task<ActionResult<List<Resource>>> GetPastPapers([FromQuery] string? subject, [FromQuery] int? year)
         {
-            // Return empty list for now - will be implemented with resource service
-            return Ok(new List<Resource>());
+            var entities = await _resourceService.GetPastPapersAsync(subject, year);
+            return Ok(entities.Select(r => new Resource
+            {
+                Id = r.Id,
+                Title = r.Title,
+                Type = r.Type,
+                Url = r.Url,
+                Description = r.Description,
+                Subject = r.Subject,
+                Year = r.Year,
+                UploadedAt = r.UploadedAt
+            }).ToList());
         }
 
         [HttpGet("progress")]
@@ -130,14 +161,15 @@ namespace ClassBooking.API.Controllers
         {
             var userId = User.FindFirst("userId")?.Value ?? throw new UnauthorizedAccessException();
             
-            // Return mock data for now
+            var progress = await _studentService.GetProgressAsync(userId);
+            
+            // Calculate overall progress
+            var overall = progress.Any() ? (int)progress.Average(p => p.AverageScore) : 0;
+            
             return Ok(new
             {
-                OverallProgress = 75,
-                SubjectsProgress = new[] {
-                    new { Subject = "Mathematics", Progress = 80 },
-                    new { Subject = "Science", Progress = 70 }
-                }
+                OverallProgress = overall,
+                SubjectsProgress = progress.Select(p => new { Subject = p.Subject, Progress = p.AverageScore }).ToList()
             });
         }
 
@@ -146,7 +178,8 @@ namespace ClassBooking.API.Controllers
         {
             var userId = User.FindFirst("userId")?.Value ?? throw new UnauthorizedAccessException();
             
-            // Return mock data for now
+            // In a real app, we would get this from BookingService and other services
+            // For now, returning placeholders but connected to real user ID check
             return Ok(new
             {
                 TotalClasses = 0,

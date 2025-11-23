@@ -18,15 +18,21 @@ namespace ClassBooking.API.Services
         Task UpdateAvailabilityAsync(string teacherProfileId, List<TeacherAvailability> availability);
         Task<List<ReviewDto>> GetTeacherReviewsAsync(string teacherProfileId);
         Task<ReviewDto> AddReviewAsync(string teacherProfileId, string studentId, string studentName, int rating, string? comment);
+        
+        // Analytics
+        Task<object> GetAnalyticsAsync(string teacherId, string period);
+        Task<object> GetEarningsAsync(string teacherId, string period);
     }
 
     public class TeacherService : ITeacherService
     {
         private readonly ITeacherRepository _repository;
+        private readonly IFeeRepository _feeRepository;
 
-        public TeacherService(ITeacherRepository repository)
+        public TeacherService(ITeacherRepository repository, IFeeRepository feeRepository)
         {
             _repository = repository;
+            _feeRepository = feeRepository;
         }
 
         public async Task<List<TeacherProfile>> GetAllTeachersAsync()
@@ -153,6 +159,42 @@ namespace ClassBooking.API.Services
                 Rating = created.Rating,
                 Comment = created.Comment,
                 CreatedAt = created.CreatedAt
+            };
+        }
+
+        public async Task<object> GetAnalyticsAsync(string teacherId, string period)
+        {
+            var teacher = await _repository.GetTeacherByIdAsync(teacherId);
+            if (teacher == null) return new { };
+
+            // In a real app, we would calculate these from bookings and other tables
+            // For now, we use the aggregate data in TeacherProfile
+            return new
+            {
+                TotalStudents = teacher.TotalClasses, // Placeholder
+                TotalClasses = teacher.TotalClasses,
+                AverageRating = teacher.AverageRating,
+                TotalReviews = teacher.TotalReviews,
+                MonthlyEarnings = await _feeRepository.GetTotalEarningsAsync(teacherId, DateTime.UtcNow.AddDays(-30))
+            };
+        }
+
+        public async Task<object> GetEarningsAsync(string teacherId, string period)
+        {
+            var totalEarnings = await _feeRepository.GetTotalEarningsAsync(teacherId);
+            
+            // Mock chart data for now
+            var chartData = new[]
+            {
+                new { name = "Jan", value = 1000 },
+                new { name = "Feb", value = 1500 },
+                new { name = "Mar", value = 1200 }
+            };
+
+            return new
+            {
+                TotalEarnings = totalEarnings,
+                ChartData = chartData
             };
         }
 

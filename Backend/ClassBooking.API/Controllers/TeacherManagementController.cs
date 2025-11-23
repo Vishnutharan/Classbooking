@@ -13,11 +13,19 @@ namespace ClassBooking.API.Controllers
     {
         private readonly ITeacherService _teacherService;
         private readonly ITeacherRepository _teacherRepository;
+        private readonly IMessageService _messageService;
+        private readonly IAnnouncementService _announcementService;
 
-        public TeacherManagementController(ITeacherService teacherService, ITeacherRepository teacherRepository)
+        public TeacherManagementController(
+            ITeacherService teacherService, 
+            ITeacherRepository teacherRepository,
+            IMessageService messageService,
+            IAnnouncementService announcementService)
         {
             _teacherService = teacherService;
             _teacherRepository = teacherRepository;
+            _messageService = messageService;
+            _announcementService = announcementService;
         }
 
         // Profile Management
@@ -254,6 +262,7 @@ namespace ClassBooking.API.Controllers
         }
 
         // Analytics (Mock for now)
+        // Analytics
         [HttpGet("analytics")]
         public async Task<ActionResult> GetAnalytics([FromQuery] string period = "monthly")
         {
@@ -265,28 +274,23 @@ namespace ClassBooking.API.Controllers
             if (teacher == null)
                 return NotFound("Teacher profile not found");
 
-            // Return actual data from teacher profile
-            return Ok(new
-            {
-                totalStudents = teacher.TotalClasses, // Ideally count distinct students
-                totalClasses = teacher.TotalClasses,
-                averageRating = teacher.AverageRating,
-                totalReviews = teacher.TotalReviews,
-                monthlyEarnings = 0, // Would calculate from bookings
-                period
-            });
+            var analytics = await _teacherService.GetAnalyticsAsync(teacher.Id, period);
+            return Ok(analytics);
         }
 
         [HttpGet("analytics/earnings")]
         public async Task<ActionResult> GetEarningsAnalytics([FromQuery] string period = "monthly")
         {
-            // Mock data - would integrate with booking/payment system
-            return Ok(new
-            {
-                period,
-                totalEarnings = 0,
-                chartData = new object[] { }
-            });
+            var userId = User.FindFirst("userId")?.Value ?? User.FindFirst("sub")?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var teacher = await _teacherService.GetTeacherByUserIdAsync(userId);
+            if (teacher == null)
+                return NotFound("Teacher profile not found");
+
+            var earnings = await _teacherService.GetEarningsAsync(teacher.Id, period);
+            return Ok(earnings);
         }
 
         [HttpGet("analytics/subjects")]
@@ -300,28 +304,52 @@ namespace ClassBooking.API.Controllers
         [HttpGet("communication/conversations")]
         public async Task<ActionResult> GetConversations()
         {
-            // Mock - would integrate with messaging system
-            return Ok(new object[] { });
+            var userId = User.FindFirst("userId")?.Value ?? User.FindFirst("sub")?.Value;
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            // For now, getting all messages as a flat list, grouping logic should be in service
+            var messages = await _messageService.GetMyMessagesAsync(userId);
+            return Ok(messages);
         }
 
         [HttpGet("communication/announcements")]
         public async Task<ActionResult> GetAnnouncements()
         {
-            // Mock - would integrate with announcement system
-            return Ok(new object[] { });
+            var userId = User.FindFirst("userId")?.Value ?? User.FindFirst("sub")?.Value;
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            var teacher = await _teacherService.GetTeacherByUserIdAsync(userId);
+            if (teacher == null) return NotFound("Teacher profile not found");
+
+            var announcements = await _announcementService.GetAnnouncementsAsync(teacher.Id);
+            return Ok(announcements);
         }
 
         [HttpPost("communication/messages")]
-        public async Task<ActionResult> SendMessage([FromBody] object message)
+        public async Task<ActionResult> SendMessage([FromBody] MessageRequest request)
         {
-            // Mock - would integrate with messaging system
+            var userId = User.FindFirst("userId")?.Value ?? User.FindFirst("sub")?.Value;
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            await _messageService.SendMessageAsync(userId, request.ReceiverId, request.Content);
             return Ok(true);
         }
 
         [HttpPost("communication/announcements")]
-        public async Task<ActionResult> CreateAnnouncement([FromBody] object announcement)
+        public async Task<ActionResult> CreateAnnouncement([FromBody] AnnouncementRequest request)
         {
-            // Mock - would integrate with announcement system
+            var userId = User.FindFirst("userId")?.Value ?? User.FindFirst("sub")?.Value;
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            var teacher = await _teacherService.GetTeacherByUserIdAsync(userId);
+            if (teacher == null) return NotFound("Teacher profile not found");
+
+            var announcement = await _announcementService.CreateAnnouncementAsync(
+                teacher.Id, 
+                request.Title, 
+                request.Content, 
+                request.TargetAudience);
+                
             return Ok(announcement);
         }
     }
@@ -360,5 +388,18 @@ namespace ClassBooking.API.Controllers
         public string? Homework { get; set; }
         public int DurationMinutes { get; set; }
         public string? Status { get; set; }
+    }
+
+    public class MessageRequest
+    {
+        public string ReceiverId { get; set; } = string.Empty;
+        public string Content { get; set; } = string.Empty;
+    }
+
+    public class AnnouncementRequest
+    {
+        public string Title { get; set; } = string.Empty;
+        public string Content { get; set; } = string.Empty;
+        public string TargetAudience { get; set; } = "All";
     }
 }
