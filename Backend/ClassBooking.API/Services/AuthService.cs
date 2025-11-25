@@ -18,11 +18,19 @@ namespace ClassBooking.API.Services
     public class AuthService : IAuthService
     {
         private readonly IUserRepository _userRepository;
+        private readonly ITeacherRepository _teacherRepository;
+        private readonly IStudentRepository _studentRepository;
         private readonly IConfiguration _configuration;
 
-        public AuthService(IUserRepository userRepository, IConfiguration configuration)
+        public AuthService(
+            IUserRepository userRepository,
+            ITeacherRepository teacherRepository,
+            IStudentRepository studentRepository,
+            IConfiguration configuration)
         {
             _userRepository = userRepository;
+            _teacherRepository = teacherRepository;
+            _studentRepository = studentRepository;
             _configuration = configuration;
         }
 
@@ -50,6 +58,42 @@ namespace ClassBooking.API.Services
 
             string userId = await _userRepository.CreateUserAsync(newUser);
             newUser.Id = userId;
+
+            // Create Profile based on Role
+            if (request.Role == "Teacher")
+            {
+                var teacherProfile = new TeacherProfileEntity
+                {
+                    UserId = userId,
+                    FullName = request.FullName,
+                    Email = request.Email,
+                    PhoneNumber = "", // Can be updated later
+                    HourlyRate = 0,
+                    ExperienceYears = 0,
+                    AverageRating = 0,
+                    TotalReviews = 0,
+                    TotalClasses = 0,
+                    IsAvailable = true, // Default to available
+                    VerificationStatus = "Pending",
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+                await _teacherRepository.CreateTeacherAsync(teacherProfile);
+            }
+            else if (request.Role == "Student")
+            {
+                var studentProfile = new StudentProfileEntity
+                {
+                    UserId = userId,
+                    FullName = request.FullName,
+                    Email = request.Email,
+                    PhoneNumber = "",
+                    GradeLevel = "OLevel", // Default
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+                await _studentRepository.CreateAsync(studentProfile);
+            }
 
             // Generate token
             string token = GenerateJwtToken(newUser);

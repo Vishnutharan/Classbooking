@@ -4,7 +4,9 @@ namespace ClassBooking.API.Models
     {
         public string Id { get; set; } = string.Empty;
         public string StudentId { get; set; } = string.Empty;
+        public string StudentName { get; set; } = string.Empty;
         public string TeacherId { get; set; } = string.Empty;
+        public string TeacherName { get; set; } = string.Empty;
         public string Subject { get; set; } = string.Empty;
         public DateTime Date { get; set; }
         public string StartTime { get; set; } = string.Empty;

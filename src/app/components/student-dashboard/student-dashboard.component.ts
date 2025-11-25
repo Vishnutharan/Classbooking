@@ -1,6 +1,7 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { Component, inject, OnInit, PLATFORM_ID, Inject } from '@angular/core';
+import { Component, inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { StudentService } from '../../core/services/student.service';
 import { TeacherService } from '../../core/services/teacher.service';
 import { ClassBookingService } from '../../core/services/class-booking.service';
@@ -9,7 +10,7 @@ import { TeacherProfile, ClassBooking } from '../../core/models/shared.models';
 @Component({
   selector: 'app-student-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './student-dashboard.component.html',
   styleUrl: './student-dashboard.component.css'
 })
@@ -22,6 +23,16 @@ export class StudentDashboardComponent implements OnInit {
 
   upcomingClasses: ClassBooking[] = [];
   recommendedTeachers: TeacherProfile[] = [];
+
+  // Search & Filter
+  allTeachers: TeacherProfile[] = [];
+  filteredTeachers: TeacherProfile[] = [];
+  searchFilters = {
+    subject: '',
+    level: '',
+    medium: ''
+  };
+
   stats = {
     totalClassesBooked: 0,
     completedClasses: 0,
@@ -33,7 +44,6 @@ export class StudentDashboardComponent implements OnInit {
   isLoading = false;
 
   ngOnInit(): void {
-    // Only load data on the browser, not during SSR
     if (isPlatformBrowser(this.platformId)) {
       this.loadDashboardData();
     }
@@ -55,8 +65,11 @@ export class StudentDashboardComponent implements OnInit {
       }
     });
 
-    this.studentService.getRecommendedTeachers().subscribe({
+    // Load all teachers for search/filter
+    this.teacherService.getAllTeachers().subscribe({
       next: (teachers) => {
+        this.allTeachers = teachers;
+        this.filteredTeachers = teachers;
         this.recommendedTeachers = teachers.slice(0, 6);
       }
     });
@@ -107,5 +120,29 @@ export class StudentDashboardComponent implements OnInit {
 
   viewMyReviews(): void {
     this.router.navigate(['/my-reviews']);
+  }
+
+  applyFilters(): void {
+    this.filteredTeachers = this.allTeachers.filter(teacher => {
+      const matchesSubject = !this.searchFilters.subject ||
+        teacher.subjects.some(s => s.name.toLowerCase().includes(this.searchFilters.subject.toLowerCase()));
+
+      const matchesLevel = !this.searchFilters.level ||
+        teacher.subjects.some(s => s.level === this.searchFilters.level);
+
+      const matchesMedium = !this.searchFilters.medium ||
+        teacher.subjects.some(s => s.medium === this.searchFilters.medium);
+
+      return matchesSubject && matchesLevel && matchesMedium;
+    });
+  }
+
+  clearFilters(): void {
+    this.searchFilters = {
+      subject: '',
+      level: '',
+      medium: ''
+    };
+    this.filteredTeachers = this.allTeachers;
   }
 }

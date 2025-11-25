@@ -15,34 +15,113 @@ namespace ClassBooking.API.Controllers
         private readonly ITeacherRepository _teacherRepository;
         private readonly IMessageService _messageService;
         private readonly IAnnouncementService _announcementService;
+        private readonly IUserRepository _userRepository;
+        private readonly ILogger<TeacherManagementController> _logger;
 
         public TeacherManagementController(
             ITeacherService teacherService, 
             ITeacherRepository teacherRepository,
             IMessageService messageService,
-            IAnnouncementService announcementService)
+            IAnnouncementService announcementService,
+            IUserRepository userRepository,
+            ILogger<TeacherManagementController> logger)
         {
             _teacherService = teacherService;
             _teacherRepository = teacherRepository;
             _messageService = messageService;
             _announcementService = announcementService;
+            _userRepository = userRepository;
+            _logger = logger;
         }
 
         // Profile Management
-        [HttpGet("profile")]
-        public async Task<ActionResult<TeacherProfile>> GetMyProfile()
-        {
-            var userId = User.FindFirst("userId")?.Value ?? User.FindFirst("sub")?.Value;
-            if (string.IsNullOrEmpty(userId))
-                return Unauthorized();
+[HttpGet("profile")]
+public async Task<ActionResult<TeacherProfile>> GetMyProfile()
+{
+    // Log all claims for debugging
+    _logger.LogInformation("=== GetMyProfile Debug Info ===");
+    foreach (var claim in User.Claims)
+    {
+        _logger.LogInformation($"Claim: {claim.Type} = {claim.Value}");
+    }
 
-            var teacher = await _teacherService.GetTeacherByUserIdAsync(userId);
-            if (teacher == null)
-                return NotFound("Teacher profile not found");
+    // Try multiple claim types
+    var userId = User.FindFirst("userId")?.Value 
+        ?? User.FindFirst("sub")?.Value 
+        ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+        ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value;
+    
+    _logger.LogInformation($"Extracted userId: '{userId}'");
 
-            return Ok(teacher);
-        }
+    if (string.IsNullOrEmpty(userId))
+    {
+        _logger.LogError("UserId is null or empty. User is not properly authenticated.");
+        return Unauthorized(new { message = "User ID not found in token" });
+    }
 
+    // Try to get existing teacher profile
+    var teacher = await _teacherService.GetTeacherByUserIdAsync(userId);
+    
+    if (teacher != null)
+    {
+        _logger.LogInformation($"Teacher profile found for userId: {userId}");
+        return Ok(teacher);
+    }
+
+    _logger.LogWarning($"No teacher profile found for userId: {userId}. Attempting to create one.");
+    
+    // Self-healing: Create profile if user exists but profile doesn't
+    var user = await _userRepository.GetByIdAsync(userId);
+    
+    if (user == null)
+    {
+        _logger.LogError($"User record not found for userId: {userId}");
+        return NotFound(new { message = $"User not found in database for ID: {userId}" });
+    }
+
+    _logger.LogInformation($"User found - Role: {user.Role}");
+
+    // Check if user is actually a teacher
+    if (!string.Equals(user.Role, "Teacher", StringComparison.OrdinalIgnoreCase))
+    {
+        _logger.LogError($"User role is '{user.Role}', not 'Teacher'");
+        return Forbid();
+    }
+
+    // Create new teacher profile
+    _logger.LogInformation("Creating new teacher profile...");
+    var newProfile = new Entities.TeacherProfileEntity
+    {
+        UserId = userId,
+        FullName = user.FullName ?? "Unknown",
+        Email = user.Email ?? "",
+        PhoneNumber = user.PhoneNumber ?? "",
+        HourlyRate = 0,
+        ExperienceYears = 0,
+        AverageRating = 0,
+        TotalReviews = 0,
+        TotalClasses = 0,
+        IsAvailable = true,
+        VerificationStatus = "Pending",
+        CreatedAt = DateTime.UtcNow,
+        UpdatedAt = DateTime.UtcNow
+    };
+
+    try
+    {
+        await _teacherRepository.CreateTeacherAsync(newProfile);
+        _logger.LogInformation($"Teacher profile created successfully for userId: {userId}");
+        
+        // Fetch and return the newly created profile
+        var createdTeacher = await _teacherService.GetTeacherByUserIdAsync(userId);
+        return Ok(createdTeacher);
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError($"Failed to create teacher profile: {ex.Message}");
+        return StatusCode(500, new { message = "Failed to create teacher profile" });
+    }
+}
         [HttpPut("profile")]
         public async Task<ActionResult<TeacherProfile>> UpdateProfile([FromBody] UpdateTeacherProfileRequest request)
         {

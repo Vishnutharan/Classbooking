@@ -67,9 +67,41 @@
   </div>
 
   <div class="section">
-    <h2>👨‍🏫 Recommended Teachers</h2>
-    <div class="teachers-carousel" *ngIf="recommendedTeachers.length > 0">
-      <div class="teacher-card" *ngFor="let teacher of recommendedTeachers">
+    <h2>🔍 Find a Teacher</h2>
+
+    <!-- Filters -->
+    <div class="filters-container">
+      <div class="filter-group">
+        <label>Subject</label>
+        <input type="text" [(ngModel)]="searchFilters.subject" (input)="applyFilters()" placeholder="e.g. Mathematics">
+      </div>
+
+      <div class="filter-group">
+        <label>Level</label>
+        <select [(ngModel)]="searchFilters.level" (change)="applyFilters()">
+          <option value="">All Levels</option>
+          <option value="Primary">Primary</option>
+          <option value="OLevel">O/Level</option>
+          <option value="ALevel">A/Level</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>Medium</label>
+        <select [(ngModel)]="searchFilters.medium" (change)="applyFilters()">
+          <option value="">All Mediums</option>
+          <option value="Sinhala">Sinhala</option>
+          <option value="Tamil">Tamil</option>
+          <option value="English">English</option>
+        </select>
+      </div>
+
+      <button class="btn-clear" (click)="clearFilters()">Clear Filters</button>
+    </div>
+
+    <!-- Teacher List -->
+    <div class="teachers-grid" *ngIf="filteredTeachers.length > 0; else noTeachers">
+      <div class="teacher-card" *ngFor="let teacher of filteredTeachers">
         <div class="teacher-header">
           <img [src]="teacher.profilePicture || 'https://via.placeholder.com/100'" alt="{{ teacher.fullName }}"
             class="teacher-avatar">
@@ -90,6 +122,12 @@
         <button class="teacher-btn" (click)="viewTeacherProfile(teacher.id)">View Profile</button>
       </div>
     </div>
+
+    <ng-template #noTeachers>
+      <div class="empty-state">
+        <p>No teachers match your criteria.</p>
+      </div>
+    </ng-template>
   </div>
 
   <div class="section">

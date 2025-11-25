@@ -59,7 +59,7 @@
           <span class="status-badge confirmed">{{ cls.status }}</span>
         </div>
         <div class="class-body">
-          <p><strong>Student ID:</strong> {{ cls.studentId }}</p>
+          <p><strong>Student:</strong> {{ cls.studentName || cls.studentId }}</p>
           <p><strong>Date:</strong> {{ cls.date | date:'MMM dd, yyyy' }}</p>
           <p><strong>Time:</strong> {{ cls.startTime }} - {{ cls.endTime }}</p>
           <p><strong>Type:</strong> {{ cls.classType }}</p>
@@ -86,7 +86,7 @@
           <h3>{{ req.subject }}</h3>
         </div>
         <div class="pending-body">
-          <p><strong>Student:</strong> {{ req.studentId }}</p>
+          <p><strong>Student:</strong> {{ req.studentName || req.studentId }}</p>
           <p><strong>Requested Date:</strong> {{ req.date | date:'MMM dd, yyyy' }}</p>
           <p><strong>Time:</strong> {{ req.startTime }} - {{ req.endTime }}</p>
           <p><strong>Type:</strong> {{ req.classType }}</p>

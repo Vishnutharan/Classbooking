@@ -40,6 +40,9 @@
             <option *ngFor="let subject of selectedSlot.subjects" [value]="subject.name">
               {{ subject.name }} ({{ subject.level }})
             </option>
+            <option *ngIf="!selectedSlot.subjects || selectedSlot.subjects.length === 0" value="General">
+              General (No specific subjects listed)
+            </option>
           </select>
         </div>
 

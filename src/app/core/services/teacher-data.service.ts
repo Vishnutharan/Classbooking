@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 // Import all teacher feature models
 import {
@@ -55,7 +56,21 @@ export class TeacherDataService {
     // --- STUDENT MANAGEMENT DATA ---
 
     getTeacherStudents(teacherId: string): Observable<TeacherStudent[]> {
-        return this.http.get<TeacherStudent[]>(`${this.apiUrl}/students`);
+        return this.http.get<any[]>(`${this.apiUrl}/students`).pipe(
+            map(response => response.map(item => ({
+                id: item.studentId,
+                userId: item.studentId,
+                fullName: item.studentName || 'Unknown Student',
+                email: 'N/A', // Not provided by backend
+                phoneNumber: 'N/A', // Not provided by backend
+                grade: item.grade || 'N/A',
+                subjects: item.subject ? [item.subject] : [],
+                enrollmentDate: new Date(item.enrolledDate),
+                status: item.isActive ? 'Active' : 'Inactive',
+                performanceLevel: 'Good', // Default mock value
+                profilePicture: ''
+            } as TeacherStudent)))
+        );
     }
 
     getStudentProgress(studentId: string): Observable<StudentProgress> {

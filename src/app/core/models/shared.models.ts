@@ -71,7 +71,9 @@ export interface StudentProfile {
 export interface ClassBooking {
     id: string;
     studentId: string;
+    studentName?: string;
     teacherId: string;
+    teacherName?: string;
     subject: string;
     date: Date;
     startTime: string;

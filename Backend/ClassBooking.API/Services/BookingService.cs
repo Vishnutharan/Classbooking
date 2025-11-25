@@ -25,39 +25,86 @@ namespace ClassBooking.API.Services
         private readonly IBookingRepository _bookingRepository;
         private readonly ITeacherRepository _teacherRepository;
         private readonly INotificationRepository _notificationRepository;
+        private readonly IEmailService _emailService;
+        private readonly IUserRepository _userRepository;
 
         public BookingService(
             IBookingRepository bookingRepository,
             ITeacherRepository teacherRepository,
-            INotificationRepository notificationRepository)
+            INotificationRepository notificationRepository,
+            IEmailService emailService,
+            IUserRepository userRepository)
         {
             _bookingRepository = bookingRepository;
             _teacherRepository = teacherRepository;
             _notificationRepository = notificationRepository;
+            _emailService = emailService;
+            _userRepository = userRepository;
         }
 
         public async Task<List<Models.ClassBooking>> GetBookingsForStudentAsync(string studentId)
         {
             var bookings = await _bookingRepository.GetByStudentIdAsync(studentId);
-            return bookings.Select(MapToDto).ToList();
+            var dtos = new List<Models.ClassBooking>();
+            
+            foreach (var booking in bookings)
+            {
+                var dto = MapToDto(booking);
+                var teacher = await _userRepository.GetByIdAsync(booking.TeacherId);
+                var student = await _userRepository.GetByIdAsync(booking.StudentId);
+                dto.TeacherName = teacher?.FullName ?? "Unknown";
+                dto.StudentName = student?.FullName ?? "Unknown";
+                dtos.Add(dto);
+            }
+            return dtos;
         }
 
         public async Task<List<Models.ClassBooking>> GetBookingsForTeacherAsync(string teacherId)
         {
             var bookings = await _bookingRepository.GetByTeacherIdAsync(teacherId);
-            return bookings.Select(MapToDto).ToList();
+            var dtos = new List<Models.ClassBooking>();
+
+            foreach (var booking in bookings)
+            {
+                var dto = MapToDto(booking);
+                var student = await _userRepository.GetByIdAsync(booking.StudentId);
+                var teacher = await _userRepository.GetByIdAsync(booking.TeacherId);
+                dto.StudentName = student?.FullName ?? "Unknown";
+                dto.TeacherName = teacher?.FullName ?? "Unknown";
+                dtos.Add(dto);
+            }
+            return dtos;
         }
 
         public async Task<Models.ClassBooking?> GetBookingByIdAsync(string id)
         {
             var booking = await _bookingRepository.GetByIdAsync(id);
-            return booking != null ? MapToDto(booking) : null;
+            if (booking == null) return null;
+
+            var dto = MapToDto(booking);
+            var student = await _userRepository.GetByIdAsync(booking.StudentId);
+            var teacher = await _userRepository.GetByIdAsync(booking.TeacherId);
+            dto.StudentName = student?.FullName ?? "Unknown";
+            dto.TeacherName = teacher?.FullName ?? "Unknown";
+            
+            return dto;
         }
 
         public async Task<List<Models.ClassBooking>> GetAllBookingsAsync()
         {
             var bookings = await _bookingRepository.GetAllAsync();
-            return bookings.Select(MapToDto).ToList();
+            var dtos = new List<Models.ClassBooking>();
+
+            foreach (var booking in bookings)
+            {
+                var dto = MapToDto(booking);
+                var student = await _userRepository.GetByIdAsync(booking.StudentId);
+                var teacher = await _userRepository.GetByIdAsync(booking.TeacherId);
+                dto.StudentName = student?.FullName ?? "Unknown";
+                dto.TeacherName = teacher?.FullName ?? "Unknown";
+                dtos.Add(dto);
+            }
+            return dtos;
         }
 
         public async Task<BookingResponse> CreateBookingAsync(string studentId, BookingRequest request)
@@ -90,6 +137,14 @@ namespace ClassBooking.API.Services
                 RelatedEntityId = booking.Id,
                 CreatedAt = DateTime.UtcNow
             });
+
+            // Send Email to Teacher
+            var teacher = await _userRepository.GetByIdAsync(request.TeacherId);
+            if (teacher != null)
+            {
+                await _emailService.SendEmailAsync(teacher.Email, "New Booking Request", 
+                    $"You have a new booking request for {request.Subject} on {request.Date:yyyy-MM-dd} at {request.StartTime}.");
+            }
 
             return new BookingResponse
             {
@@ -141,6 +196,14 @@ namespace ClassBooking.API.Services
                 CreatedAt = DateTime.UtcNow
             });
 
+            // Send Email to Student
+            var student = await _userRepository.GetByIdAsync(booking.StudentId);
+            if (student != null)
+            {
+                await _emailService.SendEmailAsync(student.Email, "Booking Confirmed", 
+                    $"Your booking for {booking.Subject} on {booking.Date:yyyy-MM-dd} at {booking.StartTime} has been confirmed.");
+            }
+
             return new BookingResponse
             {
                 Id = booking.Id,
@@ -169,6 +232,22 @@ namespace ClassBooking.API.Services
                 RelatedEntityId = booking.Id,
                 CreatedAt = DateTime.UtcNow
             });
+
+            // Send Email to Student
+            var student = await _userRepository.GetByIdAsync(booking.StudentId);
+            if (student != null)
+            {
+                await _emailService.SendEmailAsync(student.Email, "Booking Cancelled", 
+                    $"Your booking for {booking.Subject} on {booking.Date:yyyy-MM-dd} has been cancelled. Reason: {reason}");
+            }
+
+            // Send Email to Teacher (if cancelled by student) - Logic could be refined based on who cancelled
+            var teacher = await _userRepository.GetByIdAsync(booking.TeacherId);
+            if (teacher != null)
+            {
+                await _emailService.SendEmailAsync(teacher.Email, "Booking Cancelled", 
+                    $"The booking for {booking.Subject} on {booking.Date:yyyy-MM-dd} has been cancelled. Reason: {reason}");
+            }
 
             return new BookingResponse
             {
@@ -249,6 +328,14 @@ namespace ClassBooking.API.Services
                 RelatedEntityId = booking.Id,
                 CreatedAt = DateTime.UtcNow
             });
+
+            // Send Email to Student
+            var student = await _userRepository.GetByIdAsync(booking.StudentId);
+            if (student != null)
+            {
+                await _emailService.SendEmailAsync(student.Email, "Booking Rescheduled", 
+                    $"Your booking has been rescheduled to {newDate:yyyy-MM-dd} at {newStartTime}.");
+            }
 
             return new BookingResponse
             {

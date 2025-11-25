@@ -47,6 +47,7 @@ builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IMessageService, MessageService>();
 builder.Services.AddScoped<IAnnouncementService, AnnouncementService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<IEmailService, MockEmailService>();
 
 // ✅ CORS Configuration (MUST be BEFORE Authentication)
 builder.Services.AddCors(options =>
