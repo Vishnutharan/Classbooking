@@ -1,0 +1,14 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\ClassBooking.API",
+    "\\ClassBooking.API\\Controllers",
+    "\\ClassBooking.API\\Data",
+    "\\ClassBooking.API\\Entities",
+    "\\ClassBooking.API\\Filters",
+    "\\ClassBooking.API\\Middleware",
+    "\\ClassBooking.API\\Models"
+  ],
+  "SelectedNode": "\\ClassBooking.API\\Data\\ClassBookingDbContext.cs",
+  "PreviewInSolutionExplorer": false
+}
