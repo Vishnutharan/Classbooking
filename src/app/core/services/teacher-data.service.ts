@@ -55,21 +55,30 @@ export class TeacherDataService {
 
     // --- STUDENT MANAGEMENT DATA ---
 
+    // --- STUDENT MANAGEMENT DATA ---
+
     getTeacherStudents(teacherId: string): Observable<TeacherStudent[]> {
         return this.http.get<any[]>(`${this.apiUrl}/students`).pipe(
-            map(response => response.map(item => ({
-                id: item.studentId,
-                userId: item.studentId,
-                fullName: item.studentName || 'Unknown Student',
-                email: 'N/A', // Not provided by backend
-                phoneNumber: 'N/A', // Not provided by backend
-                grade: item.grade || 'N/A',
-                subjects: item.subject ? [item.subject] : [],
-                enrollmentDate: new Date(item.enrolledDate),
-                status: item.isActive ? 'Active' : 'Inactive',
-                performanceLevel: 'Good', // Default mock value
-                profilePicture: ''
-            } as TeacherStudent)))
+            map(response => {
+                if (!Array.isArray(response)) {
+                    console.warn('Response is not an array:', response);
+                    return [];
+                }
+                
+                return response.map(item => ({
+                    id: item.studentId || item.id || 'unknown',
+                    userId: item.studentId || item.userId || item.id || 'unknown',
+                    fullName: item.studentName || item.fullName || 'Unknown Student',
+                    email: item.email || 'N/A',
+                    phoneNumber: item.phoneNumber || 'N/A',
+                    grade: item.grade || 'N/A',
+                    subjects: item.subject ? (typeof item.subject === 'string' ? [item.subject] : item.subject) : [],
+                    enrollmentDate: item.enrolledDate ? new Date(item.enrolledDate) : new Date(item.enrollmentDate || new Date()),
+                    status: item.isActive ? 'Active' : 'Inactive',
+                    performanceLevel: 'Good',
+                    profilePicture: item.profilePicture || ''
+                } as TeacherStudent));
+            })
         );
     }
 

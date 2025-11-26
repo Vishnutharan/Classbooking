@@ -50,19 +50,20 @@ builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<IEmailService, MockEmailService>();
 
 // ✅ CORS Configuration (MUST be BEFORE Authentication)
+// âœ… CORS Configuration (MUST be BEFORE Authentication)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngularApp", policy =>
     {
         policy.WithOrigins(
-            "http://localhost:4200",      // Angular dev server
-            "http://localhost:3000",      // Alternative port if needed
-            "http://127.0.0.1:4200"       // Localhost alternative
+            "http://localhost:4200",
+            "http://localhost:3000",
+            "http://127.0.0.1:4200"
         )
-        .AllowAnyMethod()                 // GET, POST, PUT, DELETE, etc.
-        .AllowAnyHeader()                 // Accept any headers
-        .AllowCredentials()               // Allow cookies/auth headers
-        .WithExposedHeaders("Content-Disposition"); // For file downloads if needed
+        .AllowAnyMethod()
+        .AllowAnyHeader()
+        .AllowCredentials()
+        .WithExposedHeaders("Content-Disposition");
     });
 });
 

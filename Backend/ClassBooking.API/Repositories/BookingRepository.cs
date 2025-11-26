@@ -39,13 +39,13 @@ namespace ClassBooking.API.Repositories
                 .ToListAsync();
         }
 
-        public async Task<List<BookingEntity>> GetByTeacherIdAsync(string teacherId)
-        {
-            return await _context.Bookings
-                .Where(b => b.TeacherId == teacherId)
-                .OrderByDescending(b => b.Date)
-                .ToListAsync();
-        }
+
+public async Task<List<BookingEntity>> GetByTeacherIdAsync(string teacherId)
+{
+    return await _context.Bookings
+        .Where(b => b.TeacherId == teacherId)
+        .ToListAsync();
+}
 
         public async Task<List<BookingEntity>> GetAllAsync()
         {

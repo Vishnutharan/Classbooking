@@ -5,6 +5,7 @@ using BCrypt.Net;
 using ClassBooking.API.Models;
 using ClassBooking.API.Models.Dto;
 using ClassBooking.API.Repositories;
+using ClassBooking.API.Entities;
 using Microsoft.IdentityModel.Tokens;
 
 namespace ClassBooking.API.Services

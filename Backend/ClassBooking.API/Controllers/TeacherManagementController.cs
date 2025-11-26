@@ -189,7 +189,8 @@ public async Task<ActionResult<TeacherProfile>> GetMyProfile()
         }
 
         // Student Management
-        [HttpGet("students")]
+       // Student Management
+[HttpGet("students")]
         public async Task<ActionResult> GetTeacherStudents()
         {
             var userId = User.FindFirst("userId")?.Value ?? User.FindFirst("sub")?.Value;
