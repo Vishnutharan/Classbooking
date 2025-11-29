@@ -23,14 +23,10 @@ namespace ClassBooking.API.Repositories
 
         public async Task<List<AnnouncementEntity>> GetAnnouncementsAsync(string? teacherProfileId = null)
         {
-            var query = _context.Announcements.AsQueryable();
-
-            if (!string.IsNullOrEmpty(teacherProfileId))
-            {
-                query = query.Where(a => a.TeacherProfileId == teacherProfileId);
-            }
-
-            return await query.OrderByDescending(a => a.CreatedAt).ToListAsync();
+            return await _context.Announcements
+                .Where(a => teacherProfileId == null || a.TeacherProfileId == teacherProfileId)
+                .OrderByDescending(a => a.SentAt)
+                .ToListAsync();
         }
 
         public async Task<AnnouncementEntity> CreateAnnouncementAsync(AnnouncementEntity announcement)

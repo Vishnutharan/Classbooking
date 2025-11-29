@@ -33,8 +33,10 @@ namespace ClassBooking.API.Models
 
     public class BookingResponse
     {
+        public bool Success { get; set; }
         public string Id { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;
         public string Message { get; set; } = string.Empty;
     }
 }
+

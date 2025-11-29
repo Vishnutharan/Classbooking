@@ -11,28 +11,42 @@ namespace ClassBooking.API.Controllers
     public class BookingController : ControllerBase
     {
         private readonly IBookingService _bookingService;
+        private readonly ITeacherService _teacherService;
 
-        public BookingController(IBookingService bookingService)
+        public BookingController(
+            IBookingService bookingService,
+            ITeacherService teacherService)
         {
             _bookingService = bookingService;
+            _teacherService = teacherService;
         }
 
         [HttpGet]
         public async Task<ActionResult<List<Models.ClassBooking>>> GetBookings()
         {
             var userId = User.FindFirst("userId")?.Value ?? throw new UnauthorizedAccessException();
-            var role = User.FindFirst("role")?.Value;
+            var role = User.FindFirst("role")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
 
             if (role == "Teacher")
             {
-                var bookings = await _bookingService.GetBookingsForTeacherAsync(userId);
+                var teacher = await _teacherService.GetTeacherByUserIdAsync(userId);
+                if (teacher == null)
+                {
+                    return NotFound(new { message = "Teacher profile not found for current user" });
+                }
+
+                var bookings = await _bookingService.GetBookingsForTeacherAsync(teacher.Id);
                 return Ok(bookings);
             }
-            else
+
+            if (role == "Admin")
             {
-                var bookings = await _bookingService.GetBookingsForStudentAsync(userId);
+                var bookings = await _bookingService.GetAllBookingsAsync();
                 return Ok(bookings);
             }
+
+            var studentBookings = await _bookingService.GetBookingsForStudentAsync(userId);
+            return Ok(studentBookings);
         }
 
         [HttpGet("{id}")]
@@ -46,9 +60,22 @@ namespace ClassBooking.API.Controllers
         [HttpPost]
         public async Task<ActionResult<BookingResponse>> CreateBooking([FromBody] BookingRequest request)
         {
-            var studentId = User.FindFirst("userId")?.Value ?? throw new UnauthorizedAccessException();
-            var response = await _bookingService.CreateBookingAsync(studentId, request);
-            return Ok(response);
+            var studentId = User.FindFirst("userId")?.Value;
+            if (string.IsNullOrEmpty(studentId)) return Unauthorized();
+
+            try
+            {
+                var response = await _bookingService.CreateBookingAsync(studentId, request);
+                if (!response.Success)
+                {
+                    return BadRequest(response);
+                }
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "Error creating booking", details = ex.Message });
+            }
         }
 
         [HttpPut("{id}")]

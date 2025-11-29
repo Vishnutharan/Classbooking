@@ -148,6 +148,7 @@ namespace ClassBooking.API.Services
 
             return new BookingResponse
             {
+                Success = true,
                 Id = booking.Id,
                 Status = booking.Status,
                 Message = "Booking created successfully"
@@ -158,7 +159,7 @@ namespace ClassBooking.API.Services
         {
             var booking = await _bookingRepository.GetByIdAsync(id);
             if (booking == null)
-                return new BookingResponse { Id = id, Status = "Error", Message = "Booking not found" };
+                return new BookingResponse { Id = id, Status = "Error", Message = "Booking not found", Success = false };
 
             booking.Subject = request.Subject;
             booking.Date = request.Date;
@@ -170,6 +171,7 @@ namespace ClassBooking.API.Services
 
             return new BookingResponse
             {
+                Success = true,
                 Id = booking.Id,
                 Status = booking.Status,
                 Message = "Booking updated successfully"
@@ -180,7 +182,7 @@ namespace ClassBooking.API.Services
         {
             var booking = await _bookingRepository.GetByIdAsync(id);
             if (booking == null)
-                return new BookingResponse { Id = id, Status = "Error", Message = "Booking not found" };
+                return new BookingResponse { Id = id, Status = "Error", Message = "Booking not found", Success = false };
 
             booking.Status = "Confirmed";
             await _bookingRepository.UpdateAsync(booking);
@@ -206,6 +208,7 @@ namespace ClassBooking.API.Services
 
             return new BookingResponse
             {
+                Success = true,
                 Id = booking.Id,
                 Status = booking.Status,
                 Message = "Booking confirmed"
@@ -216,7 +219,7 @@ namespace ClassBooking.API.Services
         {
             var booking = await _bookingRepository.GetByIdAsync(id);
             if (booking == null)
-                return new BookingResponse { Id = id, Status = "Error", Message = "Booking not found" };
+                return new BookingResponse { Id = id, Status = "Error", Message = "Booking not found", Success = false };
 
             booking.Status = "Cancelled";
             booking.CancellationReason = reason;
@@ -251,6 +254,7 @@ namespace ClassBooking.API.Services
 
             return new BookingResponse
             {
+                Success = true,
                 Id = booking.Id,
                 Status = booking.Status,
                 Message = "Booking cancelled"
@@ -261,13 +265,14 @@ namespace ClassBooking.API.Services
         {
             var booking = await _bookingRepository.GetByIdAsync(id);
             if (booking == null)
-                return new BookingResponse { Id = id, Status = "Error", Message = "Booking not found" };
+                return new BookingResponse { Id = id, Status = "Error", Message = "Booking not found", Success = false };
 
             booking.Status = "Completed";
             await _bookingRepository.UpdateAsync(booking);
 
             return new BookingResponse
             {
+                Success = true,
                 Id = booking.Id,
                 Status = booking.Status,
                 Message = "Booking marked as completed"
@@ -311,7 +316,7 @@ namespace ClassBooking.API.Services
         {
             var booking = await _bookingRepository.GetByIdAsync(id);
             if (booking == null)
-                return new BookingResponse { Id = id, Status = "Error", Message = "Booking not found" };
+                return new BookingResponse { Id = id, Status = "Error", Message = "Booking not found", Success = false };
 
             booking.Date = newDate;
             booking.StartTime = newStartTime;
@@ -339,6 +344,7 @@ namespace ClassBooking.API.Services
 
             return new BookingResponse
             {
+                Success = true,
                 Id = booking.Id,
                 Status = booking.Status,
                 Message = "Booking rescheduled successfully"
@@ -369,3 +375,5 @@ namespace ClassBooking.API.Services
         }
     }
 }
+
+

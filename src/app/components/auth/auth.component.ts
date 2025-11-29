@@ -32,6 +32,14 @@ export class AuthComponent implements OnInit {
 
   ngOnInit(): void {
     this.returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/dashboard';
+    
+    // Check if mode query parameter is set (from landing page)
+    const mode = this.route.snapshot.queryParamMap.get('mode');
+    if (mode === 'register') {
+      this.isLoginMode = false;
+    } else if (mode === 'login') {
+      this.isLoginMode = true;
+    }
 
     this.authForm = this.fb.group({
       fullName: [''],

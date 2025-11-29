@@ -79,12 +79,9 @@ export class StudentProgressTrackerComponent implements OnInit {
         // Calculate completed classes
         this.progressMetrics.completedClasses = this.subjectPerformance.reduce((sum, perf) => sum + perf.totalClasses, 0);
 
-        // Upcoming exams (demo data)
-        this.progressMetrics.upcomingExams = [
-            { name: 'A/L Physics Mock Exam', date: new Date('2025-12-15'), daysRemaining: this.calculateDaysRemaining(new Date('2025-12-15')) },
-            { name: 'A/L Chemistry Mock Exam', date: new Date('2025-12-18'), daysRemaining: this.calculateDaysRemaining(new Date('2025-12-18')) },
-            { name: 'A/L Combined Maths Mock Exam', date: new Date('2025-12-20'), daysRemaining: this.calculateDaysRemaining(new Date('2025-12-20')) }
-        ];
+        // Upcoming exams - TODO: Integrate with real exam schedule API
+        // For now, empty array until exam schedule feature is implemented
+        this.progressMetrics.upcomingExams = [];
     }
 
     private calculateDaysRemaining(targetDate: Date): number {

@@ -2,6 +2,8 @@ import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TeacherService } from '../../core/services/teacher.service';
+import { StudentService } from '../../core/services/student.service';
+import { AuthService } from '../../core/services/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
 
 interface Review {
@@ -24,6 +26,8 @@ interface Review {
 })
 export class ReviewsRatingsComponent implements OnInit {
   private teacherService = inject(TeacherService);
+  private studentService = inject(StudentService);
+  private authService = inject(AuthService);
   private notificationService = inject(NotificationService);
 
   reviews: Review[] = [];
@@ -31,6 +35,7 @@ export class ReviewsRatingsComponent implements OnInit {
   isLoading = false;
   averageRating = 0;
   totalReviews = 0;
+  currentUserRole = '';
 
   // Use index signature so [rating] in template is type-safe
   ratingDistribution: { [key: number]: number } = {
@@ -47,16 +52,30 @@ export class ReviewsRatingsComponent implements OnInit {
   teacherId = '';
 
   ngOnInit(): void {
+    const user = this.authService.getCurrentUser();
+    this.currentUserRole = user?.role || '';
     this.loadReviews();
   }
 
   private loadReviews(): void {
     this.isLoading = true;
+    
+    if (this.currentUserRole === 'Teacher') {
+      this.loadTeacherReviews();
+    } else if (this.currentUserRole === 'Student') {
+      this.loadStudentReviews();
+    } else {
+      this.notificationService.showError('Invalid user role');
+      this.isLoading = false;
+    }
+  }
+
+  private loadTeacherReviews(): void {
     this.teacherService.getMyProfile().subscribe({
       next: (profile) => {
         this.teacherId = profile.id;
         this.averageRating = profile.averageRating;
-        this.loadTeacherReviews(profile.id);
+        this.loadTeacherReviewsList(profile.id);
       },
       error: () => {
         this.notificationService.showError('Failed to load profile');
@@ -64,8 +83,33 @@ export class ReviewsRatingsComponent implements OnInit {
       }
     });
   }
+  
+  private loadStudentReviews(): void {
+    this.studentService.getMyReviews().subscribe({
+      next: (reviews: any[]) => {
+        this.reviews = reviews.map((r: any) => ({
+          id: r.id || Date.now().toString(),
+          studentName: 'You', // Student's own review
+          rating: r.rating,
+          text: r.comment || r.text,
+          date: new Date(r.createdAt || r.date),
+          helpful: 0,
+          reply: r.teacherReply
+        }));
+        
+        this.totalReviews = this.reviews.length;
+        this.calculateRatingDistribution();
+        this.applyFilter();
+        this.isLoading = false;
+      },
+      error: () => {
+        this.notificationService.showError('Failed to load your reviews');
+        this.isLoading = false;
+      }
+    });
+  }
 
-  private loadTeacherReviews(teacherId: string): void {
+  private loadTeacherReviewsList(teacherId: string): void {
     this.teacherService.getTeacherReviews(teacherId).subscribe({
       next: (reviews: any) => {
         this.reviews = reviews.map((r: any) => ({

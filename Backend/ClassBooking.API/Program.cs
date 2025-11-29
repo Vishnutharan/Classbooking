@@ -31,7 +31,7 @@ builder.Services.AddScoped<ITeacherRepository, TeacherRepository>();
 builder.Services.AddScoped<ITeacherService, TeacherService>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 
-// New services and repositories
+// Repositories
 builder.Services.AddScoped<IBookingRepository, BookingRepository>();
 builder.Services.AddScoped<IStudentRepository, StudentRepository>();
 builder.Services.AddScoped<IExamRepository, ExamRepository>();
@@ -39,7 +39,12 @@ builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddScoped<IFeeRepository, FeeRepository>();
 builder.Services.AddScoped<IMessageRepository, MessageRepository>();
 builder.Services.AddScoped<IAnnouncementRepository, AnnouncementRepository>();
+builder.Services.AddScoped<IAttendanceRepository, AttendanceRepository>();
+builder.Services.AddScoped<ILessonPlanRepository, LessonPlanRepository>();
+builder.Services.AddScoped<IResourceRepository, ResourceRepository>();
+builder.Services.AddScoped<IAnalyticsRepository, AnalyticsRepository>();
 
+// Services
 builder.Services.AddScoped<IExamService, ExamService>();
 builder.Services.AddScoped<IResourceService, ResourceService>();
 builder.Services.AddScoped<IFeeService, FeeService>();
@@ -48,9 +53,11 @@ builder.Services.AddScoped<IMessageService, MessageService>();
 builder.Services.AddScoped<IAnnouncementService, AnnouncementService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<IEmailService, MockEmailService>();
+builder.Services.AddScoped<IAttendanceService, AttendanceService>();
+builder.Services.AddScoped<ILessonPlanService, LessonPlanService>();
+builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 
-// ✅ CORS Configuration (MUST be BEFORE Authentication)
-// âœ… CORS Configuration (MUST be BEFORE Authentication)
+// CORS Configuration (MUST be BEFORE Authentication)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngularApp", policy =>
@@ -101,13 +108,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// ✅ IMPORTANT: UseHttpsRedirection AFTER Swagger but BEFORE CORS
+// UseHttpsRedirection AFTER Swagger but BEFORE CORS
 app.UseHttpsRedirection();
 
-// ✅ Global Exception Handler (MUST be early in pipeline)
+// Global Exception Handler (MUST be early in pipeline)
 app.UseGlobalExceptionHandler();
 
-// ✅ CORS MUST be called BEFORE Authentication & Authorization
+// CORS MUST be called BEFORE Authentication & Authorization
 app.UseCors("AllowAngularApp");
 
 app.UseAuthentication();
@@ -115,7 +122,7 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// ✅ Health check endpoint
+// Health check endpoint
 app.MapGet("/health", () => Results.Ok(new { status = "Backend is running!" }))
    .WithName("HealthCheck")
    .WithOpenApi();

@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ClassBooking.API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e677e07dd3865a9e59694deb88cacfdbf9f5942f")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+79ed1b08547ca8473ab0ab498904355a79efa955")]
 [assembly: System.Reflection.AssemblyProductAttribute("ClassBooking.API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ClassBooking.API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

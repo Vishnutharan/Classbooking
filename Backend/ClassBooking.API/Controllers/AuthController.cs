@@ -21,6 +21,11 @@ namespace ClassBooking.API.Controllers
         [HttpPost("register")]
         public async Task<ActionResult<AuthResponse>> Register([FromBody] RegisterRequest request)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             try
             {
                 var response = await _authService.RegisterAsync(request);
@@ -28,7 +33,7 @@ namespace ClassBooking.API.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Registration error: {ex.Message}");
+                _logger.LogError(ex, $"Registration error for email {request.Email}");
                 return BadRequest(new { message = ex.Message });
             }
         }
@@ -36,6 +41,11 @@ namespace ClassBooking.API.Controllers
         [HttpPost("login")]
         public async Task<ActionResult<AuthResponse>> Login([FromBody] LoginRequest request)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             try
             {
                 var response = await _authService.LoginAsync(request);
@@ -43,8 +53,8 @@ namespace ClassBooking.API.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Login error: {ex.Message}");
-                return Unauthorized(new { message = ex.Message });
+                _logger.LogError(ex, $"Login error for email {request.Email}");
+                return Unauthorized(new { message = "Invalid credentials or account error." });
             }
         }
 

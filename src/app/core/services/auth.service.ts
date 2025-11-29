@@ -8,6 +8,7 @@ import { Router } from '@angular/router';
 import { User } from '../models/user.models';
 import { LoginRequest, AuthResponse } from '../models/auth.models';
 import { environment } from '../../../environments/environment';
+import { MockDataService } from './mock-data.service';
 
 @Injectable({
   providedIn: 'root'
@@ -16,6 +17,7 @@ export class AuthService {
   private http = inject(HttpClient);
   private router = inject(Router);
   private platformId = inject(PLATFORM_ID);
+  private mockData = inject(MockDataService);
   private isBrowser: boolean;
 
   private currentUserSubject = new BehaviorSubject<User | null>(this.getUserFromToken());
@@ -35,17 +37,23 @@ export class AuthService {
 
   register(userData: any): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/register`, userData).pipe(
-      tap(response => {
-        this.handleAuthResponse(response);
-      })
+      tap(response => this.handleAuthResponse(response)),
+      catchError(() =>
+        this.mockData
+          .register(userData.fullName, userData.email, userData.password, userData.role)
+          .pipe(tap(response => this.handleAuthResponse(response)))
+      )
     );
   }
 
   login(credentials: LoginRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, credentials).pipe(
-      tap(response => {
-        this.handleAuthResponse(response);
-      })
+      tap(response => this.handleAuthResponse(response)),
+      catchError(() =>
+        this.mockData
+          .login(credentials.email, credentials.password)
+          .pipe(tap(response => this.handleAuthResponse(response)))
+      )
     );
   }
 
@@ -91,13 +99,15 @@ export class AuthService {
   // 🔑 Central place to store tokens + user after login / register / refresh
   private handleAuthResponse(response: AuthResponse): void {
     if (this.isBrowser) {
-      localStorage.setItem(this.tokenKey, response.token);
-      localStorage.setItem(this.refreshTokenKey, response.refreshToken);
-      localStorage.setItem(this.userKey, JSON.stringify(response.user));
+      if (response.token) localStorage.setItem(this.tokenKey, response.token);
+      if (response.refreshToken) localStorage.setItem(this.refreshTokenKey, response.refreshToken);
+      if (response.user) localStorage.setItem(this.userKey, JSON.stringify(response.user));
     }
 
-    this.currentUserSubject.next(response.user);
-    this.isAuthenticatedSubject.next(true);
+    if (response.user) {
+        this.currentUserSubject.next(response.user);
+        this.isAuthenticatedSubject.next(true);
+    }
   }
 
   private getUserFromToken(): User | null {

@@ -1,6 +1,6 @@
 <div class="attendance-container">
     <div class="header">
-        <h1>📊 Attendance Management</h1>
+        <h1>Attendance Management</h1>
         <div class="header-actions">
             <button class="tab-btn" [class.active]="currentView === 'mark'" (click)="switchView('mark')">
                 Mark Attendance
@@ -11,31 +11,29 @@
         </div>
     </div>
 
-    <!-- Stats Cards -->
     <div class="stats-grid">
         <div class="stat-card">
-            <div class="stat-icon">📅</div>
+            <div class="stat-icon">CL</div>
             <h3>{{ stats.totalSessions }}</h3>
             <p>Total Sessions</p>
         </div>
         <div class="stat-card">
-            <div class="stat-icon">✅</div>
+            <div class="stat-icon">AVG</div>
             <h3>{{ stats.averageAttendance }}%</h3>
             <p>Average Attendance</p>
         </div>
         <div class="stat-card">
-            <div class="stat-icon">👥</div>
+            <div class="stat-icon">PR</div>
             <h3>{{ stats.presentCount }}</h3>
             <p>Total Present</p>
         </div>
         <div class="stat-card">
-            <div class="stat-icon">❌</div>
+            <div class="stat-icon">AB</div>
             <h3>{{ stats.absentCount }}</h3>
             <p>Total Absent</p>
         </div>
     </div>
 
-    <!-- Mark Attendance View -->
     <div *ngIf="currentView === 'mark'" class="mark-attendance-section">
         <div class="section-header">
             <h2>Mark Today's Attendance</h2>
@@ -47,8 +45,8 @@
         </div>
 
         <div class="bulk-actions">
-            <button class="btn-bulk" (click)="markAllPresent()">✓ Mark All Present</button>
-            <button class="btn-bulk" (click)="markAllAbsent()">✗ Mark All Absent</button>
+            <button class="btn-bulk" (click)="markAllPresent()">Mark All Present</button>
+            <button class="btn-bulk" (click)="markAllAbsent()">Mark All Absent</button>
         </div>
 
         <div class="students-list">
@@ -84,12 +82,11 @@
         </div>
 
         <div class="action-buttons">
-            <button class="btn-primary" (click)="saveAttendance()">💾 Save Attendance</button>
+            <button class="btn-primary" (click)="saveAttendance()">Save Attendance</button>
             <button class="btn-secondary" routerLink="/dashboard/teacher">Cancel</button>
         </div>
     </div>
 
-    <!-- Attendance History View -->
     <div *ngIf="currentView === 'history'" class="history-section">
         <div class="section-header">
             <h2>Attendance History</h2>

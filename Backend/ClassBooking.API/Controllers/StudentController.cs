@@ -4,6 +4,7 @@ using ClassBooking.API.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
+using ClassBooking.API.Entities;
 
 namespace ClassBooking.API.Controllers
 {
@@ -17,19 +18,24 @@ namespace ClassBooking.API.Controllers
         private readonly ITeacherRepository _teacherRepository;
         private readonly IExamService _examService;
         private readonly IResourceService _resourceService;
+        private readonly IBookingService _bookingService;
+
+        private record ActivityItem(string Type, string Message, DateTime Timestamp);
 
         public StudentController(
             IStudentService studentService,
             IStudentRepository studentRepository,
             ITeacherRepository teacherRepository,
             IExamService examService,
-            IResourceService resourceService)
+            IResourceService resourceService,
+            IBookingService bookingService)
         {
             _studentService = studentService;
             _studentRepository = studentRepository;
             _teacherRepository = teacherRepository;
             _examService = examService;
             _resourceService = resourceService;
+            _bookingService = bookingService;
         }
 
         [HttpGet("profile")]
@@ -56,22 +62,31 @@ namespace ClassBooking.API.Controllers
         [HttpPut("profile")]
         public async Task<ActionResult<StudentProfile>> UpdateProfile([FromBody] StudentProfile profile)
         {
-            var userId = User.FindFirst("userId")?.Value ?? throw new UnauthorizedAccessException();
+            var userId = User.FindFirst("userId")?.Value;
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
             
             var existing = await _studentRepository.GetByUserIdAsync(userId);
             if (existing == null)
-                return NotFound();
+                return NotFound("Student profile not found.");
             
+            // Update fields
             existing.FullName = profile.FullName;
             existing.PhoneNumber = profile.PhoneNumber;
             existing.UpdatedAt = DateTime.UtcNow;
             
-            var updated = await _studentRepository.UpdateAsync(existing);
-            
-            profile.Id = updated.Id;
-            profile.UserId = updated.UserId;
-            
-            return Ok(profile);
+            try 
+            {
+                var updated = await _studentRepository.UpdateAsync(existing);
+                
+                profile.Id = updated.Id;
+                profile.UserId = updated.UserId;
+                
+                return Ok(profile);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error updating profile", details = ex.Message });
+            }
         }
 
         [HttpGet("recommended-teachers")]
@@ -132,7 +147,7 @@ namespace ClassBooking.API.Controllers
                 Id = r.Id,
                 Title = r.Title,
                 Type = r.Type,
-                Url = r.Url,
+                Url = r.FilePath, // Using FilePath as Url
                 Description = r.Description,
                 Subject = r.Subject,
                 UploadedAt = r.UploadedAt
@@ -148,10 +163,9 @@ namespace ClassBooking.API.Controllers
                 Id = r.Id,
                 Title = r.Title,
                 Type = r.Type,
-                Url = r.Url,
+                Url = r.FilePath, // Using FilePath as Url
                 Description = r.Description,
                 Subject = r.Subject,
-                Year = r.Year,
                 UploadedAt = r.UploadedAt
             }).ToList());
         }
@@ -177,15 +191,28 @@ namespace ClassBooking.API.Controllers
         public async Task<ActionResult<object>> GetSummary()
         {
             var userId = User.FindFirst("userId")?.Value ?? throw new UnauthorizedAccessException();
-            
-            // In a real app, we would get this from BookingService and other services
-            // For now, returning placeholders but connected to real user ID check
+            var progress = await _studentService.GetProgressAsync(userId);
+
+            var bookings = await _bookingService.GetBookingsForStudentAsync(userId);
+
+            var total = bookings.Count;
+            var completed = bookings.Count(b => b.Status == "Completed");
+            var upcoming = bookings.Count(b => b.Status == "Confirmed" && b.Date >= DateTime.UtcNow.Date);
+
+            double hours = bookings
+                .Where(b => b.Status == "Completed")
+                .Sum(b => GetDurationHours(b.StartTime, b.EndTime));
+
+            var overall = progress.Any() ? (int)progress.Average(p => p.AverageScore) : 0;
+
             return Ok(new
             {
-                TotalClasses = 0,
-                UpcomingClasses = 0,
-                CompletedClasses = 0,
-                StudyHours = 0
+                totalClasses = total,
+                upcomingClasses = upcoming,
+                completedClasses = completed,
+                studyHours = Math.Round(hours, 1),
+                progressPercentage = overall,
+                averageRating = 0 // Can be expanded once teacher->student ratings exist
             });
         }
 
@@ -250,5 +277,133 @@ namespace ClassBooking.API.Controllers
             
             return Ok(goal);
         }
+
+        // Student Review Endpoints
+        [HttpGet("my-reviews")]
+        public async Task<ActionResult<List<object>>> GetMyReviews()
+        {
+            var userId = User.FindFirst("userId")?.Value ?? throw new UnauthorizedAccessException();
+            var profile = await _studentRepository.GetByUserIdAsync(userId);
+            
+            if (profile == null)
+                return Ok(new List<object>());
+
+            var reviews = await _studentService.GetStudentReviewsAsync(profile.Id);
+            
+            return Ok(reviews.Select(r => new
+            {
+                id = r.Id,
+                teacherId = r.TeacherProfileId,
+                teacherName = r.TeacherProfile?.FullName ?? "Unknown Teacher",
+                rating = r.Rating,
+                comment = r.Comment,
+                createdAt = r.CreatedAt
+            }).ToList());
+        }
+
+        [HttpPost("reviews")]
+        public async Task<ActionResult> SubmitReview([FromBody] SubmitReviewRequest request)
+        {
+            var userId = User.FindFirst("userId")?.Value ?? throw new UnauthorizedAccessException();
+            var profile = await _studentRepository.GetByUserIdAsync(userId);
+            
+            if (profile == null)
+                return NotFound("Student profile not found");
+
+            var review = new Entities.ReviewEntity
+            {
+                Id = Guid.NewGuid().ToString(),
+                StudentId = profile.Id,
+                StudentName = profile.FullName,
+                TeacherProfileId = request.TeacherId,
+                Rating = request.Rating,
+                Comment = request.Comment,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _studentService.SubmitReviewAsync(review);
+            
+            return Ok(new { message = "Review submitted successfully", id = review.Id });
+        }
+
+        [HttpPut("reviews/{reviewId}")]
+        public async Task<ActionResult> UpdateReview(string reviewId, [FromBody] UpdateReviewRequest request)
+        {
+            var userId = User.FindFirst("userId")?.Value ?? throw new UnauthorizedAccessException();
+            var profile = await _studentRepository.GetByUserIdAsync(userId);
+            
+            if (profile == null)
+                return NotFound("Student profile not found");
+
+            await _studentService.UpdateReviewAsync(reviewId, profile.Id, request.Rating, request.Comment);
+            
+            return Ok(new { message = "Review updated successfully" });
+        }
+
+        // Progress Report endpoint
+        [HttpGet("progress-report")]
+        public async Task<ActionResult<object>> GetProgressReport()
+        {
+            var userId = User.FindFirst("userId")?.Value ?? throw new UnauthorizedAccessException();
+            
+            var progress = await _studentService.GetProgressAsync(userId);
+            var bookings = await _bookingService.GetBookingsForStudentAsync(userId);
+
+            var activities = new List<ActivityItem>();
+
+            // Recent bookings (next and last)
+            foreach (var booking in bookings
+                .OrderByDescending(b => b.Date)
+                .Take(5))
+            {
+                activities.Add(new ActivityItem(
+                    "booking",
+                    $"{booking.Subject} class {booking.Status.ToLower()}",
+                    booking.Date));
+            }
+
+            // Progress snapshots
+            foreach (var item in progress.Take(3))
+            {
+                activities.Add(new ActivityItem(
+                    "progress",
+                    $"{item.Subject} average {item.AverageScore}%",
+                    DateTime.UtcNow));
+            }
+
+            var overall = progress.Any() ? (int)progress.Average(p => p.AverageScore) : 0;
+
+            return Ok(new
+            {
+                overallProgress = overall,
+                subjectsProgress = progress.Select(p => new { subject = p.Subject, progress = p.AverageScore }).ToList(),
+                activities = activities.OrderByDescending(a => a.Timestamp).ToList()
+            });
+        }
+
+        private double GetDurationHours(string startTime, string endTime)
+        {
+            if (TimeOnly.TryParse(startTime, out var start) && TimeOnly.TryParse(endTime, out var end))
+            {
+                var duration = end.ToTimeSpan() - start.ToTimeSpan();
+                return Math.Max(duration.TotalHours, 0);
+            }
+
+            return 0;
+        }
+    }
+
+    // Request models
+    public class SubmitReviewRequest
+    {
+        public string TeacherId { get; set; } = string.Empty;
+        public int Rating { get; set; }
+        public string Comment { get; set; } = string.Empty;
+    }
+
+    public class UpdateReviewRequest
+    {
+        public int Rating { get; set; }
+        public string Comment { get; set; } = string.Empty;
     }
 }

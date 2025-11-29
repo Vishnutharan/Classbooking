@@ -29,14 +29,8 @@ export class TeacherAttendanceComponent implements OnInit {
     isLoading = false;
     currentView: 'mark' | 'history' = 'mark';
 
-    // For marking attendance
-    studentsToMark = [
-        { id: 'student-1', name: 'Alice Fernando', status: 'Present' as AttendanceStatus },
-        { id: 'student-2', name: 'Kamal Silva', status: 'Present' as AttendanceStatus },
-        { id: 'student-3', name: 'Nimal Perera', status: 'Present' as AttendanceStatus },
-        { id: 'student-4', name: 'Saman Jayawardena', status: 'Present' as AttendanceStatus },
-        { id: 'student-5', name: 'Dilini Rajapaksha', status: 'Present' as AttendanceStatus }
-    ];
+    // For marking attendance - loaded from teacher's actual students
+    studentsToMark: Array<{ id: string; name: string; status: AttendanceStatus }> = [];
 
     stats = {
         totalSessions: 0,
@@ -69,12 +63,26 @@ export class TeacherAttendanceComponent implements OnInit {
                 this.isLoading = false;
             }
         });
+        
+        // Load students for marking attendance
+        this.loadStudents();
     }
-
-    filterRecordsByDate(): void {
-        this.displayRecords = this.attendanceRecords.filter(r => {
-            const recordDate = new Date(r.date);
-            return recordDate.toDateString() === this.selectedDate.toDateString();
+    
+    loadStudents(): void {
+        const user = this.authService.getCurrentUser();
+        if (!user) return;
+        
+        this.teacherDataService.getTeacherStudents(user.id).subscribe({
+            next: (students) => {
+                this.studentsToMark = students.map(s => ({
+                    id: s.userId,
+                    name: s.fullName,
+                    status: 'Present' as AttendanceStatus
+                }));
+            },
+            error: () => {
+                this.notificationService.showError('Failed to load students');
+            }
         });
     }
 
@@ -122,8 +130,31 @@ export class TeacherAttendanceComponent implements OnInit {
         });
     }
 
+    filterRecordsByDate(): void {
+        // Compare dates using local YYYY-MM-DD strings to avoid timezone issues
+        const targetDateStr = this.formatDate(this.selectedDate);
+        
+        this.displayRecords = this.attendanceRecords.filter(r => {
+            const recordDate = new Date(r.date);
+            return this.formatDate(recordDate) === targetDateStr;
+        });
+    }
+
+    private formatDate(date: Date): string {
+        const d = new Date(date);
+        let month = '' + (d.getMonth() + 1);
+        let day = '' + d.getDate();
+        const year = d.getFullYear();
+
+        if (month.length < 2) month = '0' + month;
+        if (day.length < 2) day = '0' + day;
+
+        return [year, month, day].join('-');
+    }
+
     onDateChange(event: any): void {
-        this.selectedDate = new Date(event.target.value);
+        // Create date as local time (append time to avoid UTC interpretation)
+        this.selectedDate = new Date(event.target.value + 'T00:00:00');
         this.filterRecordsByDate();
     }
 

@@ -38,9 +38,12 @@ export class SidebarComponent implements OnInit {
 
   private teacherMenuItems: MenuItem[] = [
     { icon: '🏠', label: 'Dashboard', route: '/dashboard/teacher', roles: ['Teacher'] },
+    { icon: '📊', label: 'Analytics', route: '/teacher/analytics', roles: ['Teacher'] },
+    { icon: '✅', label: 'Attendance', route: '/teacher/attendance', roles: ['Teacher'] },
+    { icon: '📝', label: 'Lesson Planner', route: '/teacher/lesson-planner', roles: ['Teacher'] },
+    { icon: '👥', label: 'My Classes', route: '/my-classes', roles: ['Teacher'] },
     { icon: '👤', label: 'My Profile', route: '/manage-profile', roles: ['Teacher'] },
     { icon: '📅', label: 'Manage Schedule', route: '/manage-schedule', roles: ['Teacher'] },
-    { icon: '👥', label: 'My Classes', route: '/my-classes', roles: ['Teacher'] },
     { icon: '⭐', label: 'Reviews & Ratings', route: '/reviews-ratings', roles: ['Teacher'] },
     { icon: '📤', label: 'Upload Resources', route: '/resources-upload', roles: ['Teacher'] }
   ];

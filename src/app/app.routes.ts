@@ -5,8 +5,9 @@ import { RoleGuard } from './core/guards/role.guard';
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: '/dashboard',
-    pathMatch: 'full'
+    loadComponent: () =>
+      import('./components/landing/landing.component').then(m => m.LandingComponent),
+    data: { title: 'ClassBooking - Quality Education Platform' }
   },
   {
     path: 'auth',

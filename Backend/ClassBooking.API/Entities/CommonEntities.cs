@@ -245,6 +245,58 @@ namespace ClassBooking.API.Entities
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
     
+    // Conversation-based messaging system
+    [Table("Conversations")]
+    public class ConversationEntity
+    {
+        [Key]
+        public string Id { get; set; } = Guid.NewGuid().ToString();
+        
+        [Required]
+        [MaxLength(200)]
+        public string Subject { get; set; } = string.Empty;
+        
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+        
+        public string? LastMessageContent { get; set; }
+        
+        public DateTime? LastMessageAt { get; set; }
+        
+        // Navigation
+        public ICollection<ConversationParticipantEntity> Participants { get; set; } = new List<ConversationParticipantEntity>();
+        public ICollection<MessageEntity> Messages { get; set; } = new List<MessageEntity>();
+    }
+    
+    [Table("ConversationParticipants")]
+    public class ConversationParticipantEntity
+    {
+        [Key]
+        public string Id { get; set; } = Guid.NewGuid().ToString();
+        
+        [Required]
+        public string ConversationId { get; set; } = string.Empty;
+        
+        [Required]
+        public string UserId { get; set; } = string.Empty;
+        
+        [Required]
+        public string UserName { get; set; } = string.Empty;
+        
+        [Required]
+        [MaxLength(50)]
+        public string UserRole { get; set; } = string.Empty; // Teacher, Student
+        
+        public int UnreadCount { get; set; } = 0;
+        
+        public DateTime JoinedAt { get; set; } = DateTime.UtcNow;
+        
+        // Navigation
+        [ForeignKey("ConversationId")]
+        public ConversationEntity? Conversation { get; set; }
+    }
+    
     [Table("Messages")]
     public class MessageEntity
     {
@@ -252,23 +304,27 @@ namespace ClassBooking.API.Entities
         public string Id { get; set; } = Guid.NewGuid().ToString();
         
         [Required]
+        public string ConversationId { get; set; } = string.Empty;
+        
+        [Required]
         public string SenderId { get; set; } = string.Empty;
         
         [Required]
-        public string ReceiverId { get; set; } = string.Empty;
+        public string SenderName { get; set; } = string.Empty;
         
         [Required]
         [MaxLength(5000)]
         public string Content { get; set; } = string.Empty;
         
+        public DateTime SentAt { get; set; } = DateTime.UtcNow;
+        
         public bool IsRead { get; set; } = false;
         
-        public string? AttachmentUrl { get; set; }
+        public DateTime? ReadAt { get; set; }
         
-        [MaxLength(200)]
-        public string? Subject { get; set; }
-        
-        public DateTime SentAt { get; set; } = DateTime.UtcNow;
+        // Navigation
+        [ForeignKey("ConversationId")]
+        public ConversationEntity? Conversation { get; set; }
     }
     
     [Table("Announcements")]
@@ -288,12 +344,19 @@ namespace ClassBooking.API.Entities
         [MaxLength(5000)]
         public string Content { get; set; } = string.Empty;
         
+        [Required]
         [MaxLength(50)]
-        public string TargetAudience { get; set; } = "All"; // All, Specific
+        public string RecipientType { get; set; } = "All Students"; // All Students, Specific Class, Specific Subject
         
-        public string? TargetStudentIdsJson { get; set; } // JSON array of student IDs
+        public string? RecipientId { get; set; } // ClassId or SubjectId if specific
         
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public bool IsPinned { get; set; } = false;
+        
+        public int ViewCount { get; set; } = 0;
+        
+        public DateTime SentAt { get; set; } = DateTime.UtcNow;
+        
+        public DateTime? ExpiresAt { get; set; }
     }
     
     [Table("Resources")]
@@ -303,33 +366,50 @@ namespace ClassBooking.API.Entities
         public string Id { get; set; } = Guid.NewGuid().ToString();
         
         [Required]
+        public string TeacherProfileId { get; set; } = string.Empty;
+        
+        [Required]
         [MaxLength(200)]
         public string Title { get; set; } = string.Empty;
-        
-        [Required]
-        [MaxLength(50)]
-        public string Type { get; set; } = string.Empty; // Video, PDF, Quiz, Notes, PastPaper
-        
-        [Required]
-        public string Url { get; set; } = string.Empty;
         
         [MaxLength(1000)]
         public string? Description { get; set; }
         
-        [MaxLength(200)]
-        public string? Subject { get; set; }
-        
+        [Required]
         [MaxLength(50)]
-        public string? Level { get; set; }
+        public string Type { get; set; } = "PDF"; // PDF, Video, Document, Image, Quiz
         
+        [Required]
+        [MaxLength(100)]
+        public string Subject { get; set; } = string.Empty;
+        
+        [Required]
         [MaxLength(50)]
-        public string? ExamType { get; set; }
+        public string Level { get; set; } = string.Empty; // Primary, Secondary, Advanced
         
-        public int? Year { get; set; }
+        [Required]
+        [MaxLength(500)]
+        public string FileName { get; set; } = string.Empty;
         
-        public string? UploadedBy { get; set; }
+        [Required]
+        [MaxLength(1000)]
+        public string FilePath { get; set; } = string.Empty;
+        
+        public long FileSize { get; set; } = 0;
+        
+        [MaxLength(100)]
+        public string? MimeType { get; set; }
+        
+        public bool IsPublic { get; set; } = false;
+        
+        public int DownloadCount { get; set; } = 0;
         
         public DateTime UploadedAt { get; set; } = DateTime.UtcNow;
+        
+        public DateTime? UpdatedAt { get; set; }
+        
+        [MaxLength(500)]
+        public string? Tags { get; set; } // Comma-separated tags
     }
     
     [Table("ExamPreparations")]

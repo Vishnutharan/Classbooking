@@ -7,8 +7,10 @@
     "\\ClassBooking.API\\Entities",
     "\\ClassBooking.API\\Filters",
     "\\ClassBooking.API\\Middleware",
-    "\\ClassBooking.API\\Models"
+    "\\ClassBooking.API\\obj",
+    "\\ClassBooking.API\\Properties",
+    "\\SQL"
   ],
-  "SelectedNode": "\\ClassBooking.API\\Data\\ClassBookingDbContext.cs",
+  "SelectedNode": "\\SQL",
   "PreviewInSolutionExplorer": false
 }
