@@ -1,185 +1,255 @@
 <div class="teacher-dashboard-container">
-  <div class="header">
-    <div>
-      <p class="eyebrow">Teacher workspace</p>
-      <h1>Teacher Dashboard</h1>
-      <p>Welcome back, {{ teacherProfile?.fullName || 'Teacher' }}. Track classes, earnings, and student momentum in one place.</p>
-    </div>
-    <div class="header-actions">
-      <span class="chip">Status: {{ teacherProfile?.verificationStatus || 'Pending' }}</span>
-      <span class="chip accent">Hourly rate: LKR {{ teacherProfile?.hourlyRate || 0 }}</span>
+  <!-- Header Section -->
+  <div class="header-section">
+    <div class="header-content">
+      <div class="header-intro">
+        <span class="eyebrow">👨‍🏫 Teacher Workspace</span>
+        <h1 class="page-title">Teacher Dashboard</h1>
+        <p class="page-description">Welcome back, {{ teacherProfile?.fullName || 'Teacher' }}. Track classes, earnings,
+          and student momentum in one place.</p>
+      </div>
+      <div class="header-chips">
+        <div class="chip status-chip">
+          <span class="chip-icon">●</span>
+          <div class="chip-content">
+            <p class="chip-label">Status</p>
+            <p class="chip-value">{{ teacherProfile?.verificationStatus || 'Pending' }}</p>
+          </div>
+        </div>
+        <div class="chip rate-chip">
+          <span class="chip-icon">💰</span>
+          <div class="chip-content">
+            <p class="chip-label">Hourly Rate</p>
+            <p class="chip-value">LKR {{ teacherProfile?.hourlyRate || 0 }}/hr</p>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <div *ngIf="isLoading" class="loading-state">
-    <div class="loading-spinner"></div>
-    <p>Loading your dashboard...</p>
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-overlay">
+    <div class="spinner">
+      <div class="spinner-circle"></div>
+      <p class="loading-text">Loading your dashboard...</p>
+    </div>
   </div>
 
   <ng-container *ngIf="!isLoading">
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-icon badge-green">ST</div>
-        <p class="label">Active students</p>
-        <h3>{{ stats.totalStudents }}</h3>
+    <!-- Stats Grid -->
+    <div class="stats-section">
+      <div class="stats-grid">
+        <div class="stat-card" *ngFor="let stat of [
+          {icon: '👥', label: 'Active Students', value: stats.totalStudents, color: 'green'},
+          {icon: '✓', label: 'Completed Classes', value: stats.completedClasses, color: 'blue'},
+          {icon: '⭐', label: 'Average Rating', value: (stats.averageRating | number:'1.1-1') + '/5', color: 'amber'},
+          {icon: '💸', label: 'Monthly Earnings', value: 'LKR ' + (stats.monthlyEarnings | number:'1.0-0'), color: 'purple'}
+        ]">
+          <div class="stat-card-inner" [class]="'stat-' + stat.color">
+            <div class="stat-icon">{{ stat.icon }}</div>
+            <div class="stat-content">
+              <p class="stat-label">{{ stat.label }}</p>
+              <h3 class="stat-value">{{ stat.value }}</h3>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="stat-card">
-        <div class="stat-icon badge-blue">CL</div>
-        <p class="label">Completed classes</p>
-        <h3>{{ stats.completedClasses }}</h3>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon badge-amber">RT</div>
-        <p class="label">Average rating</p>
-        <h3>{{ (stats.averageRating) | number:'1.1-1' }}/5</h3>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon badge-purple">LKR</div>
-        <p class="label">Monthly earnings</p>
-        <h3>LKR {{ (stats.monthlyEarnings) | number:'1.0-0' }}</h3>
+
+      <!-- Week Stats -->
+      <div class="week-stats">
+        <div class="week-card" [style.animation-delay]="'0s'">
+          <div class="week-icon">📅</div>
+          <p class="week-label">Classes This Week</p>
+          <h2 class="week-value">{{ weekStats.classesThisWeek }}</h2>
+        </div>
+        <div class="week-card" [style.animation-delay]="'0.1s'">
+          <div class="week-icon">💵</div>
+          <p class="week-label">Week Earnings</p>
+          <h2 class="week-value">LKR {{ (weekStats.earningsThisWeek) | number:'1.0-0' }}</h2>
+        </div>
+        <div class="week-card" [style.animation-delay]="'0.2s'">
+          <div class="week-icon">🆕</div>
+          <p class="week-label">New Students</p>
+          <h2 class="week-value">{{ weekStats.studentsThisWeek }}</h2>
+        </div>
       </div>
     </div>
 
-    <div class="week-stats">
-      <div class="week-card">
-        <p class="label">Classes this week</p>
-        <h2>{{ weekStats.classesThisWeek }}</h2>
-      </div>
-      <div class="week-card">
-        <p class="label">Week earnings</p>
-        <h2>LKR {{ (weekStats.earningsThisWeek) | number:'1.0-0' }}</h2>
-      </div>
-      <div class="week-card">
-        <p class="label">New students</p>
-        <h2>{{ weekStats.studentsThisWeek }}</h2>
-      </div>
-    </div>
-
-    <div class="section">
+    <!-- Upcoming Classes Section -->
+    <div class="section upcoming-section">
       <div class="section-header">
-        <h2>Upcoming classes</h2>
-        <button class="btn-link" (click)="navigate('/my-classes')">View all classes</button>
+        <div class="section-title">
+          <h2>📚 Upcoming Classes</h2>
+          <span class="section-count">{{ upcomingClasses.length }}</span>
+        </div>
+        <button class="btn-link" (click)="navigate('/my-classes')">View all →</button>
       </div>
+
       <div class="upcoming-list" *ngIf="upcomingClasses.length > 0; else noUpcoming">
-        <div class="class-card" *ngFor="let cls of upcomingClasses">
-          <div class="class-header">
-            <h3>{{ cls.subject }}</h3>
-            <span class="status-badge confirmed">{{ cls.status }}</span>
+        <div class="class-card" *ngFor="let cls of upcomingClasses; let i = index"
+          [style.animation-delay]="(i * 0.05) + 's'">
+          <div class="card-status-bar"></div>
+          <div class="card-content">
+            <div class="card-header">
+              <h3 class="class-subject">{{ cls.subject }}</h3>
+              <span class="status-badge confirmed">{{ cls.status }}</span>
+            </div>
+            <div class="card-details">
+              <div class="detail-item">
+                <span class="detail-icon">👤</span>
+                <p><strong>Student:</strong> {{ cls.studentName || cls.studentId }}</p>
+              </div>
+              <div class="detail-item">
+                <span class="detail-icon">📅</span>
+                <p><strong>Date:</strong> {{ cls.date | date:'MMM dd, yyyy' }}</p>
+              </div>
+              <div class="detail-item">
+                <span class="detail-icon">⏰</span>
+                <p><strong>Time:</strong> {{ cls.startTime }} - {{ cls.endTime }}</p>
+              </div>
+              <div class="detail-item">
+                <span class="detail-icon">📖</span>
+                <p><strong>Type:</strong> {{ cls.classType }}</p>
+              </div>
+            </div>
+            <button class="btn btn-primary" (click)="navigate('/my-classes')">View Details</button>
           </div>
-          <div class="class-body">
-            <p><strong>Student:</strong> {{ cls.studentName || cls.studentId }}</p>
-            <p><strong>Date:</strong> {{ cls.date | date:'MMM dd, yyyy' }}</p>
-            <p><strong>Time:</strong> {{ cls.startTime }} - {{ cls.endTime }}</p>
-            <p><strong>Type:</strong> {{ cls.classType }}</p>
-          </div>
-          <button class="btn-primary" (click)="navigate('/my-classes')">View details</button>
         </div>
       </div>
       <ng-template #noUpcoming>
         <div class="empty-state">
+          <div class="empty-icon">📭</div>
           <p>No upcoming classes. Your calendar is clear!</p>
         </div>
       </ng-template>
     </div>
 
-    <div class="section">
+    <!-- Pending Requests Section -->
+    <div class="section pending-section">
       <div class="section-header">
-        <h2>Pending booking requests</h2>
-        <span class="badge">{{ pendingRequests.length }}</span>
+        <div class="section-title">
+          <h2>🔔 Pending Booking Requests</h2>
+          <span class="section-badge">{{ pendingRequests.length }}</span>
+        </div>
       </div>
+
       <div class="pending-list" *ngIf="pendingRequests.length > 0; else noPending">
-        <div class="pending-card" *ngFor="let req of pendingRequests">
-          <div class="pending-header">
-            <h3>{{ req.subject }}</h3>
-          </div>
-          <div class="pending-body">
-            <p><strong>Student:</strong> {{ req.studentName || req.studentId }}</p>
-            <p><strong>Requested Date:</strong> {{ req.date | date:'MMM dd, yyyy' }}</p>
-            <p><strong>Time:</strong> {{ req.startTime }} - {{ req.endTime }}</p>
-            <p><strong>Type:</strong> {{ req.classType }}</p>
+        <div class="pending-card" *ngFor="let req of pendingRequests; let i = index"
+          [style.animation-delay]="(i * 0.05) + 's'">
+          <div class="pending-status-indicator"></div>
+          <div class="pending-content">
+            <h3 class="pending-subject">{{ req.subject }}</h3>
+            <div class="pending-details">
+              <p><span class="detail-label">Student:</span> {{ req.studentName || req.studentId }}</p>
+              <p><span class="detail-label">Requested Date:</span> {{ req.date | date:'MMM dd, yyyy' }}</p>
+              <p><span class="detail-label">Time:</span> {{ req.startTime }} - {{ req.endTime }}</p>
+              <p><span class="detail-label">Type:</span> {{ req.classType }}</p>
+            </div>
           </div>
           <div class="pending-actions">
-            <button class="btn-accept" (click)="acceptRequest(req)">Accept</button>
-            <button class="btn-reject" (click)="rejectRequest(req)">Reject</button>
-            <button class="btn-reschedule" (click)="navigate('/manage-schedule')">Reschedule</button>
+            <button class="btn btn-accept" (click)="acceptRequest(req)" title="Accept Request">✓</button>
+            <button class="btn btn-reject" (click)="rejectRequest(req)" title="Reject Request">✕</button>
+            <button class="btn btn-secondary" (click)="navigate('/manage-schedule')" title="Reschedule">📅</button>
           </div>
         </div>
       </div>
       <ng-template #noPending>
         <div class="empty-state">
+          <div class="empty-icon">✨</div>
           <p>No pending requests at the moment.</p>
         </div>
       </ng-template>
     </div>
 
-    <div class="section">
-      <h2>Monthly earnings trend</h2>
+    <!-- Earnings Chart Section -->
+    <div class="section earnings-section">
+      <div class="section-header">
+        <h2>📊 Monthly Earnings Trend</h2>
+      </div>
       <div class="earnings-chart">
-        <div class="chart-placeholder">
-          <p>Last 6 months</p>
-          <div class="mock-chart">
-            <div *ngFor="let month of monthlyEarnings" class="month-bar">
-              <div class="bar" [style.height.%]="getBarHeight(month.earnings)"></div>
-              <p>{{ month.month }}</p>
-              <small>LKR {{ (month.earnings) | number:'1.0-0' }}</small>
+        <div class="chart-container">
+          <div class="month-bar-wrapper" *ngFor="let month of monthlyEarnings">
+            <div class="month-bar">
+              <div class="bar-fill" [style.height.%]="getBarHeight(month.earnings)"></div>
             </div>
+            <p class="month-label">{{ month.month }}</p>
+            <small class="month-value">LKR {{ (month.earnings) | number:'1.0-0' }}</small>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="section">
+    <!-- Recent Reviews Section -->
+    <div class="section reviews-section">
       <div class="section-header">
-        <h2>Recent student reviews</h2>
-        <button class="btn-link" (click)="navigate('/reviews-ratings')">View all</button>
+        <div class="section-title">
+          <h2>⭐ Recent Student Reviews</h2>
+        </div>
+        <button class="btn-link" (click)="navigate('/reviews-ratings')">View all →</button>
       </div>
-      <div class="reviews-carousel" *ngIf="recentReviews.length > 0; else noReviews">
-        <div class="review-card" *ngFor="let review of recentReviews">
+
+      <div class="reviews-grid" *ngIf="recentReviews.length > 0; else noReviews">
+        <div class="review-card" *ngFor="let review of recentReviews; let i = index"
+          [style.animation-delay]="(i * 0.05) + 's'">
           <div class="review-header">
-            <h4>{{ review.studentName }}</h4>
-            <span class="rating">
-              <span *ngFor="let i of [1,2,3,4,5]" class="star" [class.filled]="i <= review.rating">&#9733;</span>
-            </span>
+            <h4 class="review-student">{{ review.studentName }}</h4>
+            <div class="review-rating">
+              <span *ngFor="let i of [1,2,3,4,5]" class="star" [class.filled]="i <= review.rating">⭐</span>
+            </div>
           </div>
-          <p class="review-text">{{ review.text }}</p>
-          <small>{{ review.date | date:'MMM dd, yyyy' }}</small>
+          <p class="review-text">"{{ review.text }}"</p>
+          <small class="review-date">{{ review.date | date:'MMM dd, yyyy' }}</small>
         </div>
       </div>
       <ng-template #noReviews>
         <div class="empty-state">
+          <div class="empty-icon">💬</div>
           <p>No reviews yet. Keep teaching and get your first review!</p>
         </div>
       </ng-template>
     </div>
 
-    <div class="quick-actions">
-      <button class="action-btn" (click)="navigate('/teacher/analytics')">
-        View analytics
-      </button>
-      <button class="action-btn" (click)="navigate('/teacher/students')">
-        Manage students
-      </button>
-      <button class="action-btn" (click)="navigate('/teacher/lesson-planner')">
-        Lesson planner
-      </button>
-      <button class="action-btn" (click)="navigate('/teacher/attendance')">
-        Mark attendance
-      </button>
-      <button class="action-btn" (click)="navigate('/teacher/messages')">
-        Messages
-      </button>
-      <button class="action-btn" (click)="navigate('/manage-profile')">
-        Manage profile
-      </button>
-      <button class="action-btn" (click)="navigate('/manage-schedule')">
-        Update schedule
-      </button>
-      <button class="action-btn" (click)="navigate('/my-classes')">
-        View all classes
-      </button>
-      <button class="action-btn" (click)="navigate('/resources-upload')">
-        Upload resources
-      </button>
+    <!-- Quick Actions Section -->
+    <div class="quick-actions-section">
+      <h2>Quick Actions</h2>
+      <div class="actions-grid">
+        <button class="action-btn" (click)="navigate('/teacher/analytics')" title="View Analytics">
+          <span class="action-icon">📈</span>
+          <span class="action-text">Analytics</span>
+        </button>
+        <button class="action-btn" (click)="navigate('/teacher/students')" title="Manage Students">
+          <span class="action-icon">👥</span>
+          <span class="action-text">Students</span>
+        </button>
+        <button class="action-btn" (click)="navigate('/teacher/lesson-planner')" title="Lesson Planner">
+          <span class="action-icon">📝</span>
+          <span class="action-text">Lesson Plan</span>
+        </button>
+        <button class="action-btn" (click)="navigate('/teacher/attendance')" title="Mark Attendance">
+          <span class="action-icon">✓</span>
+          <span class="action-text">Attendance</span>
+        </button>
+        <button class="action-btn" (click)="navigate('/teacher/messages')" title="Messages">
+          <span class="action-icon">💬</span>
+          <span class="action-text">Messages</span>
+        </button>
+        <button class="action-btn" (click)="navigate('/manage-profile')" title="Manage Profile">
+          <span class="action-icon">⚙️</span>
+          <span class="action-text">Profile</span>
+        </button>
+        <button class="action-btn" (click)="navigate('/manage-schedule')" title="Update Schedule">
+          <span class="action-icon">📅</span>
+          <span class="action-text">Schedule</span>
+        </button>
+        <button class="action-btn" (click)="navigate('/my-classes')" title="View All Classes">
+          <span class="action-icon">📚</span>
+          <span class="action-text">Classes</span>
+        </button>
+        <button class="action-btn" (click)="navigate('/resources-upload')" title="Upload Resources">
+          <span class="action-icon">📤</span>
+          <span class="action-text">Resources</span>
+        </button>
+      </div>
     </div>
   </ng-container>
 </div>

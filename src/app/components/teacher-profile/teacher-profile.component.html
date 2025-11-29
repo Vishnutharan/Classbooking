@@ -1,160 +1,228 @@
 <ng-container *ngIf="teacher as t; else loading">
   <div class="teacher-profile-container">
-    <img
-      [src]="t.profilePicture || 'https://via.placeholder.com/150'"
-      [alt]="t.fullName"
-      class="profile-pic"
-    />
-
-    <h1>{{ t.fullName }}</h1>
-
-    <p class="bio">{{ t.bio }}</p>
-
-    <span class="stars">
-      ⭐ {{ (t.averageRating || 0) | number:'1.1-1' }}/5
-    </span>
-
-    <span class="review-count">({{ t.totalReviews }} reviews)</span>
-    <span class="classes-count">• {{ t.totalClasses }} classes taught</span>
-
-    <p><strong>Experience:</strong> {{ t.experienceYears }} years</p>
-
-    <a [href]="'mailto:' + t.email">{{ t.email }}</a>
-    <a [href]="'tel:' + t.phoneNumber">{{ t.phoneNumber }}</a>
-
-    <span class="rate-amount">LKR {{ t.hourlyRate }}</span>
-
-    <span
-      class="verification-badge"
-      [ngClass]="'status-' + ((t.verificationStatus || 'pending').toLowerCase())"
-    >
-      {{ t.verificationStatus || 'Pending' }}
-    </span>
-
-    <p>Member Since: {{ t.createdAt | date:'MMM yyyy' }}</p>
-
-    <div class="rating-section">
-      <span class="stars">⭐ {{ (t.averageRating || 0) | number:'1.1-1' }}/5</span>
-      <span class="review-count">({{ t.totalReviews }} reviews)</span>
-      <span class="classes-count">• {{ t.totalClasses }} classes taught</span>
-    </div>
-
-    <div class="actions">
-      <button class="btn primary" (click)="bookClass()">📚 Book Class</button>
-      <button class="btn secondary" (click)="shareProfile()">📤 Share Profile</button>
-    </div>
-  </div>
-
-  <div class="profile-content">
-    <div class="left-column">
-      <div class="section">
-        <h2>📋 Experience & Qualifications</h2>
-        <div class="experience">
-          <p><strong>Experience:</strong> {{ t.experienceYears }} years</p>
-          <div class="qualifications">
-            <div
-              *ngFor="let qualification of t.qualifications"
-              class="qualification-badge"
-            >
-              {{ qualification }}
+    <!-- Hero Section -->
+    <div class="hero-section">
+      <div class="hero-background"></div>
+      <div class="hero-content">
+        <img [src]="t.profilePicture || 'https://via.placeholder.com/200'" [alt]="t.fullName" class="profile-picture" />
+        <div class="hero-info">
+          <h1 class="teacher-name">{{ t.fullName }}</h1>
+          <p class="teacher-bio">{{ t.bio }}</p>
+          <div class="hero-stats">
+            <div class="stat">
+              <span class="stat-icon">⭐</span>
+              <div class="stat-content">
+                <p class="stat-value">{{ (t.averageRating || 0) | number:'1.1-1' }}/5</p>
+                <p class="stat-label">Rating</p>
+              </div>
+            </div>
+            <div class="stat">
+              <span class="stat-icon">💬</span>
+              <div class="stat-content">
+                <p class="stat-value">{{ t.totalReviews }}</p>
+                <p class="stat-label">Reviews</p>
+              </div>
+            </div>
+            <div class="stat">
+              <span class="stat-icon">📚</span>
+              <div class="stat-content">
+                <p class="stat-value">{{ t.totalClasses }}</p>
+                <p class="stat-label">Classes</p>
+              </div>
+            </div>
+            <div class="stat">
+              <span class="stat-icon">⏱️</span>
+              <div class="stat-content">
+                <p class="stat-value">{{ t.experienceYears }}+</p>
+                <p class="stat-label">Years</p>
+              </div>
             </div>
           </div>
         </div>
       </div>
-
-      <div class="section">
-        <h2>💼 Subjects & Levels</h2>
-        <div class="subjects-grid">
-          <div class="subject-card" *ngFor="let subject of t.subjects">
-            <div class="subject-name">{{ subject.name }}</div>
-            <div class="subject-details">
-              <span class="medium">🗣️ {{ subject.medium }}</span>
-              <span class="level">📊 {{ subject.level }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="section">
-        <h2>📅 Availability Schedule</h2>
-        <div class="schedule-table">
-          <table>
-            <thead>
-              <tr>
-                <th>Day</th>
-                <th>Start Time</th>
-                <th>End Time</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let slot of t.availability">
-                <td><strong>{{ getDayName(slot.dayOfWeek) }}</strong></td>
-                <td>{{ slot.startTime }}</td>
-                <td>{{ slot.endTime }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="section contact">
-        <h2>📞 Contact Information</h2>
-        <p>Email: <a [href]="'mailto:' + t.email">{{ t.email }}</a></p>
-        <p>Phone: <a [href]="'tel:' + t.phoneNumber">{{ t.phoneNumber }}</a></p>
-      </div>
     </div>
 
-    <div class="right-column">
-      <div class="section pricing">
-        <h2>💰 Rates</h2>
-        <div class="rate-box">
-          <span class="rate-amount">LKR {{ t.hourlyRate }}</span>
-          <span class="rate-label">per hour</span>
-        </div>
-      </div>
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <button class="btn btn-primary" (click)="bookClass()">
+        <span class="btn-icon">📚</span>
+        <span class="btn-text">Book Class</span>
+      </button>
+      <button class="btn btn-secondary" (click)="shareProfile()">
+        <span class="btn-icon">📤</span>
+        <span class="btn-text">Share Profile</span>
+      </button>
+    </div>
 
-      <div class="section reviews">
-        <h2>⭐ Student Reviews ({{ reviews.length }})</h2>
-        <div class="reviews-list">
-          <div class="review-item" *ngFor="let review of reviews | slice:0:5">
-            <div class="review-header">
-              <div class="reviewer-info">
-                <strong>{{ review.studentName }}</strong>
-                <div class="rating">
-                  <span
-                    *ngFor="let i of [1,2,3,4,5]"
-                    class="star"
-                    [class.filled]="i <= review.rating"
-                  >
-                    ★
-                  </span>
+    <!-- Main Content Grid -->
+    <div class="profile-content">
+      <!-- Left Column -->
+      <div class="left-column">
+        <!-- Experience & Qualifications -->
+        <div class="section experience-section">
+          <div class="section-header">
+            <h2>📋 Experience & Qualifications</h2>
+          </div>
+          <div class="section-content">
+            <div class="experience-item">
+              <span class="experience-icon">🎓</span>
+              <div class="experience-details">
+                <p class="experience-label">Teaching Experience</p>
+                <p class="experience-value">{{ t.experienceYears }} years</p>
+              </div>
+            </div>
+            <div class="qualifications-container">
+              <h4 class="qualifications-title">Qualifications</h4>
+              <div class="qualifications-grid">
+                <div class="qualification-badge" *ngFor="let qualification of t.qualifications">
+                  <span class="badge-icon">✓</span>
+                  <span class="badge-text">{{ qualification }}</span>
                 </div>
               </div>
             </div>
-            <p class="review-text">{{ review.text }}</p>
-            <span class="review-date">
-              {{ review.date | date:'MMM dd, yyyy' }}
-            </span>
           </div>
+        </div>
 
-          <div *ngIf="reviews.length === 0" class="empty-reviews">
-            <p>No reviews yet.</p>
+        <!-- Subjects & Levels -->
+        <div class="section subjects-section">
+          <div class="section-header">
+            <h2>💼 Subjects & Levels</h2>
+          </div>
+          <div class="section-content">
+            <div class="subjects-grid">
+              <div class="subject-card" *ngFor="let subject of t.subjects">
+                <div class="subject-header">
+                  <h4 class="subject-name">{{ subject.name }}</h4>
+                </div>
+                <div class="subject-details">
+                  <div class="detail-item">
+                    <span class="detail-icon">🗣️</span>
+                    <span class="detail-text">{{ subject.medium }}</span>
+                  </div>
+                  <div class="detail-item">
+                    <span class="detail-icon">📊</span>
+                    <span class="detail-text">{{ subject.level }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Availability Schedule -->
+        <div class="section availability-section">
+          <div class="section-header">
+            <h2>📅 Availability Schedule</h2>
+          </div>
+          <div class="section-content">
+            <div class="schedule-table">
+              <div class="table-header">
+                <div class="table-cell header-cell">Day</div>
+                <div class="table-cell header-cell">Start Time</div>
+                <div class="table-cell header-cell">End Time</div>
+              </div>
+              <div class="table-body">
+                <div class="table-row" *ngFor="let slot of t.availability">
+                  <div class="table-cell">
+                    <strong>{{ getDayName(slot.dayOfWeek) }}</strong>
+                  </div>
+                  <div class="table-cell">{{ slot.startTime }}</div>
+                  <div class="table-cell">{{ slot.endTime }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contact Information -->
+        <div class="section contact-section">
+          <div class="section-header">
+            <h2>📞 Contact Information</h2>
+          </div>
+          <div class="section-content">
+            <div class="contact-item">
+              <span class="contact-icon">✉️</span>
+              <div class="contact-details">
+                <p class="contact-label">Email</p>
+                <a [href]="'mailto:' + t.email" class="contact-link">{{ t.email }}</a>
+              </div>
+            </div>
+            <div class="contact-item">
+              <span class="contact-icon">📱</span>
+              <div class="contact-details">
+                <p class="contact-label">Phone</p>
+                <a [href]="'tel:' + t.phoneNumber" class="contact-link">{{ t.phoneNumber }}</a>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="section">
-        <h2>ℹ️ About</h2>
-        <div class="about-info">
-          <p>
-            Status:
-            <span
-              [class]="'status-' + ((t.verificationStatus || 'pending').toLowerCase())"
-            >
-              {{ t.verificationStatus || 'Pending' }}
-            </span>
-          </p>
-          <p>Member Since: {{ t.createdAt | date:'MMM yyyy' }}</p>
+      <!-- Right Column -->
+      <div class="right-column">
+        <!-- Pricing Card -->
+        <div class="section pricing-section">
+          <div class="section-header">
+            <h2>💰 Hourly Rate</h2>
+          </div>
+          <div class="section-content pricing-content">
+            <div class="rate-box">
+              <p class="rate-amount">LKR {{ t.hourlyRate }}</p>
+              <p class="rate-label">per hour</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Status Card -->
+        <div class="section status-section">
+          <div class="section-header">
+            <h2>ℹ️ Profile Status</h2>
+          </div>
+          <div class="section-content">
+            <div class="status-item">
+              <p class="status-label">Verification</p>
+              <span class="status-badge" [ngClass]="'status-' + ((t.verificationStatus || 'pending').toLowerCase())">
+                {{ t.verificationStatus || 'Pending' }}
+              </span>
+            </div>
+            <div class="status-item">
+              <p class="status-label">Member Since</p>
+              <p class="status-value">{{ t.createdAt | date:'MMM yyyy' }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Reviews Section -->
+        <div class="section reviews-section">
+          <div class="section-header">
+            <h2>⭐ Student Reviews</h2>
+            <span class="review-count-badge">{{ reviews.length }}</span>
+          </div>
+          <div class="section-content reviews-content">
+            <div class="reviews-list" *ngIf="reviews.length > 0; else noReviews">
+              <div class="review-item" *ngFor="let review of reviews | slice:0:5; let i = index"
+                [style.animation-delay]="(i * 0.05) + 's'">
+                <div class="review-header">
+                  <div class="reviewer-info">
+                    <h5 class="reviewer-name">{{ review.studentName }}</h5>
+                    <div class="review-rating">
+                      <span *ngFor="let i of [1,2,3,4,5]" class="star" [class.filled]="i <= review.rating">
+                        ⭐
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <p class="review-text">"{{ review.text }}"</p>
+                <span class="review-date">{{ review.date | date:'MMM dd, yyyy' }}</span>
+              </div>
+            </div>
+            <ng-template #noReviews>
+              <div class="empty-reviews">
+                <p class="empty-icon">💬</p>
+                <p>No reviews yet. Be the first to review!</p>
+              </div>
+            </ng-template>
+          </div>
         </div>
       </div>
     </div>
@@ -163,7 +231,9 @@
 
 <ng-template #loading>
   <div class="loading-container">
-    <div class="loading-spinner"></div>
-    <p>Loading teacher profile...</p>
+    <div class="spinner">
+      <div class="spinner-circle"></div>
+      <p class="loading-text">Loading teacher profile...</p>
+    </div>
   </div>
 </ng-template>

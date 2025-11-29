@@ -163,7 +163,6 @@ D:\ClassBookingAngular\Classbooking\Backend\ClassBooking.API\obj\Debug\net9.0\st
 D:\ClassBookingAngular\Classbooking\Backend\ClassBooking.API\obj\Debug\net9.0\staticwebassets.build.json.cache
 D:\ClassBookingAngular\Classbooking\Backend\ClassBooking.API\obj\Debug\net9.0\staticwebassets.development.json
 D:\ClassBookingAngular\Classbooking\Backend\ClassBooking.API\obj\Debug\net9.0\staticwebassets.build.endpoints.json
-D:\ClassBookingAngular\Classbooking\Backend\ClassBooking.API\obj\Debug\net9.0\staticwebassets.upToDateCheck.txt
 D:\ClassBookingAngular\Classbooking\Backend\ClassBooking.API\obj\Debug\net9.0\ClassBoo.D771CAEF.Up2Date
 D:\ClassBookingAngular\Classbooking\Backend\ClassBooking.API\obj\Debug\net9.0\ClassBooking.API.dll
 D:\ClassBookingAngular\Classbooking\Backend\ClassBooking.API\obj\Debug\net9.0\refint\ClassBooking.API.dll

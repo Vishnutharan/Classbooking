@@ -1,88 +1,159 @@
 <div class="landing-page">
     <!-- Navigation Bar -->
-    <nav class="landing-nav">
-        <div class="nav-container">
-            <div class="nav-logo" (click)="navigateToDashboard()">
-                <span class="logo-icon">🎓</span>
-                <span class="logo-text">ClassBooking</span>
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-left">
+                <div class="navbar-brand" (click)="navigateToDashboard()">
+                    <span class="brand-icon">🎓</span>
+                    <span class="brand-text">ClassBooking</span>
+                </div>
             </div>
 
-            <div class="nav-menu">
-                <a (click)="scrollToSection('features')" class="nav-link">Features</a>
-                <a (click)="scrollToSection('how-it-works')" class="nav-link">How It Works</a>
-                <a (click)="scrollToSection('testimonials')" class="nav-link">Testimonials</a>
+            <div class="navbar-center">
+                <button class="nav-link" (click)="scrollToSection('features')">Features</button>
+                <button class="nav-link" (click)="scrollToSection('how-it-works')">How It Works</button>
+                <button class="nav-link" (click)="scrollToSection('testimonials')">Testimonials</button>
+                <button class="nav-link" (click)="scrollToSection('pricing')">Pricing</button>
             </div>
 
-            <div class="nav-actions">
+            <div class="navbar-actions">
                 <ng-container *ngIf="!isAuthenticated">
-                    <button class="btn btn-secondary" (click)="navigateToAuth('login')">Login</button>
-                    <button class="btn btn-primary" (click)="navigateToAuth('register')">Register</button>
+                    <button class="btn btn-text" (click)="navigateToAuth('login')">Login</button>
+                    <button class="btn btn-primary" (click)="navigateToAuth('register')">Get Started</button>
                 </ng-container>
                 <ng-container *ngIf="isAuthenticated">
-                    <button class="btn btn-secondary" (click)="navigateToDashboard()">Dashboard</button>
+                    <button class="btn btn-text" (click)="navigateToDashboard()">Dashboard</button>
                     <button class="btn btn-primary" (click)="navigateToBookClass()">Book Class</button>
                     <button class="btn btn-outline" (click)="logout()">Logout</button>
+                </ng-container>
+            </div>
+
+            <button class="navbar-toggle" (click)="isMobileMenuOpen = !isMobileMenuOpen">
+                ☰
+            </button>
+        </div>
+
+        <div class="navbar-mobile" [class.open]="isMobileMenuOpen">
+            <button class="nav-link" (click)="scrollToSection('features'); isMobileMenuOpen=false">Features</button>
+            <button class="nav-link" (click)="scrollToSection('how-it-works'); isMobileMenuOpen=false">How It
+                Works</button>
+            <button class="nav-link"
+                (click)="scrollToSection('testimonials'); isMobileMenuOpen=false">Testimonials</button>
+            <button class="nav-link" (click)="scrollToSection('pricing'); isMobileMenuOpen=false">Pricing</button>
+
+            <div class="navbar-mobile-actions">
+                <ng-container *ngIf="!isAuthenticated">
+                    <button class="btn btn-text"
+                        (click)="navigateToAuth('login'); isMobileMenuOpen=false">Login</button>
+                    <button class="btn btn-primary" (click)="navigateToAuth('register'); isMobileMenuOpen=false">Get
+                        Started</button>
+                </ng-container>
+                <ng-container *ngIf="isAuthenticated">
+                    <button class="btn btn-text"
+                        (click)="navigateToDashboard(); isMobileMenuOpen=false">Dashboard</button>
+                    <button class="btn btn-primary" (click)="navigateToBookClass(); isMobileMenuOpen=false">Book
+                        Class</button>
+                    <button class="btn btn-outline" (click)="logout(); isMobileMenuOpen=false">Logout</button>
                 </ng-container>
             </div>
         </div>
     </nav>
 
     <!-- Hero Section -->
-    <section class="hero">
-        <div class="hero-content">
-            <div class="hero-text">
-                <h1 class="hero-title">
-                    Your Gateway to <span class="gradient-text">Quality Education</span>
-                </h1>
-                <p class="hero-subtitle">
-                    Connect with expert teachers, book personalized classes, and achieve your learning goals with our
-                    comprehensive platform.
-                </p>
-                <div class="hero-cta">
-                    <button class="btn btn-primary btn-lg" (click)="navigateToAuth('register')">
-                        Get Started Free
-                    </button>
-                    <button class="btn btn-outline btn-lg" (click)="scrollToSection('how-it-works')">
-                        Learn More
-                    </button>
+    <section class="hero-section">
+        <div class="hero-container">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <span class="hero-badge">🚀 Welcome to Learning Revolution</span>
+                    <h1 class="hero-title">
+                        Your Gateway to <span class="gradient-text">Quality Education</span>
+                    </h1>
+                    <p class="hero-description">
+                        Connect with 500+ expert teachers, book personalized classes, and achieve your learning goals
+                        with our comprehensive platform trusted by 10,000+ students.
+                    </p>
+                    <div class="hero-buttons">
+                        <button class="btn btn-primary btn-lg" (click)="navigateToAuth('register')">
+                            <span class="btn-label">Get Started Free</span>
+                            <span class="btn-icon">→</span>
+                        </button>
+                        <button class="btn btn-outline btn-lg" (click)="scrollToSection('how-it-works')">
+                            Learn How It Works
+                        </button>
+                    </div>
+                    <div class="hero-stats">
+                        <div class="stat-item">
+                            <p class="stat-value">500+</p>
+                            <p class="stat-name">Expert Teachers</p>
+                        </div>
+                        <div class="stat-item">
+                            <p class="stat-value">10K+</p>
+                            <p class="stat-name">Active Students</p>
+                        </div>
+                        <div class="stat-item">
+                            <p class="stat-value">50+</p>
+                            <p class="stat-name">Subjects</p>
+                        </div>
+                        <div class="stat-item">
+                            <p class="stat-value">4.9⭐</p>
+                            <p class="stat-name">Average Rating</p>
+                        </div>
+                    </div>
                 </div>
-                <div class="hero-stats">
-                    <div class="stat">
-                        <span class="stat-number">500+</span>
-                        <span class="stat-label">Expert Teachers</span>
+
+                <div class="hero-visual">
+                    <div class="hero-glass-card main-glass">
+                        <h3>Instant Class Booking</h3>
+                        <p>Find the right teacher in minutes and schedule your next class with ease.</p>
+                        <div class="hero-mini-stats">
+                            <div>
+                                <span class="mini-label">Next class</span>
+                                <span class="mini-value">Today · 7:00 PM</span>
+                            </div>
+                            <div>
+                                <span class="mini-label">Today’s sessions</span>
+                                <span class="mini-value">24 booked</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="stat">
-                        <span class="stat-number">10,000+</span>
-                        <span class="stat-label">Students</span>
+
+                    <div class="floating-card card-1">
+                        <div class="card-content">
+                            <span class="card-icon">📚</span>
+                            <p>Learn Anything</p>
+                        </div>
                     </div>
-                    <div class="stat">
-                        <span class="stat-number">50+</span>
-                        <span class="stat-label">Subjects</span>
+                    <div class="floating-card card-2">
+                        <div class="card-content">
+                            <span class="card-icon">👨‍🏫</span>
+                            <p>Expert Teachers</p>
+                        </div>
                     </div>
-                </div>
-            </div>
-            <div class="hero-image">
-                <div class="hero-illustration">
-                    <div class="illustration-circle circle-1"></div>
-                    <div class="illustration-circle circle-2"></div>
-                    <div class="illustration-circle circle-3"></div>
-                    <div class="illustration-icon">📚</div>
+                    <div class="floating-card card-3">
+                        <div class="card-content">
+                            <span class="card-icon">📈</span>
+                            <p>Track Progress</p>
+                        </div>
+                    </div>
+
+                    <div class="background-decoration deco-1"></div>
+                    <div class="background-decoration deco-2"></div>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- Features Section -->
-    <section id="features" class="features">
+    <section id="features" class="features-section">
         <div class="section-container">
             <div class="section-header">
+                <span class="section-badge">✨ Features</span>
                 <h2 class="section-title">Why Choose ClassBooking?</h2>
-                <p class="section-subtitle">
-                    Everything you need to succeed in your learning journey
-                </p>
+                <p class="section-description">Everything you need for successful learning</p>
             </div>
             <div class="features-grid">
-                <div class="feature-card" *ngFor="let feature of features">
+                <div class="feature-card" *ngFor="let feature of features; let i = index"
+                    [style.animation-delay]="(i * 0.1) + 's'">
                     <div class="feature-icon">{{ feature.icon }}</div>
                     <h3 class="feature-title">{{ feature.title }}</h3>
                     <p class="feature-description">{{ feature.description }}</p>
@@ -92,37 +163,36 @@
     </section>
 
     <!-- How It Works Section -->
-    <section id="how-it-works" class="how-it-works">
+    <section id="how-it-works" class="how-it-works-section">
         <div class="section-container">
             <div class="section-header">
+                <span class="section-badge">🎯 Process</span>
                 <h2 class="section-title">How It Works</h2>
-                <p class="section-subtitle">
-                    Get started in four simple steps
-                </p>
+                <p class="section-description">Get started in four simple steps</p>
             </div>
 
-            <div class="steps-container">
-                <!-- For Students -->
-                <div class="steps-group">
-                    <h3 class="steps-group-title">For Students</h3>
-                    <div class="steps-grid">
-                        <div class="step-card" *ngFor="let step of studentSteps">
-                            <div class="step-number">{{ step.number }}</div>
-                            <h4 class="step-title">{{ step.title }}</h4>
-                            <p class="step-description">{{ step.description }}</p>
-                        </div>
+            <!-- Student Steps -->
+            <div class="steps-section">
+                <h3 class="steps-title">👨‍🎓 For Students</h3>
+                <div class="steps-grid">
+                    <div class="step-card" *ngFor="let step of studentSteps; let i = index"
+                        [style.animation-delay]="(i * 0.1) + 's'">
+                        <div class="step-number">{{ step.number }}</div>
+                        <h4 class="step-title">{{ step.title }}</h4>
+                        <p class="step-description">{{ step.description }}</p>
                     </div>
                 </div>
+            </div>
 
-                <!-- For Teachers -->
-                <div class="steps-group">
-                    <h3 class="steps-group-title">For Teachers</h3>
-                    <div class="steps-grid">
-                        <div class="step-card" *ngFor="let step of teacherSteps">
-                            <div class="step-number">{{ step.number }}</div>
-                            <h4 class="step-title">{{ step.title }}</h4>
-                            <p class="step-description">{{ step.description }}</p>
-                        </div>
+            <!-- Teacher Steps -->
+            <div class="steps-section">
+                <h3 class="steps-title">👨‍🏫 For Teachers</h3>
+                <div class="steps-grid">
+                    <div class="step-card" *ngFor="let step of teacherSteps; let i = index"
+                        [style.animation-delay]="(i * 0.1) + 's'">
+                        <div class="step-number">{{ step.number }}</div>
+                        <h4 class="step-title">{{ step.title }}</h4>
+                        <p class="step-description">{{ step.description }}</p>
                     </div>
                 </div>
             </div>
@@ -130,27 +200,94 @@
     </section>
 
     <!-- Testimonials Section -->
-    <section id="testimonials" class="testimonials">
+    <section id="testimonials" class="testimonials-section">
         <div class="section-container">
             <div class="section-header">
+                <span class="section-badge">💬 Reviews</span>
                 <h2 class="section-title">What Our Users Say</h2>
-                <p class="section-subtitle">
-                    Join thousands of satisfied students and teachers
-                </p>
+                <p class="section-description">Join thousands of satisfied students and teachers</p>
             </div>
             <div class="testimonials-grid">
-                <div class="testimonial-card" *ngFor="let testimonial of testimonials">
-                    <div class="testimonial-header">
-                        <div class="testimonial-avatar">{{ testimonial.avatar }}</div>
-                        <div class="testimonial-info">
-                            <h4 class="testimonial-name">{{ testimonial.name }}</h4>
-                            <p class="testimonial-role">{{ testimonial.role }}</p>
-                        </div>
-                    </div>
+                <div class="testimonial-card" *ngFor="let testimonial of testimonials; let i = index"
+                    [style.animation-delay]="(i * 0.1) + 's'">
                     <div class="testimonial-rating">
                         <span class="star" *ngFor="let _ of [1,2,3,4,5]">⭐</span>
                     </div>
-                    <p class="testimonial-text">{{ testimonial.text }}</p>
+                    <p class="testimonial-text">"{{ testimonial.text }}"</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">{{ testimonial.avatar }}</div>
+                        <div class="author-info">
+                            <h4 class="author-name">{{ testimonial.name }}</h4>
+                            <p class="author-role">{{ testimonial.role }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="pricing" class="pricing-section">
+        <div class="section-container">
+            <div class="section-header">
+                <span class="section-badge">💳 Pricing</span>
+                <h2 class="section-title">Simple, Transparent Plans</h2>
+                <p class="section-description">Choose the plan that fits your learning style</p>
+            </div>
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <h3 class="pricing-name">Starter</h3>
+                    <p class="pricing-tagline">Perfect for trying things out</p>
+                    <div class="pricing-price">
+                        <span class="currency">LKR</span>
+                        <span class="value">0</span>
+                        <span class="period">/mo</span>
+                    </div>
+                    <ul class="pricing-features">
+                        <li>Access to basic classes</li>
+                        <li>Limited teacher profiles</li>
+                        <li>Email support</li>
+                    </ul>
+                    <button class="btn btn-outline full" (click)="navigateToAuth('register')">
+                        Get Started
+                    </button>
+                </div>
+                <div class="pricing-card featured">
+                    <div class="pricing-pill">Most Popular</div>
+                    <h3 class="pricing-name">Pro Learner</h3>
+                    <p class="pricing-tagline">For serious students and parents</p>
+                    <div class="pricing-price">
+                        <span class="currency">LKR</span>
+                        <span class="value">2499</span>
+                        <span class="period">/mo</span>
+                    </div>
+                    <ul class="pricing-features">
+                        <li>Unlimited class bookings</li>
+                        <li>Access to all teachers</li>
+                        <li>Progress tracking & reports</li>
+                        <li>Priority support</li>
+                    </ul>
+                    <button class="btn btn-primary full" (click)="navigateToAuth('register')">
+                        Start Pro Plan
+                    </button>
+                </div>
+                <div class="pricing-card">
+                    <h3 class="pricing-name">Teacher</h3>
+                    <p class="pricing-tagline">Grow your teaching business</p>
+                    <div class="pricing-price">
+                        <span class="currency">LKR</span>
+                        <span class="value">1499</span>
+                        <span class="period">/mo</span>
+                    </div>
+                    <ul class="pricing-features">
+                        <li>Unlimited students</li>
+                        <li>Booking & schedule tools</li>
+                        <li>Earnings dashboard</li>
+                        <li>Priority placement</li>
+                    </ul>
+                    <button class="btn btn-outline full" (click)="navigateToAuth('register')">
+                        Join as Teacher
+                    </button>
                 </div>
             </div>
         </div>
@@ -158,60 +295,78 @@
 
     <!-- CTA Section -->
     <section class="cta-section">
-        <div class="cta-content">
-            <h2 class="cta-title">Ready to Start Your Learning Journey?</h2>
-            <p class="cta-subtitle">
-                Join ClassBooking today and unlock your full potential
-            </p>
-            <div class="cta-buttons">
-                <button class="btn btn-primary btn-lg" (click)="navigateToAuth('register')">
-                    Register Now
-                </button>
-                <button class="btn btn-outline-light btn-lg" (click)="navigateToAuth('login')">
-                    Sign In
-                </button>
+        <div class="cta-container">
+            <div class="cta-content">
+                <h2 class="cta-title">Ready to Transform Your Learning?</h2>
+                <p class="cta-description">
+                    Join thousands of students achieving their educational goals with ClassBooking
+                </p>
+                <div class="cta-buttons">
+                    <button class="btn btn-primary btn-lg" (click)="navigateToAuth('register')">
+                        Start Learning Now
+                    </button>
+                    <button class="btn btn-outline-light btn-lg" (click)="navigateToAuth('login')">
+                        Sign In
+                    </button>
+                </div>
             </div>
         </div>
     </section>
 
     <!-- Footer -->
     <footer class="footer">
-        <div class="footer-content">
-            <div class="footer-section">
-                <h3 class="footer-title">
-                    <span class="logo-icon">🎓</span> ClassBooking
-                </h3>
-                <p class="footer-description">
-                    Your trusted platform for quality education and personalized learning.
-                </p>
+        <div class="footer-container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-brand">
+                        <span class="brand-icon">🎓</span>
+                        <span class="brand-text">ClassBooking</span>
+                    </div>
+                    <p class="footer-description">
+                        Your trusted platform for quality education and personalized learning.
+                    </p>
+                    <div class="social-links">
+                        <a href="#" class="social-link">f</a>
+                        <a href="#" class="social-link">𝕏</a>
+                        <a href="#" class="social-link">in</a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h4 class="footer-heading">Product</h4>
+                    <ul class="footer-links">
+                        <li><button (click)="scrollToSection('features')">Features</button></li>
+                        <li><button (click)="scrollToSection('how-it-works')">How It Works</button></li>
+                        <li><button (click)="navigateToAuth('register')">Get Started</button></li>
+                        <li><a href="#">Pricing</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4 class="footer-heading">Support</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">Help Center</a></li>
+                        <li><a href="#">Contact Us</a></li>
+                        <li><a href="#">FAQs</a></li>
+                        <li><a href="#">Status</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4 class="footer-heading">Legal</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="#">Cookie Policy</a></li>
+                        <li><a href="#">Disclaimer</a></li>
+                    </ul>
+                </div>
             </div>
-            <div class="footer-section">
-                <h4 class="footer-heading">Platform</h4>
-                <ul class="footer-links">
-                    <li><a (click)="scrollToSection('features')">Features</a></li>
-                    <li><a (click)="scrollToSection('how-it-works')">How It Works</a></li>
-                    <li><a (click)="navigateToAuth('register')">Register</a></li>
-                </ul>
+            <div class="footer-bottom">
+                <p>&copy; 2025 ClassBooking. All rights reserved.</p>
+                <div class="footer-badges">
+                    <span class="badge">🔒 Secure</span>
+                    <span class="badge">✓ Verified</span>
+                    <span class="badge">⭐ Trusted</span>
+                </div>
             </div>
-            <div class="footer-section">
-                <h4 class="footer-heading">Support</h4>
-                <ul class="footer-links">
-                    <li><a href="#">Help Center</a></li>
-                    <li><a href="#">Contact Us</a></li>
-                    <li><a href="#">FAQs</a></li>
-                </ul>
-            </div>
-            <div class="footer-section">
-                <h4 class="footer-heading">Legal</h4>
-                <ul class="footer-links">
-                    <li><a href="#">Privacy Policy</a></li>
-                    <li><a href="#">Terms of Service</a></li>
-                    <li><a href="#">Cookie Policy</a></li>
-                </ul>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <p>&copy; 2025 ClassBooking. All rights reserved.</p>
         </div>
     </footer>
 </div>

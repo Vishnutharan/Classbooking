@@ -18,6 +18,9 @@ export class LandingComponent implements OnInit {
   currentUser: User | null = null;
   isAuthenticated = false;
 
+  // 👇 ADD THIS
+  isMobileMenuOpen = false;
+
   // Features data
   features = [
     {
@@ -132,8 +135,8 @@ export class LandingComponent implements OnInit {
   }
 
   navigateToAuth(mode: 'login' | 'register'): void {
-    this.router.navigate(['/auth'], { 
-      queryParams: { mode } 
+    this.router.navigate(['/auth'], {
+      queryParams: { mode }
     });
   }
 
