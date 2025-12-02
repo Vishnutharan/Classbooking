@@ -298,24 +298,5 @@ export const routes: Routes = [
       import('./components/exam-results/exam-results.component').then(
         m => m.ExamResultsComponent
       )
-  },
-
-  // MISC
-  {
-    path: 'settings',
-    canActivate: [AuthGuard],
-    loadComponent: () =>
-      // Note: You might want to point this to ManageProfileGeneric too?
-      import('./components/student-dashboard/student-dashboard.component').then(
-        m => m.StudentDashboardComponent
-      )
-  },
-  {
-    path: 'support',
-    canActivate: [AuthGuard],
-    loadComponent: () =>
-      import('./components/student-dashboard/student-dashboard.component').then(
-        m => m.StudentDashboardComponent
-      )
   }
 ];
