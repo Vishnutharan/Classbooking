@@ -49,6 +49,9 @@ export class AuthComponent implements OnInit {
       confirmPassword: [''],
       role: ['Student', Validators.required]
     });
+
+    // Initialize validators based on mode
+    this.updateValidators();
   }
 
   toggleMode(event?: Event): void {
@@ -57,6 +60,23 @@ export class AuthComponent implements OnInit {
     }
     this.isLoginMode = !this.isLoginMode;
     this.errorMessage = null;
+    this.updateValidators();
+  }
+
+  private updateValidators(): void {
+    const fullNameControl = this.authForm.get('fullName');
+    const roleControl = this.authForm.get('role');
+
+    if (this.isLoginMode) {
+      fullNameControl?.clearValidators();
+      roleControl?.clearValidators();
+    } else {
+      fullNameControl?.setValidators([Validators.required, Validators.minLength(2)]);
+      roleControl?.setValidators([Validators.required]);
+    }
+    
+    fullNameControl?.updateValueAndValidity();
+    roleControl?.updateValueAndValidity();
   }
 
 

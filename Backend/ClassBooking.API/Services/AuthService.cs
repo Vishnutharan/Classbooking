@@ -7,6 +7,7 @@ using ClassBooking.API.Models.Dto;
 using ClassBooking.API.Repositories;
 using ClassBooking.API.Entities;
 using Microsoft.IdentityModel.Tokens;
+using ClassBooking.API.Data;
 
 namespace ClassBooking.API.Services
 {
@@ -23,88 +24,102 @@ namespace ClassBooking.API.Services
         private readonly IStudentRepository _studentRepository;
         private readonly IConfiguration _configuration;
 
+        private readonly ClassBookingDbContext _context;
+
         public AuthService(
             IUserRepository userRepository,
             ITeacherRepository teacherRepository,
             IStudentRepository studentRepository,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            ClassBookingDbContext context)
         {
             _userRepository = userRepository;
             _teacherRepository = teacherRepository;
             _studentRepository = studentRepository;
             _configuration = configuration;
+            _context = context;
         }
 
         public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
         {
-            // Check if user exists
-            var existingUser = await _userRepository.GetByEmailAsync(request.Email);
-            if (existingUser != null)
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
             {
-                throw new Exception("Email already exists.");
-            }
-
-            // Hash password
-            string passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
-
-            // Create user
-            var newUser = new User
-            {
-                Email = request.Email,
-                PasswordHash = passwordHash,
-                FullName = request.FullName,
-                Role = request.Role
-            };
-
-
-            string userId = await _userRepository.CreateUserAsync(newUser);
-            newUser.Id = userId;
-
-            // Create Profile based on Role
-            if (request.Role == "Teacher")
-            {
-                var teacherProfile = new TeacherProfileEntity
+                // Check if user exists
+                var existingUser = await _userRepository.GetByEmailAsync(request.Email);
+                if (existingUser != null)
                 {
-                    UserId = userId,
-                    FullName = request.FullName,
-                    Email = request.Email,
-                    PhoneNumber = "", // Can be updated later
-                    HourlyRate = 0,
-                    ExperienceYears = 0,
-                    AverageRating = 0,
-                    TotalReviews = 0,
-                    TotalClasses = 0,
-                    IsAvailable = true, // Default to available
-                    VerificationStatus = "Pending",
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                };
-                await _teacherRepository.CreateTeacherAsync(teacherProfile);
-            }
-            else if (request.Role == "Student")
-            {
-                var studentProfile = new StudentProfileEntity
+                    throw new Exception("Email already exists.");
+                }
+
+                // Hash password
+                string passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
+
+                // Create user
+                var newUser = new User
                 {
-                    UserId = userId,
-                    FullName = request.FullName,
                     Email = request.Email,
-                    PhoneNumber = "",
-                    GradeLevel = "OLevel", // Default
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
+                    PasswordHash = passwordHash,
+                    FullName = request.FullName,
+                    Role = request.Role
                 };
-                await _studentRepository.CreateAsync(studentProfile);
+
+                string userId = await _userRepository.CreateUserAsync(newUser);
+                newUser.Id = userId;
+
+                // Create Profile based on Role
+                if (request.Role == "Teacher")
+                {
+                    var teacherProfile = new TeacherProfileEntity
+                    {
+                        UserId = userId,
+                        FullName = request.FullName,
+                        Email = request.Email,
+                        PhoneNumber = request.PhoneNumber ?? "",
+                        HourlyRate = 0,
+                        ExperienceYears = 0,
+                        AverageRating = 0,
+                        TotalReviews = 0,
+                        TotalClasses = 0,
+                        IsAvailable = true, // Default to available
+                        VerificationStatus = "Pending",
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    };
+                    await _teacherRepository.CreateTeacherAsync(teacherProfile);
+                }
+                else if (request.Role == "Student")
+                {
+                    var studentProfile = new StudentProfileEntity
+                    {
+                        UserId = userId,
+                        FullName = request.FullName,
+                        Email = request.Email,
+                        PhoneNumber = request.PhoneNumber ?? "",
+                        GradeLevel = "OLevel", // Default
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    };
+                    await _studentRepository.CreateAsync(studentProfile);
+                }
+
+                await transaction.CommitAsync();
+
+                // Generate token
+                string token = GenerateJwtToken(newUser);
+
+                return new AuthResponse
+                {
+                    Token = token,
+                    RefreshToken = "dummy-refresh-token", // Implement real refresh token logic if needed
+                    User = MapToDto(newUser)
+                };
             }
-
-            // Generate token
-            string token = GenerateJwtToken(newUser);
-
-            return new AuthResponse
+            catch (Exception)
             {
-                Token = token,
-                RefreshToken = "dummy-refresh-token", // Implement real refresh token logic if needed
-                User = MapToDto(newUser)
-            };
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         public async Task<AuthResponse> LoginAsync(LoginRequest request)
