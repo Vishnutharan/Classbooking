@@ -29,8 +29,8 @@ export const serverRoutes: ServerRoute[] = [
   { path: 'teacher-profile/:id', renderMode: RenderMode.Server },
 
   // Misc pages calling APIs
-  { path: 'support', renderMode: RenderMode.Server },
-  { path: 'settings', renderMode: RenderMode.Server },
+
+
 
   // ADMIN ROUTES
   // These ensure your new Admin Components are rendered on the server (SSR)

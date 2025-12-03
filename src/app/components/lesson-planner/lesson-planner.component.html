@@ -1,0 +1,93 @@
+<div class="planner-container">
+  <div class="header">
+    <h1>📝 Lesson Planner</h1>
+    <button class="btn-primary" *ngIf="!showForm" (click)="openForm()">+ Create Lesson Plan</button>
+  </div>
+
+  <!-- Lesson Plan Form -->
+  <div class="lesson-form-card" *ngIf="showForm">
+    <h2>{{ isEditing ? 'Edit' : 'Create' }} Lesson Plan</h2>
+    <form (ngSubmit)="saveLesson()">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Title</label>
+          <input type="text" [(ngModel)]="currentLesson.title" name="title" required placeholder="e.g. Introduction to Algebra">
+        </div>
+        <div class="form-group">
+          <label>Subject</label>
+          <input type="text" [(ngModel)]="currentLesson.subject" name="subject" required placeholder="e.g. Mathematics">
+        </div>
+        <div class="form-group">
+          <label>Grade/Level</label>
+          <input type="text" [(ngModel)]="currentLesson.grade" name="grade" required placeholder="e.g. Grade 10">
+        </div>
+        <div class="form-group">
+          <label>Duration (mins)</label>
+          <input type="number" [(ngModel)]="currentLesson.duration" name="duration" required>
+        </div>
+        <div class="form-group">
+          <label>Scheduled Date</label>
+          <input type="date" [ngModel]="currentLesson.scheduledDate | date:'yyyy-MM-dd'" (ngModelChange)="currentLesson.scheduledDate = $event" name="scheduledDate">
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select [(ngModel)]="currentLesson.status" name="status">
+            <option value="Draft">Draft</option>
+            <option value="Planned">Planned</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Completed">Completed</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="form-group full-width">
+        <label>Description</label>
+        <textarea [(ngModel)]="currentLesson.description" name="description" rows="3" placeholder="Brief overview of the lesson..."></textarea>
+      </div>
+
+      <div class="form-group full-width">
+        <label>Learning Objectives</label>
+        <textarea [(ngModel)]="currentLesson.objectives" name="objectives" rows="3" placeholder="What will students learn?"></textarea>
+      </div>
+
+      <div class="form-group full-width">
+        <label>Materials Needed</label>
+        <textarea [(ngModel)]="currentLesson.materials" name="materials" rows="2" placeholder="Textbooks, worksheets, etc."></textarea>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn-secondary" (click)="cancelForm()">Cancel</button>
+        <button type="submit" class="btn-primary">💾 Save Lesson Plan</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Lessons Grid -->
+  <div class="lessons-grid" *ngIf="!showForm">
+    <div class="lesson-card" *ngFor="let lesson of lessonPlans">
+      <div class="lesson-header">
+        <h3>{{ lesson.title }}</h3>
+        <span class="status-badge" [ngClass]="'status-' + lesson.status.toLowerCase().replace(' ', '-')">
+          {{ lesson.status }}
+        </span>
+      </div>
+      <p class="description">{{ lesson.description }}</p>
+      <div class="lesson-meta">
+        <span>📚 {{ lesson.subject }}</span>
+        <span>🎓 {{ lesson.grade }}</span>
+        <span>⏱️ {{ lesson.duration }} mins</span>
+      </div>
+      <div *ngIf="lesson.scheduledDate" class="scheduled-date">
+        📅 Scheduled: {{ lesson.scheduledDate | date:'MMM dd, yyyy' }}
+      </div>
+      <div class="lesson-actions">
+        <button class="btn-edit" (click)="editLesson(lesson)">Edit</button>
+        <button class="btn-delete" (click)="deleteLesson(lesson.id)">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="!showForm && lessonPlans.length === 0" class="empty-state">
+    <p>No lesson plans yet. Create your first lesson plan!</p>
+  </div>
+</div>

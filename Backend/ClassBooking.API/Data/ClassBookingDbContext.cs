@@ -28,6 +28,8 @@ namespace ClassBooking.API.Data
         public DbSet<FeeTransactionEntity> FeeTransactions { get; set; }
         public DbSet<NotificationEntity> Notifications { get; set; }
         public DbSet<MessageEntity> Messages { get; set; }
+        public DbSet<ConversationEntity> Conversations { get; set; }
+        public DbSet<ConversationParticipantEntity> ConversationParticipants { get; set; }
         public DbSet<AnnouncementEntity> Announcements { get; set; }
         public DbSet<ResourceEntity> Resources { get; set; }
         public DbSet<ExamPreparationEntity> ExamPreparations { get; set; }
@@ -176,13 +178,36 @@ namespace ClassBooking.API.Data
                 entity.HasIndex(e => new { e.UserId, e.IsRead });
             });
 
-            // Configure Message entity
+            // Configure Message and Conversation entities
+            modelBuilder.Entity<ConversationEntity>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.HasIndex(e => e.UpdatedAt);
+                
+                entity.HasMany(e => e.Participants)
+                    .WithOne(p => p.Conversation)
+                    .HasForeignKey(p => p.ConversationId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                
+                entity.HasMany(e => e.Messages)
+                    .WithOne(m => m.Conversation)
+                    .HasForeignKey(m => m.ConversationId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+            
+            modelBuilder.Entity<ConversationParticipantEntity>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.HasIndex(e => new { e.ConversationId, e.UserId }).IsUnique();
+                entity.HasIndex(e => e.UserId);
+            });
+            
             modelBuilder.Entity<MessageEntity>(entity =>
             {
                 entity.HasKey(e => e.Id);
+                entity.HasIndex(e => e.ConversationId);
                 entity.HasIndex(e => e.SenderId);
-                entity.HasIndex(e => e.ReceiverId);
-                entity.HasIndex(e => new { e.ReceiverId, e.IsRead });
+                entity.HasIndex(e => new { e.ConversationId, e.SentAt });
             });
 
             // Configure Announcement entity
@@ -196,9 +221,10 @@ namespace ClassBooking.API.Data
             modelBuilder.Entity<ResourceEntity>(entity =>
             {
                 entity.HasKey(e => e.Id);
+                entity.HasIndex(e => e.TeacherProfileId);
                 entity.HasIndex(e => e.Subject);
                 entity.HasIndex(e => e.Type);
-                entity.HasIndex(e => e.ExamType);
+                entity.HasIndex(e => e.Level);
             });
 
             // Configure ExamPreparation entity

@@ -48,9 +48,10 @@ namespace ClassBooking.API.Repositories
         Task<bool> DeleteLessonPlanAsync(string id);
         
         // Teacher-Student Relationship Operations
-        Task<List<TeacherStudentEntity>> GetTeacherStudentsAsync(string teacherProfileId);
+        // Task<List<TeacherStudentEntity>> GetTeacherStudentsAsync(string teacherProfileId);
         Task<TeacherStudentEntity> AddTeacherStudentAsync(TeacherStudentEntity relationship);
         Task<bool> RemoveTeacherStudentAsync(string teacherProfileId, string studentId);
+        Task<List<TeacherStudentEntity>> GetTeacherStudentsAsync(string teacherProfileId);
     }
 
 
@@ -344,14 +345,32 @@ namespace ClassBooking.API.Repositories
             return true;
         }
 
-        // Teacher-Student Relationship Operations
-        public async Task<List<TeacherStudentEntity>> GetTeacherStudentsAsync(string teacherProfileId)
+public async Task<List<TeacherStudentEntity>> GetTeacherStudentsAsync(string teacherProfileId)
+{
+    var bookings = await _context.Bookings
+        .Where(b => b.TeacherId == teacherProfileId)
+        .ToListAsync();
+
+    var studentIds = bookings.Select(b => b.StudentId).Distinct().ToList();
+
+    if (!studentIds.Any())
+        return new List<TeacherStudentEntity>();
+
+    var students = await _context.StudentProfiles
+        .Where(s => studentIds.Contains(s.UserId))
+        .Select(s => new TeacherStudentEntity
         {
-            return await _context.TeacherStudents
-                .Where(ts => ts.TeacherProfileId == teacherProfileId && ts.IsActive)
-                .OrderBy(ts => ts.StudentName)
-                .ToListAsync();
-        }
+            Id = s.Id,
+            StudentId = s.UserId,
+            StudentName = s.FullName,
+            Grade = s.GradeLevel,
+            EnrolledDate = s.CreatedAt
+        })
+        .ToListAsync();
+
+    return students;
+}
+
 
         public async Task<TeacherStudentEntity> AddTeacherStudentAsync(TeacherStudentEntity relationship)
         {

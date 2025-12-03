@@ -1,15 +1,17 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { Component, inject, OnInit, PLATFORM_ID, Inject } from '@angular/core';
+import { Component, inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { StudentService } from '../../core/services/student.service';
 import { TeacherService } from '../../core/services/teacher.service';
 import { ClassBookingService } from '../../core/services/class-booking.service';
 import { TeacherProfile, ClassBooking } from '../../core/models/shared.models';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-student-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './student-dashboard.component.html',
   styleUrl: './student-dashboard.component.css'
 })
@@ -22,6 +24,17 @@ export class StudentDashboardComponent implements OnInit {
 
   upcomingClasses: ClassBooking[] = [];
   recommendedTeachers: TeacherProfile[] = [];
+  subjectsProgress: { subject: string; progress: number }[] = [];
+
+  // Search & Filter
+  allTeachers: TeacherProfile[] = [];
+  filteredTeachers: TeacherProfile[] = [];
+  searchFilters = {
+    subject: '',
+    level: '',
+    medium: ''
+  };
+
   stats = {
     totalClassesBooked: 0,
     completedClasses: 0,
@@ -33,7 +46,6 @@ export class StudentDashboardComponent implements OnInit {
   isLoading = false;
 
   ngOnInit(): void {
-    // Only load data on the browser, not during SSR
     if (isPlatformBrowser(this.platformId)) {
       this.loadDashboardData();
     }
@@ -42,28 +54,34 @@ export class StudentDashboardComponent implements OnInit {
   private loadDashboardData(): void {
     this.isLoading = true;
 
-    this.bookingService.getStudentBookings().subscribe({
-      next: (bookings) => {
+    forkJoin({
+      summary: this.studentService.getSummary(),
+      bookings: this.bookingService.getStudentBookings(),
+      recommended: this.studentService.getRecommendedTeachers(),
+      progress: this.studentService.getProgressReport(),
+      allTeachers: this.teacherService.getAllTeachers()
+    }).subscribe({
+      next: ({ summary, bookings, recommended, progress, allTeachers }) => {
         this.upcomingClasses = bookings
           .filter(b => b.status === 'Confirmed')
           .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
           .slice(0, 5);
 
-        this.stats.totalClassesBooked = bookings.length;
-        this.stats.completedClasses = bookings.filter(b => b.status === 'Completed').length;
-        this.stats.hoursStudied = this.calculateHours(bookings);
-      }
-    });
+        this.stats.totalClassesBooked = summary?.totalClasses || bookings.length;
+        this.stats.completedClasses = summary?.completedClasses || bookings.filter(b => b.status === 'Completed').length;
+        this.stats.hoursStudied = summary?.studyHours || this.calculateHours(bookings);
+        this.stats.progressPercentage = summary?.progressPercentage || 0;
+        this.stats.averageRating = summary?.averageRating || 0;
 
-    this.studentService.getRecommendedTeachers().subscribe({
-      next: (teachers) => {
-        this.recommendedTeachers = teachers.slice(0, 6);
-      }
-    });
+        this.recentActivity = progress?.activities || [];
+        this.subjectsProgress = progress?.subjectsProgress || [];
 
-    this.studentService.getProgressReport().subscribe({
-      next: (report) => {
-        this.recentActivity = report.activities || [];
+        this.allTeachers = allTeachers || [];
+        this.filteredTeachers = allTeachers || [];
+        this.recommendedTeachers = recommended || [];
+      },
+      error: () => {
+        this.isLoading = false;
       },
       complete: () => {
         this.isLoading = false;
@@ -107,5 +125,29 @@ export class StudentDashboardComponent implements OnInit {
 
   viewMyReviews(): void {
     this.router.navigate(['/my-reviews']);
+  }
+
+  applyFilters(): void {
+    this.filteredTeachers = this.allTeachers.filter(teacher => {
+      const matchesSubject = !this.searchFilters.subject ||
+        teacher.subjects.some(s => s.name.toLowerCase().includes(this.searchFilters.subject.toLowerCase()));
+
+      const matchesLevel = !this.searchFilters.level ||
+        teacher.subjects.some(s => s.level === this.searchFilters.level);
+
+      const matchesMedium = !this.searchFilters.medium ||
+        teacher.subjects.some(s => s.medium === this.searchFilters.medium);
+
+      return matchesSubject && matchesLevel && matchesMedium;
+    });
+  }
+
+  clearFilters(): void {
+    this.searchFilters = {
+      subject: '',
+      level: '',
+      medium: ''
+    };
+    this.filteredTeachers = this.allTeachers;
   }
 }

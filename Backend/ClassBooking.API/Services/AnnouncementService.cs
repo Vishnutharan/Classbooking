@@ -30,8 +30,8 @@ namespace ClassBooking.API.Services
                 TeacherProfileId = teacherProfileId,
                 Title = title,
                 Content = content,
-                TargetAudience = targetAudience,
-                CreatedAt = DateTime.UtcNow
+                RecipientType = targetAudience,
+                SentAt = DateTime.UtcNow
             };
             return await _announcementRepository.CreateAnnouncementAsync(announcement);
         }

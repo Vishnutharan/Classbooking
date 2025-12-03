@@ -1,0 +1,57 @@
+<div class="messages-container">
+    <div class="header">
+        <h1>💬 Messages & Announcements</h1>
+        <button class="btn-primary" (click)="createAnnouncement()">📢 New Announcement</button>
+    </div>
+
+    <div class="tabs">
+        <button class="tab" [class.active]="activeTab === 'messages'" (click)="activeTab = 'messages'">
+            Messages <span class="badge">{{ unreadCount }}</span>
+        </button>
+        <button class="tab" [class.active]="activeTab === 'announcements'" (click)="activeTab = 'announcements'">
+            Announcements
+        </button>
+    </div>
+
+    <!-- Messages Tab -->
+    <div *ngIf="activeTab === 'messages'" class="messages-list">
+        <div class="conversation-card" *ngFor="let conv of conversations">
+            <div class="conversation-header">
+                <div class="participant-info">
+                    <div class="avatar">{{ (conv.participants[1].name || '?')[0] }}</div>
+                    <div>
+                        <h3>{{ conv.participants[1].name || 'Unknown' }}</h3>
+                        <p class="subject">{{ conv.subject }}</p>
+                    </div>
+                </div>
+                <span *ngIf="conv.unreadCount > 0" class="unread-badge">{{ conv.unreadCount }}</span>
+            </div>
+            <p class="last-message">{{ conv.lastMessage.content || 'No messages yet' }}</p>
+            <small class="timestamp">{{ conv.updatedAt | date:'MMM dd, yyyy HH:mm' }}</small>
+        </div>
+
+        <div *ngIf="conversations.length === 0" class="empty-state">
+            <p>No conversations yet</p>
+        </div>
+    </div>
+
+    <!-- Announcements Tab -->
+    <div *ngIf="activeTab === 'announcements'" class="announcements-list">
+        <div class="announcement-card" *ngFor="let ann of announcements">
+            <div class="announcement-header">
+                <h3>{{ ann.title }}</h3>
+                <span *ngIf="ann.isPinned" class="pin-icon">📌</span>
+            </div>
+            <p>{{ ann.content }}</p>
+            <div class="announcement-meta">
+                <span>👥 {{ ann.recipientType }}</span>
+                <span>👁️ {{ ann.viewCount }} views</span>
+                <span>{{ ann.sentAt | date:'MMM dd, yyyy' }}</span>
+            </div>
+        </div>
+
+        <div *ngIf="announcements.length === 0" class="empty-state">
+            <p>No announcements yet</p>
+        </div>
+    </div>
+</div>

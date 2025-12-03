@@ -1,114 +1,246 @@
-<div class="dashboard-container">
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-icon">📚</div>
-      <h3>{{ stats.totalClassesBooked }}</h3>
-      <p>Total Classes Booked</p>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon">✅</div>
-      <h3>{{ stats.completedClasses }}</h3>
-      <p>Completed Classes</p>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon">⏱️</div>
-      <h3>{{ (stats.hoursStudied) | number:'1.1-1' }}</h3>
-      <p>Hours Studied</p>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon">⭐</div>
-      <h3>{{ (stats.averageRating) | number:'1.1-1' }}</h3>
-      <p>Average Rating</p>
-    </div>
-  </div>
-
-  <div class="actions-section">
-    <button class="action-btn primary" (click)="bookClass()">?? Book a Class</button>
-    <button class="action-btn" (click)="viewMyProgress()">?? My Progress</button>
-    <button class="action-btn" (click)="viewMyReviews()">? My Reviews</button>
-    <button class="action-btn" (click)="viewExamMaterials()">?? Exam Materials</button>
-    <button class="action-btn" (click)="seePastPapers()">?? Past Papers</button>
-  </div>
-
-  <div class="section">
-    <h2>📅 Upcoming Classes</h2>
-    <div class="upcoming-list" *ngIf="upcomingClasses.length > 0; else noUpcoming">
-      <div class="upcoming-card" *ngFor="let booking of upcomingClasses">
-        <div class="card-header">
-          <h3>{{ booking.subject }}</h3>
-          <span class="status-badge confirmed">{{ booking.status }}</span>
-        </div>
-        <div class="card-body">
-          <p><strong>Teacher:</strong> {{ booking.teacherId }}</p>
-          <p><strong>Date:</strong> {{ booking.date | date:'MMM dd, yyyy' }}</p>
-          <p><strong>Time:</strong> {{ booking.startTime }} - {{ booking.endTime }}</p>
-          <p><strong>Type:</strong> {{ booking.classType }}</p>
-          <p *ngIf="booking.notes"><strong>Notes:</strong> {{ booking.notes }}</p>
-        </div>
-        <div class="card-actions" style="display: flex; gap: 10px; margin-top: 15px;">
-          <button class="card-btn" (click)="viewBooking(booking.id)" style="flex: 1;">View Details</button>
-          <a class="card-btn join-btn" [href]="booking.meetingLink" target="_blank"
-            *ngIf="booking.status === 'Confirmed' && booking.meetingLink"
-            style="flex: 1; text-align: center; text-decoration: none; background: #28a745; display: flex; align-items: center; justify-content: center;">
-            🎥 Join Class
-          </a>
-        </div>
+<div class="student-dashboard-container">
+  <!-- Hero Section -->
+  <div class="hero-section">
+    <div class="hero-content">
+      <div class="hero-intro">
+        <span class="eyebrow">👨‍🎓 Student Space</span>
+        <h1 class="hero-title">Welcome back!</h1>
+        <p class="hero-description">Check your upcoming classes, track progress, and connect with great teachers.</p>
+      </div>
+      <div class="hero-actions">
+        <button class="btn btn-primary" (click)="bookClass()">
+          <span class="btn-icon">📚</span>
+          <span class="btn-text">Book a Class</span>
+        </button>
+        <button class="btn btn-secondary" (click)="viewMyProgress()">
+          <span class="btn-icon">📈</span>
+          <span class="btn-text">View Progress</span>
+        </button>
       </div>
     </div>
-    <div class="section-actions" style="margin-top: 20px; text-align: center;" *ngIf="upcomingClasses.length > 0">
-      <button class="action-btn primary" (click)="bookClass()">➕ Book Another Class</button>
-    </div>
-    <ng-template #noUpcoming>
-      <div class="empty-state">
-        <p>No upcoming classes found.</p>
-        <button class="action-btn primary mt-2" (click)="bookClass()">Book one now!</button>
-      </div>
-    </ng-template>
   </div>
 
-  <div class="section">
-    <h2>👨‍🏫 Recommended Teachers</h2>
-    <div class="teachers-carousel" *ngIf="recommendedTeachers.length > 0">
-      <div class="teacher-card" *ngFor="let teacher of recommendedTeachers">
-        <div class="teacher-header">
-          <img [src]="teacher.profilePicture || 'https://via.placeholder.com/100'" alt="{{ teacher.fullName }}"
-            class="teacher-avatar">
-          <div class="teacher-info">
-            <h4>{{ teacher.fullName }}</h4>
-            <p class="rating">⭐ {{ (teacher.averageRating) | number:'1.1-1' }} ({{ teacher.totalReviews }} reviews)</p>
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-overlay">
+    <div class="spinner">
+      <div class="spinner-circle"></div>
+      <p class="loading-text">Loading your dashboard...</p>
+    </div>
+  </div>
+
+  <ng-container *ngIf="!isLoading">
+    <!-- Stats Grid -->
+    <div class="stats-section">
+      <div class="stats-grid">
+        <div class="stat-card" *ngFor="let stat of [
+          {icon: '📚', label: 'Total Classes Booked', value: stats.totalClassesBooked, color: 'blue'},
+          {icon: '✓', label: 'Completed Classes', value: stats.completedClasses, color: 'green'},
+          {icon: '⏱️', label: 'Hours Studied', value: (stats.hoursStudied | number:'1.1-1'), color: 'amber'},
+          {icon: '🎯', label: 'Overall Progress', value: stats.progressPercentage + '%', color: 'purple'}
+        ]">
+          <div class="stat-card-inner" [class]="'stat-' + stat.color">
+            <div class="stat-icon">{{ stat.icon }}</div>
+            <div class="stat-content">
+              <p class="stat-label">{{ stat.label }}</p>
+              <h3 class="stat-value">{{ stat.value }}</h3>
+            </div>
           </div>
         </div>
-        <div class="teacher-body">
-          <p><strong>Experience:</strong> {{ teacher.experienceYears }} years</p>
-          <p><strong>Rate:</strong> LKR {{ teacher.hourlyRate }}/hour</p>
-          <div class="subjects">
-            <span class="subject-tag" *ngFor="let subject of teacher.subjects | slice:0:3">
-              {{ subject.name }}
-            </span>
+      </div>
+    </div>
+
+    <!-- Upcoming Classes Section -->
+    <div class="section upcoming-classes-section">
+      <div class="section-header">
+        <div class="section-title">
+          <h2>📅 Upcoming Classes</h2>
+          <span class="section-count">{{ upcomingClasses.length }}</span>
+        </div>
+        <button class="btn-link" (click)="viewBooking('')">View all →</button>
+      </div>
+
+      <div class="upcoming-list" *ngIf="upcomingClasses.length > 0; else noUpcoming">
+        <div class="upcoming-card" *ngFor="let booking of upcomingClasses; let i = index"
+          [style.animation-delay]="(i * 0.05) + 's'">
+          <div class="card-header">
+            <div class="card-title-group">
+              <h3 class="class-subject">{{ booking.subject }}</h3>
+              <span class="status-badge confirmed">{{ booking.status }}</span>
+            </div>
+            <span class="class-type">{{ booking.classType }}</span>
+          </div>
+
+          <div class="card-body">
+            <div class="card-details">
+              <div class="detail-item">
+                <span class="detail-icon">👨‍🏫</span>
+                <p><strong>Teacher:</strong> {{ booking.teacherName || booking.teacherId }}</p>
+              </div>
+              <div class="detail-item">
+                <span class="detail-icon">📅</span>
+                <p><strong>Date:</strong> {{ booking.date | date:'MMM dd, yyyy' }}</p>
+              </div>
+              <div class="detail-item">
+                <span class="detail-icon">⏰</span>
+                <p><strong>Time:</strong> {{ booking.startTime }} - {{ booking.endTime }}</p>
+              </div>
+              <div class="detail-item" *ngIf="booking.notes">
+                <span class="detail-icon">📝</span>
+                <p><strong>Notes:</strong> {{ booking.notes }}</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-actions">
+            <button class="btn btn-secondary" (click)="viewBooking(booking.id)">View Details</button>
+            <a class="btn btn-primary join-btn" [href]="booking.meetingLink" target="_blank"
+              *ngIf="booking.status === 'Confirmed' && booking.meetingLink">
+              Join Class
+            </a>
           </div>
         </div>
-        <button class="teacher-btn" (click)="viewTeacherProfile(teacher.id)">View Profile</button>
       </div>
-    </div>
-  </div>
 
-  <div class="section">
-    <h2>📊 Recent Activity</h2>
-    <div class="activity-feed" *ngIf="recentActivity.length > 0; else noActivity">
-      <div class="activity-item" *ngFor="let activity of recentActivity">
-        <div class="activity-icon">{{ activity.icon }}</div>
-        <div class="activity-content">
-          <p>{{ activity.message }}</p>
-          <span class="activity-time">{{ activity.timestamp | date:'short' }}</span>
+      <ng-template #noUpcoming>
+        <div class="empty-state">
+          <div class="empty-icon">📭</div>
+          <p>No upcoming classes found.</p>
+          <button class="btn btn-primary" (click)="bookClass()">Book one now</button>
+        </div>
+      </ng-template>
+    </div>
+
+    <!-- Subject Progress Section -->
+    <div class="section subject-progress-section" *ngIf="subjectsProgress.length">
+      <div class="section-header">
+        <h2>📊 Subject Progress</h2>
+      </div>
+      <div class="progress-grid">
+        <div class="progress-card" *ngFor="let item of subjectsProgress; let i = index"
+          [style.animation-delay]="(i * 0.05) + 's'">
+          <div class="progress-header">
+            <h4 class="progress-subject">{{ item.subject }}</h4>
+            <span class="progress-percentage">{{ item.progress | number:'1.0-0' }}%</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" [style.width.%]="item.progress"></div>
+          </div>
         </div>
       </div>
     </div>
-    <ng-template #noActivity>
-      <div class="empty-state">
-        <p>No recent activity yet.</p>
-      </div>
-    </ng-template>
-  </div>
 
-  <div *ngIf="isLoading" class="loading-spinner"></div>
+    <!-- Find Teacher Section -->
+    <div class="section find-teacher-section">
+      <div class="section-header">
+        <h2>🔍 Find a Teacher</h2>
+        <button class="btn-link" (click)="clearFilters()">Clear filters →</button>
+      </div>
+
+      <!-- Filters -->
+      <div class="filters-container">
+        <div class="filter-group">
+          <label class="filter-label">Subject</label>
+          <input type="text" class="filter-input" [(ngModel)]="searchFilters.subject" (input)="applyFilters()"
+            placeholder="e.g. Mathematics">
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label">Level</label>
+          <select class="filter-select" [(ngModel)]="searchFilters.level" (change)="applyFilters()">
+            <option value="">All Levels</option>
+            <option value="Primary">Primary</option>
+            <option value="OLevel">O/Level</option>
+            <option value="ALevel">A/Level</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label">Medium</label>
+          <select class="filter-select" [(ngModel)]="searchFilters.medium" (change)="applyFilters()">
+            <option value="">All Mediums</option>
+            <option value="Sinhala">Sinhala</option>
+            <option value="Tamil">Tamil</option>
+            <option value="English">English</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Teachers Grid -->
+      <div class="teachers-grid" *ngIf="filteredTeachers.length > 0; else noTeachers">
+        <div class="teacher-card" *ngFor="let teacher of filteredTeachers; let i = index"
+          [style.animation-delay]="(i * 0.05) + 's'">
+          <div class="teacher-card-header">
+            <img [src]="teacher.profilePicture || 'https://via.placeholder.com/120'" alt="{{ teacher.fullName }}"
+              class="teacher-avatar">
+            <div class="teacher-badge-group">
+              <span class="rating-badge">{{ (teacher.averageRating) | number:'1.1-1' }}⭐</span>
+              <span class="reviews-count">({{ teacher.totalReviews }})</span>
+            </div>
+          </div>
+
+          <div class="teacher-card-body">
+            <h4 class="teacher-name">{{ teacher.fullName }}</h4>
+
+            <div class="teacher-meta">
+              <div class="meta-item">
+                <span class="meta-icon">📚</span>
+                <span class="meta-text">{{ teacher.experienceYears }} yrs exp</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-icon">💰</span>
+                <span class="meta-text">LKR {{ teacher.hourlyRate }}/hr</span>
+              </div>
+            </div>
+
+            <div class="subjects-container">
+              <span class="subject-tag" *ngFor="let subject of teacher.subjects | slice:0:3">
+                {{ subject.name }}
+              </span>
+            </div>
+          </div>
+
+          <button class="btn btn-primary full-width" (click)="viewTeacherProfile(teacher.id)">
+            View Profile
+          </button>
+        </div>
+      </div>
+
+      <ng-template #noTeachers>
+        <div class="empty-state">
+          <div class="empty-icon">😔</div>
+          <p>No teachers match your criteria.</p>
+          <button class="btn btn-secondary" (click)="clearFilters()">Clear Filters</button>
+        </div>
+      </ng-template>
+    </div>
+
+    <!-- Recent Activity Section -->
+    <div class="section recent-activity-section">
+      <div class="section-header">
+        <h2>⏱️ Recent Activity</h2>
+        <button class="btn-link" (click)="viewMyReviews()">My reviews →</button>
+      </div>
+
+      <div class="activity-feed" *ngIf="recentActivity.length > 0; else noActivity">
+        <div class="activity-item" *ngFor="let activity of recentActivity; let i = index"
+          [style.animation-delay]="(i * 0.02) + 's'">
+          <div class="activity-timeline">
+            <div class="timeline-dot"></div>
+            <div class="timeline-line" *ngIf="i !== recentActivity.length - 1"></div>
+          </div>
+          <div class="activity-content">
+            <p class="activity-message">{{ activity.message }}</p>
+            <span class="activity-time">{{ activity.timestamp | date:'MMM dd, yyyy · h:mm a' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <ng-template #noActivity>
+        <div class="empty-state">
+          <div class="empty-icon">📭</div>
+          <p>No recent activity yet.</p>
+        </div>
+      </ng-template>
+    </div>
+  </ng-container>
 </div>

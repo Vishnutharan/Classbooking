@@ -1,9 +1,9 @@
 <div class="students-container">
     <div class="header">
-        <h1>👥 My Students</h1>
+        <h1>My Students</h1>
         <div class="filters">
             <input type="text" [(ngModel)]="searchTerm" (ngModelChange)="filterStudents()"
-                placeholder="🔍 Search students..." class="search-input">
+                placeholder="Search students..." class="search-input">
 
             <select [(ngModel)]="filterSubject" (ngModelChange)="filterStudents()" class="filter-select">
                 <option value="all">All Subjects</option>
@@ -42,10 +42,9 @@
         </div>
     </div>
 
-    <!-- Student Details Modal -->
     <div class="modal-overlay" *ngIf="showDetails" (click)="closeDetails()">
         <div class="modal-content" (click)="$event.stopPropagation()" *ngIf="selectedStudent">
-            <button class="close-btn" (click)="closeDetails()">×</button>
+            <button class="close-btn" (click)="closeDetails()">&times;</button>
 
             <div class="modal-header">
                 <div class="student-avatar large">{{ selectedStudent.fullName.charAt(0) }}</div>
@@ -68,8 +67,7 @@
                     </div>
                     <div class="stat">
                         <h4>Assignments</h4>
-                        <p class="big-number">{{ studentProgress.assignmentsCompleted }}/{{
-                            studentProgress.totalAssignments }}</p>
+                        <p class="big-number">{{ studentProgress.assignmentsCompleted }}/{{ studentProgress.totalAssignments }}</p>
                     </div>
                     <div class="stat">
                         <h4>Avg Score</h4>
@@ -85,21 +83,20 @@
                                 <strong>{{ perf.title }}</strong>
                                 <span class="type">{{ perf.type }}</span>
                             </div>
-                            <div class="score">{{ perf.score }}/{{ perf.maxScore }} ({{ perf.percentage | number:'1.0-0'
-                                }}%)</div>
+                            <div class="score">{{ perf.score }}/{{ perf.maxScore }} ({{ perf.percentage | number:'1.0-0' }}%)</div>
                         </div>
                     </div>
                 </div>
 
                 <div class="strengths-weaknesses">
                     <div class="section">
-                        <h3>💪 Strengths</h3>
+                        <h3>Strengths</h3>
                         <ul>
                             <li *ngFor="let strength of studentProgress.strengths">{{ strength }}</li>
                         </ul>
                     </div>
                     <div class="section">
-                        <h3>📈 Areas for Improvement</h3>
+                        <h3>Areas for Improvement</h3>
                         <ul>
                             <li *ngFor="let weakness of studentProgress.weaknesses">{{ weakness }}</li>
                         </ul>

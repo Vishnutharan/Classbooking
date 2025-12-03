@@ -1,130 +1,246 @@
 <div class="my-classes-container">
-  <div class="header">
-    <h1>👥 My Classes</h1>
-    <div class="header-controls">
-      <select [(ngModel)]="statusFilter" (change)="onFilterChange()" class="filter-select">
-        <option *ngFor="let status of statuses">{{ status }}</option>
-      </select>
+  <!-- Header Section -->
+  <div class="header-section">
+    <div class="header-content">
+      <div class="header-title-group">
+        <h1 class="page-title">My Classes</h1>
+        <p class="page-subtitle">Manage your scheduled classes and student sessions</p>
+      </div>
 
-      <div class="view-toggle">
-        <button [class.active]="viewMode === 'list'" (click)="viewMode = 'list'" title="List View">📋</button>
-        <button [class.active]="viewMode === 'calendar'" (click)="viewMode = 'calendar'" title="Calendar View">📅</button>
+      <div class="header-controls">
+        <div class="filter-wrapper">
+          <label class="filter-label">Filter by Status</label>
+          <select [(ngModel)]="statusFilter" (change)="onFilterChange()" class="filter-select">
+            <option *ngFor="let status of statuses">{{ status }}</option>
+          </select>
+        </div>
+
+        <div class="view-toggle-wrapper">
+          <label class="toggle-label">View Mode</label>
+          <div class="view-toggle">
+            <button [class.active]="viewMode === 'list'" (click)="viewMode = 'list'" class="toggle-btn list-btn"
+              title="List View">
+              <span class="toggle-icon">☰</span>
+              <span class="toggle-text">List</span>
+            </button>
+            <button [class.active]="viewMode === 'calendar'" (click)="viewMode = 'calendar'"
+              class="toggle-btn calendar-btn" title="Calendar View">
+              <span class="toggle-icon">📅</span>
+              <span class="toggle-text">Calendar</span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
-  <div *ngIf="isLoading" class="loading-spinner"></div>
+  <!-- Loading Spinner -->
+  <div *ngIf="isLoading" class="loading-overlay">
+    <div class="spinner">
+      <div class="spinner-circle"></div>
+      <p class="loading-text">Loading your classes...</p>
+    </div>
+  </div>
 
   <!-- List View -->
-  <div class="classes-list" *ngIf="viewMode === 'list' && !isLoading">
+  <div class="list-view-container" *ngIf="viewMode === 'list' && !isLoading">
     <div *ngIf="filteredClasses.length === 0" class="empty-state">
-      <p>No classes found matching your criteria.</p>
+      <div class="empty-icon">📚</div>
+      <h3>No Classes Found</h3>
+      <p>No classes match your current filter criteria.</p>
     </div>
 
-    <div class="class-item" *ngFor="let cls of filteredClasses" [class]="'status-' + getClassStatus(cls).toLowerCase()">
-      <div class="class-info">
-        <h3>{{ cls.subject }}</h3>
-        <p><strong>Student ID:</strong> {{ cls.studentId }}</p>
-        <p><strong>Date:</strong> {{ cls.date | date:'MMM dd, yyyy' }}</p>
-        <p><strong>Time:</strong> {{ cls.startTime }} - {{ cls.endTime }} ({{ getClassDuration(cls) }} mins)</p>
-        <p><strong>Type:</strong> {{ cls.classType }}</p>
-        <span class="status-badge" [class]="'badge-' + getClassStatus(cls).toLowerCase()">
-          {{ getClassStatus(cls) }}
-        </span>
-      </div>
+    <div class="classes-list" *ngIf="filteredClasses.length > 0">
+      <div class="class-card" *ngFor="let cls of filteredClasses; let i = index"
+        [class]="'status-' + getClassStatus(cls).toLowerCase()" [style.animation-delay]="(i * 0.05) + 's'">
 
-      <div class="class-actions">
-        <button 
-          *ngIf="getClassStatus(cls) === 'Upcoming'" 
-          class="btn-start"
-          (click)="startClass(cls)"
-        >
-          ▶️ Start Class
-        </button>
+        <!-- Card Header -->
+        <div class="card-header">
+          <div class="card-status-indicator" [class]="'status-' + getClassStatus(cls).toLowerCase()"></div>
+          <div class="card-title-group">
+            <h3 class="class-subject">{{ cls.subject }}</h3>
+            <span class="class-type-badge">{{ cls.classType }}</span>
+          </div>
+          <span class="status-badge" [class]="'badge-' + getClassStatus(cls).toLowerCase()">
+            {{ getClassStatus(cls) }}
+          </span>
+        </div>
 
-        <button 
-          *ngIf="getClassStatus(cls) === 'Upcoming'" 
-          class="btn-complete"
-          (click)="markComplete(cls)"
-        >
-          ✓ Mark Complete
-        </button>
+        <!-- Card Body -->
+        <div class="card-body">
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-icon">👤</span>
+              <div class="info-content">
+                <p class="info-label">Student ID</p>
+                <p class="info-value">{{ cls.studentId }}</p>
+              </div>
+            </div>
 
-        <button 
-          *ngIf="getClassStatus(cls) !== 'Cancelled'" 
-          class="btn-reschedule"
-          (click)="rescheduleClass(cls)"
-        >
-          📅 Reschedule
-        </button>
+            <div class="info-item">
+              <span class="info-icon">📅</span>
+              <div class="info-content">
+                <p class="info-label">Date</p>
+                <p class="info-value">{{ cls.date | date:'MMM dd, yyyy' }}</p>
+              </div>
+            </div>
 
-        <button 
-          *ngIf="getClassStatus(cls) === 'Upcoming'" 
-          class="btn-cancel"
-          (click)="cancelClass(cls)"
-        >
-          ✕ Cancel
-        </button>
+            <div class="info-item">
+              <span class="info-icon">⏰</span>
+              <div class="info-content">
+                <p class="info-label">Duration</p>
+                <p class="info-value">{{ cls.startTime }} - {{ cls.endTime }}</p>
+                <p class="info-duration">({{ getClassDuration(cls) }} mins)</p>
+              </div>
+            </div>
+          </div>
+        </div>
 
-        <button 
-          *ngIf="getClassStatus(cls) === 'Completed'" 
-          class="btn-notes"
-          (click)="openNotesModal(cls)"
-        >
-          📝 Add Notes
-        </button>
+        <!-- Card Actions -->
+        <div class="card-actions">
+          <button *ngIf="getClassStatus(cls) === 'Upcoming'" class="btn btn-primary" (click)="startClass(cls)"
+            title="Start Class">
+            <span class="btn-icon">▶️</span>
+            <span class="btn-text">Start Class</span>
+          </button>
 
-        <button class="btn-resources" (click)="openNotesModal(cls)">
-          📤 Resources
-        </button>
+          <button *ngIf="getClassStatus(cls) === 'Upcoming'" class="btn btn-success" (click)="markComplete(cls)"
+            title="Mark Complete">
+            <span class="btn-icon">✓</span>
+            <span class="btn-text">Mark Complete</span>
+          </button>
+
+          <button *ngIf="getClassStatus(cls) !== 'Cancelled'" class="btn btn-secondary" (click)="rescheduleClass(cls)"
+            title="Reschedule">
+            <span class="btn-icon">📅</span>
+            <span class="btn-text">Reschedule</span>
+          </button>
+
+          <button *ngIf="getClassStatus(cls) === 'Upcoming'" class="btn btn-danger" (click)="cancelClass(cls)"
+            title="Cancel Class">
+            <span class="btn-icon">✕</span>
+            <span class="btn-text">Cancel</span>
+          </button>
+
+          <button *ngIf="getClassStatus(cls) === 'Completed'" class="btn btn-info" (click)="openNotesModal(cls)"
+            title="Add Notes">
+            <span class="btn-icon">📝</span>
+            <span class="btn-text">Add Notes</span>
+          </button>
+
+          <button class="btn btn-tertiary" (click)="openNotesModal(cls)" title="Upload Resources">
+            <span class="btn-icon">📤</span>
+            <span class="btn-text">Resources</span>
+          </button>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- Calendar View -->
-  <div class="calendar-view" *ngIf="viewMode === 'calendar' && !isLoading">
-    <div class="calendar-placeholder">
-      <p>Calendar View - Classes Overview</p>
-      <div class="calendar-grid">
-        <div *ngFor="let cls of filteredClasses" class="calendar-event">
-          <strong>{{ cls.subject }}</strong>
-          <p>{{ cls.date | date:'MMM dd' }}</p>
-          <small>{{ cls.startTime }}</small>
+  <div class="calendar-view-container" *ngIf="viewMode === 'calendar' && !isLoading">
+    <div class="calendar-header">
+      <h3>Classes Calendar Overview</h3>
+      <p>{{ filteredClasses.length }} class{{ filteredClasses.length !== 1 ? 'es' : '' }} scheduled</p>
+    </div>
+    <div class="calendar-grid">
+      <div *ngFor="let cls of filteredClasses" class="calendar-event"
+        [class]="'status-' + getClassStatus(cls).toLowerCase()">
+        <div class="event-header">
+          <strong class="event-subject">{{ cls.subject }}</strong>
+          <span class="event-type">{{ cls.classType }}</span>
+        </div>
+        <div class="event-body">
+          <p class="event-date">{{ cls.date | date:'MMM dd, yyyy' }}</p>
+          <p class="event-time">{{ cls.startTime }} - {{ cls.endTime }}</p>
+          <p class="event-student">Student: {{ cls.studentId }}</p>
+        </div>
+        <div class="event-footer">
+          <span class="event-status">{{ getClassStatus(cls) }}</span>
         </div>
       </div>
     </div>
   </div>
 
   <!-- Notes & Resources Modal -->
+  <div class="modal-overlay" *ngIf="showNotesModal" (click)="closeNotesModal()"></div>
   <div class="modal" *ngIf="showNotesModal">
-    <div class="modal-overlay" (click)="closeNotesModal()"></div>
-    <div class="modal-content">
-      <h2>📝 Class Notes & Resources</h2>
-      <p *ngIf="selectedClass"><strong>Subject:</strong> {{ selectedClass.subject }}</p>
-      <p *ngIf="selectedClass"><strong>Date:</strong> {{ selectedClass.date | date:'MMM dd, yyyy' }}</p>
+    <div class="modal-header">
+      <h2>Class Notes & Resources</h2>
+      <button class="modal-close" (click)="closeNotesModal()">&times;</button>
+    </div>
 
-      <div class="notes-section">
-        <label>Class Notes</label>
-        <textarea [(ngModel)]="classNotes" placeholder="Add notes about this class..." rows="4"></textarea>
-      </div>
-
-      <div class="resources-section">
-        <label>📤 Upload Resources</label>
-        <input type="file" multiple (change)="onResourceUpload($event)" />
-        
-        <div class="uploaded-resources" *ngIf="uploadedResources.length > 0">
-          <h4>Uploaded Resources:</h4>
-          <div class="resource-item" *ngFor="let resource of uploadedResources; let i = index">
-            <span>{{ resource.name }} ({{ resource.size }} KB)</span>
-            <button type="button" class="btn-remove" (click)="removeResource(i)">✕</button>
+    <div class="modal-body">
+      <div class="modal-info" *ngIf="selectedClass">
+        <div class="info-item compact">
+          <span class="info-icon">📚</span>
+          <div class="info-content">
+            <p class="info-label">Subject</p>
+            <p class="info-value">{{ selectedClass.subject }}</p>
+          </div>
+        </div>
+        <div class="info-item compact">
+          <span class="info-icon">📅</span>
+          <div class="info-content">
+            <p class="info-label">Date</p>
+            <p class="info-value">{{ selectedClass.date | date:'MMM dd, yyyy' }}</p>
           </div>
         </div>
       </div>
 
-      <div class="modal-actions">
-        <button class="btn-secondary" (click)="closeNotesModal()">Close</button>
-        <button class="btn-primary" (click)="saveNotes()">💾 Save</button>
+      <!-- Notes Section -->
+      <div class="form-section">
+        <label class="section-label">
+          <span class="label-icon">📝</span>
+          <span class="label-text">Class Notes</span>
+        </label>
+        <textarea [(ngModel)]="classNotes" placeholder="Add detailed notes about this class session..." rows="5"
+          class="notes-textarea">
+        </textarea>
       </div>
+
+      <!-- Resources Section -->
+      <div class="form-section">
+        <label class="section-label">
+          <span class="label-icon">📤</span>
+          <span class="label-text">Upload Resources</span>
+        </label>
+        <div class="file-upload-area">
+          <input type="file" multiple (change)="onResourceUpload($event)" id="resource-upload" class="file-input" />
+          <label for="resource-upload" class="file-upload-label">
+            <span class="upload-icon">📁</span>
+            <span class="upload-text">Click to upload or drag files</span>
+            <span class="upload-hint">Supported formats: PDF, DOC, PPT, Images, etc.</span>
+          </label>
+        </div>
+
+        <!-- Uploaded Resources List -->
+        <div class="uploaded-resources" *ngIf="uploadedResources.length > 0">
+          <h4 class="resources-title">Uploaded Resources</h4>
+          <div class="resource-list">
+            <div class="resource-item" *ngFor="let resource of uploadedResources; let i = index">
+              <div class="resource-info">
+                <span class="resource-icon">📄</span>
+                <div class="resource-details">
+                  <p class="resource-name">{{ resource.name }}</p>
+                  <p class="resource-size">{{ resource.size }} KB</p>
+                </div>
+              </div>
+              <button type="button" class="btn-remove" (click)="removeResource(i)" title="Remove resource">
+                ✕
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="closeNotesModal()">Cancel</button>
+      <button class="btn btn-primary" (click)="saveNotes()">
+        <span class="btn-icon">💾</span>
+        <span class="btn-text">Save Notes</span>
+      </button>
     </div>
   </div>
 </div>

@@ -15,6 +15,8 @@ namespace ClassBooking.API.Repositories
         Task<StudyGoalEntity?> GetStudyGoalByIdAsync(string id);
         Task<StudyGoalEntity> UpdateStudyGoalAsync(StudyGoalEntity goal);
         Task<bool> DeleteStudyGoalAsync(string id);
+        Task<List<StudentProfileEntity>> GetAllStudentsAsync();
+        Task<int> GetTotalStudentsCountAsync();
     }
 
     public class StudentRepository : IStudentRepository
@@ -88,6 +90,18 @@ namespace ClassBooking.API.Repositories
             _context.StudyGoals.Remove(goal);
             await _context.SaveChangesAsync();
             return true;
+        }
+
+        public async Task<List<StudentProfileEntity>> GetAllStudentsAsync()
+        {
+            return await _context.StudentProfiles
+                .OrderByDescending(s => s.CreatedAt)
+                .ToListAsync();
+        }
+
+        public async Task<int> GetTotalStudentsCountAsync()
+        {
+            return await _context.StudentProfiles.CountAsync();
         }
     }
 }

@@ -1,5 +1,5 @@
-import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { Component, inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AdminService } from '../../core/services/admin.service';
 import { User } from '../../core/models/shared.models';
@@ -16,6 +16,8 @@ export class UserManagementComponent implements OnInit {
   private adminService = inject(AdminService);
   private notificationService = inject(NotificationService);
   private fb = inject(FormBuilder);
+  private platformId = inject(PLATFORM_ID);
+  private isBrowser: boolean;
 
   allUsers: User[] = [];
   filteredUsers: User[] = [];
@@ -44,9 +46,16 @@ export class UserManagementComponent implements OnInit {
   roles = ['Student', 'Teacher', 'Admin'];
   statuses = ['Active', 'Inactive', 'Suspended'];
 
+  constructor() {
+    this.isBrowser = isPlatformBrowser(this.platformId);
+  }
+
   ngOnInit(): void {
     this.initForms();
-    this.loadUsers();
+    // Only load data if in browser (not during SSR)
+    if (this.isBrowser) {
+      this.loadUsers();
+    }
   }
 
   private initForms(): void {
@@ -296,6 +305,8 @@ export class UserManagementComponent implements OnInit {
   }
 
   private downloadCSV(csv: string): void {
+    if (!this.isBrowser) return;
+
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');

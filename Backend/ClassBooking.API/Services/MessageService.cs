@@ -1,13 +1,16 @@
-using ClassBooking.API.Entities;
+using ClassBooking.API.Models;
 using ClassBooking.API.Repositories;
 
 namespace ClassBooking.API.Services
 {
     public interface IMessageService
     {
-        Task<List<MessageEntity>> GetMyMessagesAsync(string userId);
-        Task<List<MessageEntity>> GetConversationAsync(string userId1, string userId2);
-        Task<MessageEntity> SendMessageAsync(string senderId, string receiverId, string content);
+        Task<List<ConversationDto>> GetConversationsAsync(string userId);
+        Task<List<MessageDto>> GetMessagesAsync(string conversationId);
+        Task<MessageDto> SendMessageAsync(string conversationId, string senderId, string senderName, string content);
+        Task<ConversationDto> CreateConversationAsync(string userId1, string userName1, string role1,
+            string userId2, string userName2, string role2, string subject);
+        Task MarkAsReadAsync(string conversationId, string userId);
     }
 
     public class MessageService : IMessageService
@@ -19,27 +22,30 @@ namespace ClassBooking.API.Services
             _messageRepository = messageRepository;
         }
 
-        public async Task<List<MessageEntity>> GetMyMessagesAsync(string userId)
+        public async Task<List<ConversationDto>> GetConversationsAsync(string userId)
         {
-            return await _messageRepository.GetMessagesAsync(userId);
+            return await _messageRepository.GetConversationsAsync(userId);
         }
 
-        public async Task<List<MessageEntity>> GetConversationAsync(string userId1, string userId2)
+        public async Task<List<MessageDto>> GetMessagesAsync(string conversationId)
         {
-            return await _messageRepository.GetConversationAsync(userId1, userId2);
+            return await _messageRepository.GetMessagesAsync(conversationId);
         }
 
-        public async Task<MessageEntity> SendMessageAsync(string senderId, string receiverId, string content)
+        public async Task<MessageDto> SendMessageAsync(string conversationId, string senderId, string senderName, string content)
         {
-            var message = new MessageEntity
-            {
-                SenderId = senderId,
-                ReceiverId = receiverId,
-                Content = content,
-                SentAt = DateTime.UtcNow,
-                IsRead = false
-            };
-            return await _messageRepository.SendMessageAsync(message);
+            return await _messageRepository.SendMessageAsync(conversationId, senderId, senderName, content);
+        }
+
+        public async Task<ConversationDto> CreateConversationAsync(string userId1, string userName1, string role1,
+            string userId2, string userName2, string role2, string subject)
+        {
+            return await _messageRepository.CreateConversationAsync(userId1, userName1, role1, userId2, userName2, role2, subject);
+        }
+
+        public async Task MarkAsReadAsync(string conversationId, string userId)
+        {
+            await _messageRepository.MarkAsReadAsync(conversationId, userId);
         }
     }
 }

@@ -90,11 +90,8 @@ namespace ClassBooking.API.Repositories
             if (!string.IsNullOrEmpty(level))
                 query = query.Where(r => r.Level == level);
 
-            if (!string.IsNullOrEmpty(examType))
-                query = query.Where(r => r.ExamType == examType);
-
-            if (year.HasValue)
-                query = query.Where(r => r.Year == year);
+            // Note: ExamType and Year are no longer fields in ResourceEntity
+            // These parameters are kept for interface compatibility
 
             return await query.OrderByDescending(r => r.UploadedAt).ToListAsync();
         }

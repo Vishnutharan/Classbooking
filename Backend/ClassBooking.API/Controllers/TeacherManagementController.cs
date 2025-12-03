@@ -15,34 +15,122 @@ namespace ClassBooking.API.Controllers
         private readonly ITeacherRepository _teacherRepository;
         private readonly IMessageService _messageService;
         private readonly IAnnouncementService _announcementService;
+        private readonly IAttendanceService _attendanceService;
+        private readonly ILessonPlanService _lessonPlanService;
+        private readonly IAnalyticsService _analyticsService;
+        private readonly IUserRepository _userRepository;
+        private readonly ILogger<TeacherManagementController> _logger;
 
         public TeacherManagementController(
             ITeacherService teacherService, 
             ITeacherRepository teacherRepository,
             IMessageService messageService,
-            IAnnouncementService announcementService)
+            IAnnouncementService announcementService,
+            IAttendanceService attendanceService,
+            ILessonPlanService lessonPlanService,
+            IAnalyticsService analyticsService,
+            IUserRepository userRepository,
+            ILogger<TeacherManagementController> logger)
         {
             _teacherService = teacherService;
             _teacherRepository = teacherRepository;
             _messageService = messageService;
             _announcementService = announcementService;
+            _attendanceService = attendanceService;
+            _lessonPlanService = lessonPlanService;
+            _analyticsService = analyticsService;
+            _userRepository = userRepository;
+            _logger = logger;
         }
 
         // Profile Management
-        [HttpGet("profile")]
-        public async Task<ActionResult<TeacherProfile>> GetMyProfile()
-        {
-            var userId = User.FindFirst("userId")?.Value ?? User.FindFirst("sub")?.Value;
-            if (string.IsNullOrEmpty(userId))
-                return Unauthorized();
+[HttpGet("profile")]
+public async Task<ActionResult<TeacherProfile>> GetMyProfile()
+{
+    // Log all claims for debugging
+    _logger.LogInformation("=== GetMyProfile Debug Info ===");
+    foreach (var claim in User.Claims)
+    {
+        _logger.LogInformation($"Claim: {claim.Type} = {claim.Value}");
+    }
 
-            var teacher = await _teacherService.GetTeacherByUserIdAsync(userId);
-            if (teacher == null)
-                return NotFound("Teacher profile not found");
+    // Try multiple claim types
+    var userId = User.FindFirst("userId")?.Value 
+        ?? User.FindFirst("sub")?.Value 
+        ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+        ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value;
+    
+    _logger.LogInformation($"Extracted userId: '{userId}'");
 
-            return Ok(teacher);
-        }
+    if (string.IsNullOrEmpty(userId))
+    {
+        _logger.LogError("UserId is null or empty. User is not properly authenticated.");
+        return Unauthorized(new { message = "User ID not found in token" });
+    }
 
+    // Try to get existing teacher profile
+    var teacher = await _teacherService.GetTeacherByUserIdAsync(userId);
+    
+    if (teacher != null)
+    {
+        _logger.LogInformation($"Teacher profile found for userId: {userId}");
+        return Ok(teacher);
+    }
+
+    _logger.LogWarning($"No teacher profile found for userId: {userId}. Attempting to create one.");
+    
+    // Self-healing: Create profile if user exists but profile doesn't
+    var user = await _userRepository.GetByIdAsync(userId);
+    
+    if (user == null)
+    {
+        _logger.LogError($"User record not found for userId: {userId}");
+        return NotFound(new { message = $"User not found in database for ID: {userId}" });
+    }
+
+    _logger.LogInformation($"User found - Role: {user.Role}");
+
+    // Check if user is actually a teacher
+    if (!string.Equals(user.Role, "Teacher", StringComparison.OrdinalIgnoreCase))
+    {
+        _logger.LogError($"User role is '{user.Role}', not 'Teacher'");
+        return Forbid();
+    }
+
+    // Create new teacher profile
+    _logger.LogInformation("Creating new teacher profile...");
+    var newProfile = new Entities.TeacherProfileEntity
+    {
+        UserId = userId,
+        FullName = user.FullName ?? "Unknown",
+        Email = user.Email ?? "",
+        PhoneNumber = user.PhoneNumber ?? "",
+        HourlyRate = 0,
+        ExperienceYears = 0,
+        AverageRating = 0,
+        TotalReviews = 0,
+        TotalClasses = 0,
+        IsAvailable = true,
+        VerificationStatus = "Pending",
+        CreatedAt = DateTime.UtcNow,
+        UpdatedAt = DateTime.UtcNow
+    };
+
+    try
+    {
+        await _teacherRepository.CreateTeacherAsync(newProfile);
+        _logger.LogInformation($"Teacher profile created successfully for userId: {userId}");
+        
+        // Fetch and return the newly created profile
+        var createdTeacher = await _teacherService.GetTeacherByUserIdAsync(userId);
+        return Ok(createdTeacher);
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError($"Failed to create teacher profile: {ex.Message}");
+        return StatusCode(500, new { message = "Failed to create teacher profile" });
+    }
+}
         [HttpPut("profile")]
         public async Task<ActionResult<TeacherProfile>> UpdateProfile([FromBody] UpdateTeacherProfileRequest request)
         {
@@ -110,7 +198,8 @@ namespace ClassBooking.API.Controllers
         }
 
         // Student Management
-        [HttpGet("students")]
+       // Student Management
+[HttpGet("students")]
         public async Task<ActionResult> GetTeacherStudents()
         {
             var userId = User.FindFirst("userId")?.Value ?? User.FindFirst("sub")?.Value;
@@ -149,7 +238,7 @@ namespace ClassBooking.API.Controllers
             if (teacher == null)
                 return NotFound("Teacher profile not found");
 
-            var records = await _teacherRepository.GetAttendanceRecordsAsync(teacher.Id, startDate, endDate);
+            var records = await _attendanceService.GetRecordsAsync(teacher.Id, startDate, endDate);
             return Ok(records);
         }
 
@@ -175,8 +264,8 @@ namespace ClassBooking.API.Controllers
                 Subject = r.Subject
             }).ToList();
 
-            await _teacherRepository.MarkBulkAttendanceAsync(entities);
-            return Ok(true);
+            var result = await _attendanceService.MarkAttendanceAsync(entities);
+            return Ok(result);
         }
 
         // Lesson Plans
@@ -191,7 +280,7 @@ namespace ClassBooking.API.Controllers
             if (teacher == null)
                 return NotFound("Teacher profile not found");
 
-            var plans = await _teacherRepository.GetTeacherLessonPlansAsync(teacher.Id);
+            var plans = await _lessonPlanService.GetByTeacherAsync(teacher.Id);
             return Ok(plans);
         }
 
@@ -208,7 +297,6 @@ namespace ClassBooking.API.Controllers
 
             var entity = new Entities.LessonPlanEntity
             {
-                TeacherProfileId = teacher.Id,
                 Title = request.Title,
                 Subject = request.Subject,
                 Level = request.Level,
@@ -223,45 +311,45 @@ namespace ClassBooking.API.Controllers
                 Status = request.Status ?? "Draft"
             };
 
-            var created = await _teacherRepository.CreateLessonPlanAsync(entity);
+            var created = await _lessonPlanService.CreateAsync(teacher.Id, entity);
             return Ok(created);
         }
 
         [HttpPut("lesson-plans/{id}")]
         public async Task<ActionResult> UpdateLessonPlan(string id, [FromBody] LessonPlanRequest request)
         {
-            var plan = await _teacherRepository.GetLessonPlanAsync(id);
-            if (plan == null)
+            var entity = new Entities.LessonPlanEntity
+            {
+                Title = request.Title,
+                Subject = request.Subject,
+                Level = request.Level,
+                ScheduledDate = request.ScheduledDate,
+                Description = request.Description,
+                LearningObjectives = request.LearningObjectives,
+                Materials = request.Materials,
+                Activities = request.Activities,
+                Assessment = request.Assessment,
+                Homework = request.Homework,
+                DurationMinutes = request.DurationMinutes,
+                Status = request.Status ?? "Draft"
+            };
+
+            var updated = await _lessonPlanService.UpdateAsync(id, entity);
+            if (updated == null)
                 return NotFound("Lesson plan not found");
-
-            plan.Title = request.Title;
-            plan.Subject = request.Subject;
-            plan.Level = request.Level;
-            plan.ScheduledDate = request.ScheduledDate;
-            plan.Description = request.Description;
-            plan.LearningObjectives = request.LearningObjectives;
-            plan.Materials = request.Materials;
-            plan.Activities = request.Activities;
-            plan.Assessment = request.Assessment;
-            plan.Homework = request.Homework;
-            plan.DurationMinutes = request.DurationMinutes;
-            plan.Status = request.Status ?? plan.Status;
-
-            var updated = await _teacherRepository.UpdateLessonPlanAsync(plan);
             return Ok(updated);
         }
 
         [HttpDelete("lesson-plans/{id}")]
         public async Task<ActionResult> DeleteLessonPlan(string id)
         {
-            var result = await _teacherRepository.DeleteLessonPlanAsync(id);
+            var result = await _lessonPlanService.DeleteAsync(id);
             if (!result)
                 return NotFound("Lesson plan not found");
 
             return Ok(true);
         }
 
-        // Analytics (Mock for now)
         // Analytics
         [HttpGet("analytics")]
         public async Task<ActionResult> GetAnalytics([FromQuery] string period = "monthly")
@@ -274,7 +362,7 @@ namespace ClassBooking.API.Controllers
             if (teacher == null)
                 return NotFound("Teacher profile not found");
 
-            var analytics = await _teacherService.GetAnalyticsAsync(teacher.Id, period);
+            var analytics = await _analyticsService.GetTeacherAnalyticsAsync(teacher.Id, period);
             return Ok(analytics);
         }
 
@@ -289,15 +377,23 @@ namespace ClassBooking.API.Controllers
             if (teacher == null)
                 return NotFound("Teacher profile not found");
 
-            var earnings = await _teacherService.GetEarningsAsync(teacher.Id, period);
+            var earnings = await _analyticsService.GetEarningsAnalyticsAsync(teacher.Id, period);
             return Ok(earnings);
         }
 
         [HttpGet("analytics/subjects")]
         public async Task<ActionResult> GetSubjectPerformance()
         {
-            // Mock data - would calculate from actual class data
-            return Ok(new object[] { });
+            var userId = User.FindFirst("userId")?.Value ?? User.FindFirst("sub")?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var teacher = await _teacherService.GetTeacherByUserIdAsync(userId);
+            if (teacher == null)
+                return NotFound("Teacher profile not found");
+
+            var performance = await _analyticsService.GetSubjectPerformanceAsync(teacher.Id);
+            return Ok(performance);
         }
 
         // Communication
@@ -307,9 +403,8 @@ namespace ClassBooking.API.Controllers
             var userId = User.FindFirst("userId")?.Value ?? User.FindFirst("sub")?.Value;
             if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
-            // For now, getting all messages as a flat list, grouping logic should be in service
-            var messages = await _messageService.GetMyMessagesAsync(userId);
-            return Ok(messages);
+            var conversations = await _messageService.GetConversationsAsync(userId);
+            return Ok(conversations);
         }
 
         [HttpGet("communication/announcements")]
@@ -329,10 +424,11 @@ namespace ClassBooking.API.Controllers
         public async Task<ActionResult> SendMessage([FromBody] MessageRequest request)
         {
             var userId = User.FindFirst("userId")?.Value ?? User.FindFirst("sub")?.Value;
+            var userName = User.FindFirst("fullName")?.Value ?? "User";
             if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
-            await _messageService.SendMessageAsync(userId, request.ReceiverId, request.Content);
-            return Ok(true);
+            var message = await _messageService.SendMessageAsync(request.ConversationId, userId, userName, request.Content);
+            return Ok(message);
         }
 
         [HttpPost("communication/announcements")]
@@ -392,7 +488,7 @@ namespace ClassBooking.API.Controllers
 
     public class MessageRequest
     {
-        public string ReceiverId { get; set; } = string.Empty;
+        public string ConversationId { get; set; } = string.Empty;
         public string Content { get; set; } = string.Empty;
     }
 

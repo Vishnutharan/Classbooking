@@ -1,5 +1,5 @@
-import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { Component, inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AdminService } from '../../core/services/admin.service';
 import { NotificationService } from '../../core/services/notification.service';
@@ -14,6 +14,8 @@ import { NotificationService } from '../../core/services/notification.service';
 export class ReportsComponent implements OnInit {
   private adminService = inject(AdminService);
   private notificationService = inject(NotificationService);
+  private platformId = inject(PLATFORM_ID);
+  private isBrowser: boolean;
 
   currentTab: 'bookings' | 'users' | 'revenue' | 'teachers' = 'bookings';
   isLoading = false;
@@ -53,15 +55,22 @@ export class ReportsComponent implements OnInit {
     earningsLeaderboard: [] as any[]
   };
 
+  constructor() {
+    this.isBrowser = isPlatformBrowser(this.platformId);
+  }
+
   ngOnInit(): void {
     this.initializeDefaultDates();
-    this.loadReports();
+    // Only load reports if in browser (not during SSR)
+    if (this.isBrowser) {
+      this.loadReports();
+    }
   }
 
   private initializeDefaultDates(): void {
     const end = new Date();
     const start = new Date(end.getFullYear(), end.getMonth() - 1, end.getDate());
-    
+
     this.endDate = end.toISOString().split('T')[0];
     this.startDate = start.toISOString().split('T')[0];
   }
@@ -147,6 +156,8 @@ export class ReportsComponent implements OnInit {
   }
 
   private downloadFile(blob: Blob, filename: string): void {
+    if (!this.isBrowser) return;
+
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;

@@ -26,9 +26,16 @@ namespace ClassBooking.API.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<TeacherProfile>> GetTeacherById(string id)
         {
-            var teacher = await _teacherService.GetTeacherByIdAsync(id);
-            if (teacher == null) return NotFound();
-            return Ok(teacher);
+            try
+            {
+                var teacher = await _teacherService.GetTeacherByIdAsync(id);
+                if (teacher == null) return NotFound($"Teacher with ID {id} not found.");
+                return Ok(teacher);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error retrieving teacher", details = ex.Message });
+            }
         }
 
         [HttpGet("search")]

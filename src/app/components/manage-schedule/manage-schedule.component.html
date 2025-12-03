@@ -1,51 +1,66 @@
-<div class="container-fluid p-4">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>Manage Schedule</h2>
-    <button class="btn btn-primary" (click)="loadSchedule()">
-      <i class="bi bi-arrow-clockwise me-2"></i>Refresh
+<div class="schedule-container">
+  <!-- Header Section -->
+  <div class="header-section">
+    <div class="header-content">
+      <h2 class="header-title">Manage Schedule</h2>
+      <p class="header-subtitle">Organize your availability and bookings efficiently</p>
+    </div>
+    <button class="refresh-btn" (click)="loadSchedule()">
+      <span class="icon-spin">↻</span>
+      Refresh
     </button>
   </div>
 
-  <div class="alert alert-info">
-    <i class="bi bi-info-circle me-2"></i>
-    Click and drag on the calendar to create availability slots. Click on a slot to remove it.
+  <!-- Alert Section -->
+  <div class="alert-container">
+    <div class="alert">
+      <div class="alert-icon">ℹ️</div>
+      <div class="alert-content">
+        <p><strong>Tip:</strong> Click and drag on the calendar to create availability slots. Click on a slot to remove
+          it.</p>
+      </div>
+    </div>
   </div>
 
-  <app-calendar [events]="calendarEvents" [editable]="true" [selectable]="true" (slotSelected)="onSlotSelected($event)"
-    (eventClicked)="onEventClicked($event)">
-  </app-calendar>
+  <!-- Calendar Section -->
+  <div class="calendar-section">
+    <div class="calendar-wrapper">
+      <app-calendar [events]="calendarEvents" [editable]="true" [selectable]="true"
+        (slotSelected)="onSlotSelected($event)" (eventClicked)="onEventClicked($event)">
+      </app-calendar>
+    </div>
+  </div>
 
   <!-- Availability Modal -->
-  <div class="modal" *ngIf="showAvailabilityModal"
-    style="display: block; background: rgba(0,0,0,0.5); position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1050;">
-    <div class="modal-dialog"
-      style="margin: 10% auto; max-width: 500px; background: white; padding: 20px; border-radius: 8px;">
-      <div class="modal-content">
-        <div class="modal-header mb-3">
-          <h5 class="modal-title">Add Availability</h5>
-          <button type="button" class="btn-close" (click)="closeAvailabilityModal()"
-            style="float: right;">&times;</button>
+  <div class="modal-overlay" [class.active]="showAvailabilityModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h5 class="modal-title">Add Availability</h5>
+        <button class="modal-close" (click)="closeAvailabilityModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Day of Week</label>
+          <select class="form-select" [(ngModel)]="availabilityForm.dayOfWeek">
+            <option *ngFor="let day of daysOfWeek" [value]="day">{{ day }}</option>
+          </select>
         </div>
-        <div class="modal-body">
-          <div class="mb-3">
-            <label class="form-label">Day of Week</label>
-            <select class="form-select" [(ngModel)]="availabilityForm.dayOfWeek">
-              <option *ngFor="let day of daysOfWeek" [value]="day">{{ day }}</option>
-            </select>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Start Time</label>
-            <input type="time" class="form-control" [(ngModel)]="availabilityForm.startTime">
-          </div>
-          <div class="mb-3">
-            <label class="form-label">End Time</label>
-            <input type="time" class="form-control" [(ngModel)]="availabilityForm.endTime">
-          </div>
+
+        <div class="form-group">
+          <label class="form-label">Start Time</label>
+          <input type="time" class="form-input" [(ngModel)]="availabilityForm.startTime">
         </div>
-        <div class="modal-footer mt-3 text-end">
-          <button type="button" class="btn btn-secondary me-2" (click)="closeAvailabilityModal()">Cancel</button>
-          <button type="button" class="btn btn-primary" (click)="saveAvailability()">Save Availability</button>
+
+        <div class="form-group">
+          <label class="form-label">End Time</label>
+          <input type="time" class="form-input" [(ngModel)]="availabilityForm.endTime">
         </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-cancel" (click)="closeAvailabilityModal()">Cancel</button>
+        <button class="btn btn-save" (click)="saveAvailability()">Save Availability</button>
       </div>
     </div>
   </div>

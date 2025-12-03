@@ -2,6 +2,8 @@ using System.Text;
 using ClassBooking.API.Repositories;
 using ClassBooking.API.Services;
 using ClassBooking.API.Data;
+using ClassBooking.API.Filters;
+using ClassBooking.API.Middleware;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -9,7 +11,10 @@ using Microsoft.IdentityModel.Tokens;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add<ValidationFilter>(); // Add automatic validation filter
+});
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -26,7 +31,7 @@ builder.Services.AddScoped<ITeacherRepository, TeacherRepository>();
 builder.Services.AddScoped<ITeacherService, TeacherService>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 
-// New services and repositories
+// Repositories
 builder.Services.AddScoped<IBookingRepository, BookingRepository>();
 builder.Services.AddScoped<IStudentRepository, StudentRepository>();
 builder.Services.AddScoped<IExamRepository, ExamRepository>();
@@ -34,7 +39,12 @@ builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddScoped<IFeeRepository, FeeRepository>();
 builder.Services.AddScoped<IMessageRepository, MessageRepository>();
 builder.Services.AddScoped<IAnnouncementRepository, AnnouncementRepository>();
+builder.Services.AddScoped<IAttendanceRepository, AttendanceRepository>();
+builder.Services.AddScoped<ILessonPlanRepository, LessonPlanRepository>();
+builder.Services.AddScoped<IResourceRepository, ResourceRepository>();
+builder.Services.AddScoped<IAnalyticsRepository, AnalyticsRepository>();
 
+// Services
 builder.Services.AddScoped<IExamService, ExamService>();
 builder.Services.AddScoped<IResourceService, ResourceService>();
 builder.Services.AddScoped<IFeeService, FeeService>();
@@ -42,21 +52,25 @@ builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IMessageService, MessageService>();
 builder.Services.AddScoped<IAnnouncementService, AnnouncementService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<IEmailService, MockEmailService>();
+builder.Services.AddScoped<IAttendanceService, AttendanceService>();
+builder.Services.AddScoped<ILessonPlanService, LessonPlanService>();
+builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 
-// ✅ CORS Configuration (MUST be BEFORE Authentication)
+// CORS Configuration (MUST be BEFORE Authentication)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngularApp", policy =>
     {
         policy.WithOrigins(
-            "http://localhost:4200",      // Angular dev server
-            "http://localhost:3000",      // Alternative port if needed
-            "http://127.0.0.1:4200"       // Localhost alternative
+            "http://localhost:4200",
+            "http://localhost:3000",
+            "http://127.0.0.1:4200"
         )
-        .AllowAnyMethod()                 // GET, POST, PUT, DELETE, etc.
-        .AllowAnyHeader()                 // Accept any headers
-        .AllowCredentials()               // Allow cookies/auth headers
-        .WithExposedHeaders("Content-Disposition"); // For file downloads if needed
+        .AllowAnyMethod()
+        .AllowAnyHeader()
+        .AllowCredentials()
+        .WithExposedHeaders("Content-Disposition");
     });
 });
 
@@ -94,22 +108,21 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// ✅ IMPORTANT: UseHttpsRedirection AFTER Swagger but BEFORE CORS
+// UseHttpsRedirection AFTER Swagger but BEFORE CORS
 app.UseHttpsRedirection();
 
-// ✅ CORS MUST be called BEFORE Authentication & Authorization
+// Global Exception Handler (MUST be early in pipeline)
+app.UseGlobalExceptionHandler();
+
+// CORS MUST be called BEFORE Authentication & Authorization
 app.UseCors("AllowAngularApp");
 
 app.UseAuthentication();
 app.UseAuthorization();
 
-// ✅ Global Exception Handling (Optional but recommended)
-app.UseExceptionHandler("/error");
-app.UseStatusCodePages();
-
 app.MapControllers();
 
-// ✅ Optional: Health check endpoint
+// Health check endpoint
 app.MapGet("/health", () => Results.Ok(new { status = "Backend is running!" }))
    .WithName("HealthCheck")
    .WithOpenApi();

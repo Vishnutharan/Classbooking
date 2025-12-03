@@ -58,23 +58,10 @@ export class ResourcesUploadComponent implements OnInit {
 
   private loadResources(): void {
     this.isLoading = true;
-    // Simulated load - in real app, fetch from service
+    // TODO: Implement actual API call to fetch resources
+    // For now, start with empty list until ResourceService is implemented
     setTimeout(() => {
-      this.resources = [
-        {
-          id: '1',
-          title: 'Math Chapter 1 Notes',
-          description: 'Complete notes for chapter 1',
-          type: 'PDF',
-          subject: 'Mathematics',
-          level: 'Primary',
-          fileName: 'math-ch1.pdf',
-          fileSize: 2048,
-          uploadedAt: new Date(Date.now() - 86400000),
-          isPublic: true,
-          progress: 100
-        }
-      ];
+      this.resources = [];
       this.isLoading = false;
     }, 500);
   }
