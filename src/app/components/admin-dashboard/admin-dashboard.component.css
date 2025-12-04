@@ -30,6 +30,13 @@
   margin: 40px auto;
 }
 
+/* Small loader */
+.loading-spinner.small {
+  width: 24px;
+  height: 24px;
+  border-width: 3px;
+}
+
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
@@ -206,6 +213,28 @@
   color: #1a202c;
 }
 
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.section-header .subtext {
+  margin: 4px 0 0 0;
+  color: #718096;
+  font-size: 14px;
+}
+
+.pill {
+  padding: 6px 12px;
+  background: #edf2ff;
+  color: #4c51bf;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 13px;
+}
+
 .activity-feed {
   display: flex;
   flex-direction: column;
@@ -277,6 +306,100 @@
   color: #22543d;
 }
 
+/* Reviews table */
+.reviews-table {
+  margin-top: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.table-head,
+.table-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 0.6fr 2fr 1fr 1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 14px;
+}
+
+.table-head {
+  background: #f7fafc;
+  font-weight: 700;
+  color: #2d3748;
+}
+
+.table-row {
+  border-top: 1px solid #edf2f7;
+  background: #fff;
+}
+
+.cell {
+  font-size: 14px;
+  color: #2d3748;
+}
+
+.cell.strong {
+  font-weight: 700;
+}
+
+.cell.comment {
+  color: #4a5568;
+}
+
+.cell.actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.link-btn {
+  border: none;
+  background: none;
+  color: #3182ce;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: background 0.15s;
+  font-weight: 600;
+}
+
+.link-btn:hover {
+  background: #ebf8ff;
+}
+
+.link-btn.danger {
+  color: #e53e3e;
+}
+
+.link-btn.muted {
+  color: #718096;
+}
+
+.inline-input {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.inline-textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 14px;
+  resize: vertical;
+}
+
+.empty-row {
+  padding: 14px;
+  text-align: center;
+  color: #a0aec0;
+  font-weight: 600;
+}
+
 @media (max-width: 768px) {
   .admin-dashboard-container {
     padding: 16px;
@@ -296,5 +419,16 @@
 
   .action-btn {
     width: 100%;
+  }
+
+  .table-head,
+  .table-row {
+    grid-template-columns: repeat(2, 1fr);
+    grid-auto-rows: auto;
+  }
+
+  .table-head span:nth-child(n+3),
+  .table-row .cell:nth-child(n+3) {
+    grid-column: 1 / -1;
   }
 }

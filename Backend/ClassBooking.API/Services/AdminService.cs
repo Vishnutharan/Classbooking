@@ -23,6 +23,9 @@ namespace ClassBooking.API.Services
         Task<object> GetBookingStatsAsync(string period);
         Task<object> GetRevenueStatsAsync(string period);
         Task<object> GetTeacherPerformanceStatsAsync();
+        Task<List<ReviewEntity>> GetAllReviewsAsync();
+        Task<ReviewEntity?> UpdateReviewAsync(string id, int rating, string comment);
+        Task<bool> DeleteReviewAsync(string id);
     }
 
     public class AdminService : IAdminService
@@ -241,6 +244,26 @@ namespace ClassBooking.API.Services
                 rating = t.AverageRating,
                 classes = t.TotalClasses
             });
+        }
+
+        public async Task<List<ReviewEntity>> GetAllReviewsAsync()
+        {
+            return await _teacherRepository.GetAllReviewsAsync();
+        }
+
+        public async Task<ReviewEntity?> UpdateReviewAsync(string id, int rating, string comment)
+        {
+            var review = await _teacherRepository.GetReviewByIdAsync(id);
+            if (review == null) return null;
+
+            review.Rating = rating;
+            review.Comment = comment;
+            return await _teacherRepository.UpdateReviewAsync(review);
+        }
+
+        public async Task<bool> DeleteReviewAsync(string id)
+        {
+            return await _teacherRepository.DeleteReviewAsync(id);
         }
 
         private UserDto MapUserToDto(User user)

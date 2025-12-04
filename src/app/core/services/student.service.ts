@@ -147,4 +147,10 @@ export class StudentService {
       catchError(() => of({ id: reviewId, ...update }))
     );
   }
+
+  deleteReview(reviewId: string): Observable<any> {
+    return this.http.delete<any>(`${this.apiUrl}/reviews/${reviewId}`).pipe(
+      catchError(() => of({ id: reviewId, deleted: true }))
+    );
+  }
 }

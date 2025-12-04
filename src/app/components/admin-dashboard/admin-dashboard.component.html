@@ -145,5 +145,67 @@
         </div>
       </div>
     </div>
+
+    <!-- Reviews Management -->
+    <div class="section">
+      <div class="section-header">
+        <div>
+          <h2>⭐ Reviews (Admin Control)</h2>
+          <p class="subtext">View, edit, or delete any review in one place.</p>
+        </div>
+        <div class="pill" *ngIf="reviews.length">{{ reviews.length }} total</div>
+      </div>
+
+      <div *ngIf="reviewsLoading" class="loading-spinner small"></div>
+
+      <div class="reviews-table" *ngIf="!reviewsLoading">
+        <div class="table-head">
+          <span>Student</span>
+          <span>Teacher</span>
+          <span>Rating</span>
+          <span>Comment</span>
+          <span>Date</span>
+          <span>Actions</span>
+        </div>
+
+        <div class="table-row" *ngFor="let review of reviews">
+          <span class="cell strong">{{ review.studentName }}</span>
+          <span class="cell">{{ review.teacherName }}</span>
+          <span class="cell">
+            <ng-container *ngIf="editingReviewId !== review.id; else editRatingTpl">
+              {{ review.rating }} / 5
+            </ng-container>
+          </span>
+          <span class="cell comment">
+            <ng-container *ngIf="editingReviewId !== review.id; else editCommentTpl">
+              {{ review.comment || '—' }}
+            </ng-container>
+          </span>
+          <span class="cell">{{ review.createdAt | date:'MMM dd, yyyy' }}</span>
+          <span class="cell actions">
+            <button class="link-btn" *ngIf="editingReviewId !== review.id" (click)="startEdit(review)">✏️ Edit</button>
+            <button class="link-btn danger" *ngIf="editingReviewId !== review.id" (click)="deleteReview(review.id)">🗑 Delete</button>
+            <ng-container *ngIf="editingReviewId === review.id">
+              <button class="link-btn" (click)="saveReview()">💾 Save</button>
+              <button class="link-btn muted" (click)="cancelEdit()">✖ Cancel</button>
+            </ng-container>
+          </span>
+
+          <ng-template #editRatingTpl>
+            <select [(ngModel)]="editRating" class="inline-input">
+              <option *ngFor="let r of [5,4,3,2,1]" [value]="r">{{ r }} ★</option>
+            </select>
+          </ng-template>
+
+          <ng-template #editCommentTpl>
+            <textarea class="inline-textarea" rows="2" [(ngModel)]="editComment"></textarea>
+          </ng-template>
+        </div>
+
+        <div *ngIf="reviews.length === 0" class="empty-row">
+          No reviews found.
+        </div>
+      </div>
+    </div>
   </div>
 </div>

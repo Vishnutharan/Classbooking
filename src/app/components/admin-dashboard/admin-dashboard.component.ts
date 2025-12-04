@@ -1,13 +1,14 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { NotificationService } from '../../core/services/notification.service';
-import { AdminService, DashboardStats } from '../../core/services/admin.service';
+import { AdminService, AdminReview, DashboardStats } from '../../core/services/admin.service';
 import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './admin-dashboard.component.html',
   styleUrl: './admin-dashboard.component.css'
 })
@@ -33,9 +34,15 @@ export class AdminDashboardComponent implements OnInit {
   revenueData: any[] = [];
   topTeachers: any[] = [];
   isLoading = false;
+  reviewsLoading = false;
+  reviews: AdminReview[] = [];
+  editingReviewId: string | null = null;
+  editRating = 0;
+  editComment = '';
 
   ngOnInit(): void {
     this.loadDashboard();
+    this.loadReviews();
   }
 
   private loadDashboard(): void {
@@ -51,6 +58,20 @@ export class AdminDashboardComponent implements OnInit {
       error: () => {
         this.notificationService.showError('Failed to load dashboard');
         this.isLoading = false;
+      }
+    });
+  }
+
+  private loadReviews(): void {
+    this.reviewsLoading = true;
+    this.adminService.getReviews().subscribe({
+      next: (reviews) => {
+        this.reviews = reviews;
+        this.reviewsLoading = false;
+      },
+      error: () => {
+        this.notificationService.showError('Failed to load reviews');
+        this.reviewsLoading = false;
       }
     });
   }
@@ -102,5 +123,46 @@ export class AdminDashboardComponent implements OnInit {
 
   navigate(path: string): void {
     this.router.navigate([path]);
+  }
+
+  startEdit(review: AdminReview): void {
+    this.editingReviewId = review.id;
+    this.editRating = review.rating;
+    this.editComment = review.comment;
+  }
+
+  cancelEdit(): void {
+    this.editingReviewId = null;
+    this.editRating = 0;
+    this.editComment = '';
+  }
+
+  saveReview(): void {
+    if (!this.editingReviewId) return;
+    this.adminService.updateReview(this.editingReviewId, this.editRating, this.editComment).subscribe({
+      next: () => {
+        const target = this.reviews.find(r => r.id === this.editingReviewId);
+        if (target) {
+          target.rating = this.editRating;
+          target.comment = this.editComment;
+        }
+        this.notificationService.showSuccess('Review updated');
+        this.cancelEdit();
+      },
+      error: () => this.notificationService.showError('Failed to update review')
+    });
+  }
+
+  deleteReview(id: string): void {
+    this.adminService.deleteReview(id).subscribe({
+      next: () => {
+        this.reviews = this.reviews.filter(r => r.id !== id);
+        this.notificationService.showSuccess('Review deleted');
+        if (this.editingReviewId === id) {
+          this.cancelEdit();
+        }
+      },
+      error: () => this.notificationService.showError('Failed to delete review')
+    });
   }
 }

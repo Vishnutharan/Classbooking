@@ -10,6 +10,7 @@ interface Review {
   id: string;
   studentName: string;
   studentPicture?: string;
+  teacherName?: string;
   rating: number;
   text: string;
   date: Date;
@@ -36,6 +37,7 @@ export class ReviewsRatingsComponent implements OnInit {
   averageRating = 0;
   totalReviews = 0;
   currentUserRole = '';
+  isStudentView = false;
 
   // Use index signature so [rating] in template is type-safe
   ratingDistribution: { [key: number]: number } = {
@@ -50,10 +52,14 @@ export class ReviewsRatingsComponent implements OnInit {
   replyingToReviewId: string | null = null;
   replyText = '';
   teacherId = '';
+  editingReviewId: string | null = null;
+  editRating = 0;
+  editComment = '';
 
   ngOnInit(): void {
     const user = this.authService.getCurrentUser();
     this.currentUserRole = user?.role || '';
+    this.isStudentView = this.currentUserRole === 'Student';
     this.loadReviews();
   }
 
@@ -90,16 +96,15 @@ export class ReviewsRatingsComponent implements OnInit {
         this.reviews = reviews.map((r: any) => ({
           id: r.id || Date.now().toString(),
           studentName: 'You', // Student's own review
+          teacherName: r.teacherName,
           rating: r.rating,
-          text: r.comment || r.text,
+          text: r.comment || r.text || '',
           date: new Date(r.createdAt || r.date),
           helpful: 0,
           reply: r.teacherReply
         }));
-        
-        this.totalReviews = this.reviews.length;
-        this.calculateRatingDistribution();
-        this.applyFilter();
+
+        this.recomputeStats();
         this.isLoading = false;
       },
       error: () => {
@@ -117,15 +122,13 @@ export class ReviewsRatingsComponent implements OnInit {
           studentName: r.studentName,
           studentPicture: r.studentPicture,
           rating: r.rating,
-          text: r.text,
-          date: new Date(r.date),
+          text: r.comment || r.text || '',
+          date: new Date(r.createdAt || r.date),
           helpful: r.helpful || 0,
           reply: r.reply
         }));
 
-        this.totalReviews = this.reviews.length;
-        this.calculateRatingDistribution();
-        this.applyFilter();
+        this.recomputeStats();
         this.isLoading = false;
       },
       error: () => {
@@ -143,6 +146,15 @@ export class ReviewsRatingsComponent implements OnInit {
           (this.ratingDistribution[review.rating] || 0) + 1;
       }
     });
+  }
+
+  private recomputeStats(): void {
+    this.totalReviews = this.reviews.length;
+    this.averageRating = this.totalReviews
+      ? this.reviews.reduce((sum, r) => sum + r.rating, 0) / this.totalReviews
+      : 0;
+    this.calculateRatingDistribution();
+    this.applyFilter();
   }
 
   onRatingFilterChange(): void {
@@ -207,6 +219,49 @@ export class ReviewsRatingsComponent implements OnInit {
 
   getStarArray(rating: number): number[] {
     return Array.from({ length: 5 }, (_, i) => i + 1);
+  }
+
+  startEdit(review: Review): void {
+    if (!this.isStudentView) return;
+    this.editingReviewId = review.id;
+    this.editRating = review.rating;
+    this.editComment = review.text;
+  }
+
+  cancelEdit(): void {
+    this.editingReviewId = null;
+    this.editRating = 0;
+    this.editComment = '';
+  }
+
+  saveEdit(): void {
+    if (!this.editingReviewId) return;
+    const payload = { rating: this.editRating, comment: this.editComment };
+    this.studentService.updateReview(this.editingReviewId, payload).subscribe({
+      next: () => {
+        const review = this.reviews.find(r => r.id === this.editingReviewId);
+        if (review) {
+          review.rating = this.editRating;
+          review.text = this.editComment;
+        }
+        this.notificationService.showSuccess('Review updated');
+        this.cancelEdit();
+        this.recomputeStats();
+      },
+      error: () => this.notificationService.showError('Failed to update review')
+    });
+  }
+
+  deleteReview(reviewId: string): void {
+    if (!this.isStudentView) return;
+    this.studentService.deleteReview(reviewId).subscribe({
+      next: () => {
+        this.reviews = this.reviews.filter(r => r.id !== reviewId);
+        this.notificationService.showSuccess('Review deleted');
+        this.recomputeStats();
+      },
+      error: () => this.notificationService.showError('Failed to delete review')
+    });
   }
 }
 

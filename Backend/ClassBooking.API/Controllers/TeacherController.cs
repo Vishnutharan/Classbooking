@@ -2,6 +2,8 @@ using ClassBooking.API.Models;
 using ClassBooking.API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
+using System.Linq;
 
 namespace ClassBooking.API.Controllers
 {
@@ -10,10 +12,12 @@ namespace ClassBooking.API.Controllers
     public class TeacherController : ControllerBase
     {
         private readonly ITeacherService _teacherService;
+        private readonly IBookingService _bookingService;
 
-        public TeacherController(ITeacherService teacherService)
+        public TeacherController(ITeacherService teacherService, IBookingService bookingService)
         {
             _teacherService = teacherService;
+            _bookingService = bookingService;
         }
 
         [HttpGet]
@@ -78,9 +82,22 @@ namespace ClassBooking.API.Controllers
             string teacherId,
             [FromBody] RateTeacherRequest request)
         {
-            // In a real app, get student ID from auth context
+            var role = User.FindFirst("role")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+            if (!string.Equals(role, "Student", StringComparison.OrdinalIgnoreCase))
+            {
+                return Forbid();
+            }
+
             var studentId = User.FindFirst("userId")?.Value ?? "temp-student-id";
             var studentName = User.FindFirst("fullName")?.Value ?? "Anonymous";
+
+            var bookings = await _bookingService.GetBookingsForStudentAsync(studentId);
+            var hasBooking = bookings.Any(b => b.TeacherId == teacherId &&
+                (b.Status == "Confirmed" || b.Status == "Completed"));
+            if (!hasBooking)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new { message = "You can only review teachers you have booked." });
+            }
 
             var review = await _teacherService.AddReviewAsync(
                 teacherId, 

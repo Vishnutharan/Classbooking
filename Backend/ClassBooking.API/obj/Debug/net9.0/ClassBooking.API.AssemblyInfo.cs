@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ClassBooking.API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+57ad43965f0981c80869b66e3bcc2bb335b08eba")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+aaac5da0069579e4041f99f22d4f201f97f930ce")]
 [assembly: System.Reflection.AssemblyProductAttribute("ClassBooking.API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ClassBooking.API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -34,6 +34,11 @@ namespace ClassBooking.API.Repositories
         Task<ReviewEntity> AddReviewAsync(ReviewEntity review);
         Task<List<ReviewEntity>> GetTeacherReviewsAsync(string teacherProfileId);
         Task<double> CalculateAverageRatingAsync(string teacherProfileId);
+        Task<List<ReviewEntity>> GetAllReviewsAsync();
+        Task<ReviewEntity?> GetReviewByIdAsync(string reviewId);
+        Task<ReviewEntity> UpdateReviewAsync(ReviewEntity review);
+        Task<bool> DeleteReviewAsync(string reviewId);
+        Task RefreshTeacherRatingAsync(string teacherProfileId);
         
         // Attendance Operations
         Task<AttendanceRecordEntity> CreateAttendanceAsync(AttendanceRecordEntity attendance);
@@ -247,18 +252,8 @@ namespace ClassBooking.API.Repositories
         {
             _context.Reviews.Add(review);
             await _context.SaveChangesAsync();
-            
-            // Update teacher's average rating and total reviews
-            var teacherProfile = await _context.TeacherProfiles.FindAsync(review.TeacherProfileId);
-            if (teacherProfile != null)
-            {
-                var avgRating = await CalculateAverageRatingAsync(review.TeacherProfileId);
-                teacherProfile.AverageRating = avgRating;
-                teacherProfile.TotalReviews = await _context.Reviews
-                    .CountAsync(r => r.TeacherProfileId == review.TeacherProfileId);
-                await _context.SaveChangesAsync();
-            }
-            
+
+            await RefreshTeacherRatingAsync(review.TeacherProfileId);
             return review;
         }
 
@@ -277,8 +272,55 @@ namespace ClassBooking.API.Repositories
                 .ToListAsync();
 
             if (!reviews.Any()) return 0;
-            
+
             return reviews.Average(r => r.Rating);
+        }
+
+        public async Task<List<ReviewEntity>> GetAllReviewsAsync()
+        {
+            return await _context.Reviews
+                .Include(r => r.TeacherProfile)
+                .OrderByDescending(r => r.CreatedAt)
+                .ToListAsync();
+        }
+
+        public async Task<ReviewEntity?> GetReviewByIdAsync(string reviewId)
+        {
+            return await _context.Reviews.FirstOrDefaultAsync(r => r.Id == reviewId);
+        }
+
+        public async Task<ReviewEntity> UpdateReviewAsync(ReviewEntity review)
+        {
+            _context.Reviews.Update(review);
+            await _context.SaveChangesAsync();
+            await RefreshTeacherRatingAsync(review.TeacherProfileId);
+            return review;
+        }
+
+        public async Task<bool> DeleteReviewAsync(string reviewId)
+        {
+            var review = await _context.Reviews.FirstOrDefaultAsync(r => r.Id == reviewId);
+            if (review == null) return false;
+
+            var teacherId = review.TeacherProfileId;
+            _context.Reviews.Remove(review);
+            await _context.SaveChangesAsync();
+            await RefreshTeacherRatingAsync(teacherId);
+            return true;
+        }
+
+        public async Task RefreshTeacherRatingAsync(string teacherProfileId)
+        {
+            var teacherProfile = await _context.TeacherProfiles.FindAsync(teacherProfileId);
+            if (teacherProfile == null) return;
+
+            var reviews = await _context.Reviews
+                .Where(r => r.TeacherProfileId == teacherProfileId)
+                .ToListAsync();
+
+            teacherProfile.AverageRating = reviews.Any() ? reviews.Average(r => r.Rating) : 0;
+            teacherProfile.TotalReviews = reviews.Count;
+            await _context.SaveChangesAsync();
         }
 
         // Attendance Operations

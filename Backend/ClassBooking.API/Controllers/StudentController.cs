@@ -3,8 +3,10 @@ using ClassBooking.API.Services;
 using ClassBooking.API.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 using System.Text.Json;
 using ClassBooking.API.Entities;
+using System.Linq;
 
 namespace ClassBooking.API.Controllers
 {
@@ -288,7 +290,7 @@ namespace ClassBooking.API.Controllers
             if (profile == null)
                 return Ok(new List<object>());
 
-            var reviews = await _studentService.GetStudentReviewsAsync(profile.Id);
+            var reviews = await _studentService.GetStudentReviewsAsync(userId);
             
             return Ok(reviews.Select(r => new
             {
@@ -310,10 +312,17 @@ namespace ClassBooking.API.Controllers
             if (profile == null)
                 return NotFound("Student profile not found");
 
+            // Ensure the student actually booked this teacher (confirmed or completed)
+            var bookings = await _bookingService.GetBookingsForStudentAsync(userId);
+            var hasBooking = bookings.Any(b => b.TeacherId == request.TeacherId &&
+                (b.Status == "Confirmed" || b.Status == "Completed"));
+            if (!hasBooking)
+                return StatusCode(StatusCodes.Status403Forbidden, new { message = "You can only review teachers you have booked." });
+
             var review = new Entities.ReviewEntity
             {
                 Id = Guid.NewGuid().ToString(),
-                StudentId = profile.Id,
+                StudentId = userId,
                 StudentName = profile.FullName,
                 TeacherProfileId = request.TeacherId,
                 Rating = request.Rating,
@@ -335,9 +344,25 @@ namespace ClassBooking.API.Controllers
             if (profile == null)
                 return NotFound("Student profile not found");
 
-            await _studentService.UpdateReviewAsync(reviewId, profile.Id, request.Rating, request.Comment);
+            var updated = await _studentService.UpdateReviewAsync(reviewId, userId, request.Rating, request.Comment);
+            if (!updated) return NotFound(new { message = "Review not found or not owned by you" });
             
             return Ok(new { message = "Review updated successfully" });
+        }
+
+        [HttpDelete("reviews/{reviewId}")]
+        public async Task<ActionResult> DeleteReview(string reviewId)
+        {
+            var userId = User.FindFirst("userId")?.Value ?? throw new UnauthorizedAccessException();
+            var profile = await _studentRepository.GetByUserIdAsync(userId);
+            
+            if (profile == null)
+                return NotFound("Student profile not found");
+
+            var deleted = await _studentService.DeleteReviewAsync(reviewId, userId);
+            if (!deleted) return NotFound(new { message = "Review not found or not owned by you" });
+
+            return Ok(new { message = "Review deleted successfully" });
         }
 
         // Progress Report endpoint

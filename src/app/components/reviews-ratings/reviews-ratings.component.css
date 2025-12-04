@@ -438,6 +438,30 @@
   color: #6b7280;
 }
 
+.edit-review {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #f9fafb;
+}
+
+.edit-review select,
+.edit-review textarea {
+  width: 100%;
+  margin-top: 6px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 8px;
+  font-size: 14px;
+}
+
+.edit-actions {
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+}
+
 /* Responsive */
 
 @media (max-width: 900px) {

@@ -95,7 +95,11 @@ export class TeacherDashboardComponent implements OnInit {
 
     this.teacherService.getTeacherReviews(teacherId).subscribe({
       next: (reviews) => {
-        this.recentReviews = (reviews || []).slice(0, 5);
+        this.recentReviews = (reviews || []).map(r => ({
+          ...r,
+          text: r.comment || r.text || '',
+          date: new Date(r.createdAt || r.date)
+        })).slice(0, 5);
       },
       error: () => {
         this.recentReviews = [];

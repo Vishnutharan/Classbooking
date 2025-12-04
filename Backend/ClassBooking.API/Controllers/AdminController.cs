@@ -153,6 +153,46 @@ namespace ClassBooking.API.Controllers
             return Ok(stats);
         }
 
+        // Review management
+        [HttpGet("reviews")]
+        public async Task<IActionResult> GetAllReviews()
+        {
+            var reviews = await _adminService.GetAllReviewsAsync();
+            var shaped = reviews.Select(r => new
+            {
+                id = r.Id,
+                teacherId = r.TeacherProfileId,
+                teacherName = r.TeacherProfile?.FullName ?? "Unknown",
+                studentId = r.StudentId,
+                studentName = r.StudentName,
+                rating = r.Rating,
+                comment = r.Comment,
+                createdAt = r.CreatedAt
+            });
+
+            return Ok(shaped);
+        }
+
+        [HttpPut("reviews/{id}")]
+        public async Task<IActionResult> UpdateReview(string id, [FromBody] AdminUpdateReviewRequest request)
+        {
+            if (request == null) return BadRequest(new { message = "Invalid request" });
+
+            var review = await _adminService.UpdateReviewAsync(id, request.Rating, request.Comment ?? string.Empty);
+            if (review == null) return NotFound(new { message = "Review not found" });
+
+            return Ok(new { message = "Review updated", review });
+        }
+
+        [HttpDelete("reviews/{id}")]
+        public async Task<IActionResult> DeleteReview(string id)
+        {
+            var deleted = await _adminService.DeleteReviewAsync(id);
+            if (!deleted) return NotFound(new { message = "Review not found" });
+
+            return Ok(new { message = "Review deleted" });
+        }
+
         [HttpGet("reports/bookings")]
         public IActionResult ExportBookingReport([FromQuery] string format = "pdf")
         {
@@ -383,5 +423,11 @@ namespace ClassBooking.API.Controllers
             // TODO: Implement exam management for admin
             return Ok(new List<object>());
         }
+    }
+
+    public class AdminUpdateReviewRequest
+    {
+        public int Rating { get; set; }
+        public string? Comment { get; set; }
     }
 }
