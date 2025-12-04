@@ -18,6 +18,13 @@ namespace ClassBooking.API.Services
         Task UpdateAvailabilityAsync(string teacherProfileId, List<TeacherAvailability> availability);
         Task<List<ReviewDto>> GetTeacherReviewsAsync(string teacherProfileId);
         Task<ReviewDto> AddReviewAsync(string teacherProfileId, string studentId, string studentName, int rating, string? comment);
+        Task<List<TeacherAvailabilitySlot>> GetAvailabilitySlotsAsync(string teacherProfileId, DateTime? startDate, DateTime? endDate);
+        Task<TeacherAvailabilitySlot> AddAvailabilitySlotAsync(string teacherProfileId, DateTime date, string startTime, string endTime);
+        Task<TeacherAvailabilitySlot?> FindAvailabilitySlotAsync(string teacherProfileId, DateTime date, string startTime, string endTime);
+        Task<bool> UpdateAvailabilitySlotStatusAsync(string slotId, string status, string? bookingId = null);
+        Task<TeacherAvailabilitySlot?> GetAvailabilitySlotByBookingAsync(string bookingId);
+        Task<bool> ReleaseAvailabilitySlotAsync(string bookingId);
+        Task<bool> DeleteAvailabilitySlotAsync(string slotId, string teacherProfileId);
         
         // Analytics
         Task<object> GetAnalyticsAsync(string teacherId, string period);
@@ -125,6 +132,54 @@ namespace ClassBooking.API.Services
             }).ToList();
 
             await _repository.UpdateTeacherAvailabilityAsync(teacherProfileId, entities);
+        }
+
+        public async Task<List<TeacherAvailabilitySlot>> GetAvailabilitySlotsAsync(string teacherProfileId, DateTime? startDate, DateTime? endDate)
+        {
+            var slots = await _repository.GetAvailabilitySlotsAsync(teacherProfileId, startDate, endDate);
+            return slots.Select(MapToSlotDto).ToList();
+        }
+
+        public async Task<TeacherAvailabilitySlot> AddAvailabilitySlotAsync(string teacherProfileId, DateTime date, string startTime, string endTime)
+        {
+            var entity = new TeacherAvailabilitySlotEntity
+            {
+                TeacherProfileId = teacherProfileId,
+                Date = date.Date,
+                StartTime = startTime,
+                EndTime = endTime,
+                Status = "Available"
+            };
+
+            var created = await _repository.AddAvailabilitySlotAsync(entity);
+            return MapToSlotDto(created);
+        }
+
+        public async Task<TeacherAvailabilitySlot?> FindAvailabilitySlotAsync(string teacherProfileId, DateTime date, string startTime, string endTime)
+        {
+            var slot = await _repository.GetAvailabilitySlotAsync(teacherProfileId, date, startTime, endTime);
+            return slot != null ? MapToSlotDto(slot) : null;
+        }
+
+        public async Task<bool> UpdateAvailabilitySlotStatusAsync(string slotId, string status, string? bookingId = null)
+        {
+            return await _repository.UpdateAvailabilitySlotStatusAsync(slotId, status, bookingId);
+        }
+
+        public async Task<TeacherAvailabilitySlot?> GetAvailabilitySlotByBookingAsync(string bookingId)
+        {
+            var slot = await _repository.GetAvailabilitySlotByBookingAsync(bookingId);
+            return slot != null ? MapToSlotDto(slot) : null;
+        }
+
+        public async Task<bool> ReleaseAvailabilitySlotAsync(string bookingId)
+        {
+            return await _repository.ReleaseSlotByBookingAsync(bookingId);
+        }
+
+        public async Task<bool> DeleteAvailabilitySlotAsync(string slotId, string teacherProfileId)
+        {
+            return await _repository.DeleteAvailabilitySlotAsync(slotId, teacherProfileId);
         }
 
         public async Task<List<ReviewDto>> GetTeacherReviewsAsync(string teacherProfileId)
@@ -289,6 +344,20 @@ namespace ClassBooking.API.Services
             }
 
             return entity;
+        }
+
+        private TeacherAvailabilitySlot MapToSlotDto(TeacherAvailabilitySlotEntity entity)
+        {
+            return new TeacherAvailabilitySlot
+            {
+                Id = entity.Id,
+                TeacherProfileId = entity.TeacherProfileId,
+                Date = entity.Date,
+                StartTime = entity.StartTime,
+                EndTime = entity.EndTime,
+                Status = entity.Status,
+                BookingId = entity.BookingId
+            };
         }
     }
 

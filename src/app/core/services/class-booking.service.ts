@@ -140,6 +140,12 @@ export class ClassBookingService {
     );
   }
 
+  rejectBooking(id: string, reason?: string): Observable<BookingResponse> {
+    return this.http.post<BookingResponse>(`${this.apiUrl}/${id}/reject`, { reason }).pipe(
+      catchError(() => this.mockData.updateBookingStatus(id, 'Rejected'))
+    );
+  }
+
   getAvailableSlots(teacherId: string, date: Date): Observable<string[]> {
     return this.http.get<string[]>(`${this.apiUrl}/slots`, {
       params: { teacherId, date: date.toISOString() }

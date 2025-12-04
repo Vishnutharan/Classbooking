@@ -105,7 +105,7 @@ namespace ClassBooking.API.Entities
     {
         [Key]
         public string Id { get; set; } = Guid.NewGuid().ToString();
-        
+
         [Required]
         public string TeacherProfileId { get; set; } = string.Empty;
         
@@ -121,6 +121,38 @@ namespace ClassBooking.API.Entities
         
         [Required]
         public string EndTime { get; set; } = string.Empty;
+    }
+
+    // Date-specific availability that can be locked by bookings
+    [Table("TeacherAvailabilitySlots")]
+    public class TeacherAvailabilitySlotEntity
+    {
+        [Key]
+        public string Id { get; set; } = Guid.NewGuid().ToString();
+
+        [Required]
+        public string TeacherProfileId { get; set; } = string.Empty;
+
+        [ForeignKey("TeacherProfileId")]
+        public TeacherProfileEntity? TeacherProfile { get; set; }
+
+        [Required]
+        public DateTime Date { get; set; }
+
+        [Required]
+        public string StartTime { get; set; } = string.Empty;
+
+        [Required]
+        public string EndTime { get; set; } = string.Empty;
+
+        // Available = free to book, Pending = locked by a pending booking, Booked = confirmed
+        [Required]
+        [MaxLength(30)]
+        public string Status { get; set; } = "Available";
+
+        public string? BookingId { get; set; }
+
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
     
     [Table("Reviews")]

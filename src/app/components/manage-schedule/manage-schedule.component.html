@@ -1,9 +1,8 @@
 <div class="schedule-container">
-  <!-- Header Section -->
   <div class="header-section">
     <div class="header-content">
       <h2 class="header-title">Manage Schedule</h2>
-      <p class="header-subtitle">Organize your availability and bookings efficiently</p>
+      <p class="header-subtitle">Set date-specific availability and respond to bookings.</p>
     </div>
     <button class="refresh-btn" (click)="loadSchedule()">
       <span class="icon-spin">↻</span>
@@ -11,27 +10,27 @@
     </button>
   </div>
 
-  <!-- Alert Section -->
   <div class="alert-container">
     <div class="alert">
-      <div class="alert-icon">ℹ️</div>
+      <div class="alert-icon">ℹ</div>
       <div class="alert-content">
-        <p><strong>Tip:</strong> Click and drag on the calendar to create availability slots. Click on a slot to remove
-          it.</p>
+        <p><strong>Tip:</strong> Drag on the calendar to add a slot for that date/time. Click an available slot to remove it.</p>
       </div>
     </div>
   </div>
 
-  <!-- Calendar Section -->
   <div class="calendar-section">
     <div class="calendar-wrapper">
-      <app-calendar [events]="calendarEvents" [editable]="true" [selectable]="true"
-        (slotSelected)="onSlotSelected($event)" (eventClicked)="onEventClicked($event)">
+      <app-calendar
+        [events]="calendarEvents"
+        [editable]="true"
+        [selectable]="true"
+        (slotSelected)="onSlotSelected($event)"
+        (eventClicked)="onEventClicked($event)">
       </app-calendar>
     </div>
   </div>
 
-  <!-- Availability Modal -->
   <div class="modal-overlay" [class.active]="showAvailabilityModal">
     <div class="modal-dialog">
       <div class="modal-header">
@@ -41,10 +40,8 @@
 
       <div class="modal-body">
         <div class="form-group">
-          <label class="form-label">Day of Week</label>
-          <select class="form-select" [(ngModel)]="availabilityForm.dayOfWeek">
-            <option *ngFor="let day of daysOfWeek" [value]="day">{{ day }}</option>
-          </select>
+          <label class="form-label">Date</label>
+          <input type="date" class="form-input" [(ngModel)]="availabilityForm.date">
         </div>
 
         <div class="form-group">

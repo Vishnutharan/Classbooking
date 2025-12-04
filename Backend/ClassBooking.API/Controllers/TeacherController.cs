@@ -62,6 +62,16 @@ namespace ClassBooking.API.Controllers
             return Ok(reviews);
         }
 
+        [HttpGet("{teacherId}/availability/slots")]
+        public async Task<ActionResult<List<TeacherAvailabilitySlot>>> GetTeacherAvailabilitySlots(
+            string teacherId,
+            [FromQuery] DateTime? startDate,
+            [FromQuery] DateTime? endDate)
+        {
+            var slots = await _teacherService.GetAvailabilitySlotsAsync(teacherId, startDate, endDate);
+            return Ok(slots);
+        }
+
         [Authorize]
         [HttpPost("{teacherId}/rate")]
         public async Task<ActionResult<ReviewDto>> RateTeacher(

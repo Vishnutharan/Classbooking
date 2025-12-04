@@ -124,7 +124,49 @@
       </ng-template>
     </div>
 
-    <!-- Pending Requests Section -->
+    <!-- Platform Events -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">
+          <h2>🕗 Platform Events</h2>
+          <span class="section-badge">{{ timetableEvents.length }}</span>
+        </div>
+        <button class="btn-link" (click)="navigate('/timetable')">View all events →</button>
+      </div>
+      <div class="events-grid" *ngIf="timetableEvents.length > 0; else noEvents">
+        <div class="event-card" *ngFor="let ev of timetableEvents; let i = index" [style.animation-delay]="(i * 0.05) + 's'">
+          <div class="event-header">
+            <div class="event-date">
+              <span class="day">{{ ev.date | date:'dd' }}</span>
+              <span class="month">{{ ev.date | date:'MMM' }}</span>
+            </div>
+            <div class="event-tags">
+              <span class="pill pill-type">{{ ev.type || 'Event' }}</span>
+              <span class="pill pill-audience">{{ ev.audience || 'All' }}</span>
+            </div>
+          </div>
+          <div class="event-body">
+            <h4 class="event-title">{{ ev.title }}</h4>
+            <p class="event-time">
+              <span class="time-icon">⏰</span>
+              {{ ev.startTime }} – {{ ev.endTime }}
+            </p>
+            <p class="event-desc" *ngIf="ev.description">{{ ev.description }}</p>
+          </div>
+          <div class="event-footer">
+            <button class="btn-link" (click)="navigate('/timetable')">Open timetable →</button>
+          </div>
+        </div>
+      </div>
+      <ng-template #noEvents>
+        <div class="empty-state">
+          <div class="empty-icon">🕗</div>
+          <p>No platform events scheduled.</p>
+        </div>
+      </ng-template>
+    </div>
+  
+      <!-- Pending Requests Section -->
     <div class="section pending-section">
       <div class="section-header">
         <div class="section-title">

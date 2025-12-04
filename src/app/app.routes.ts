@@ -255,6 +255,15 @@ export const routes: Routes = [
       )
   },
   {
+    path: 'timetable',
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['Student', 'Teacher', 'Admin'] },
+    loadComponent: () =>
+      import('./components/timetable-feed/timetable-feed.component').then(
+        m => m.TimetableFeedComponent
+      )
+  },
+  {
     path: 'admin/reports',
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['Admin'] },

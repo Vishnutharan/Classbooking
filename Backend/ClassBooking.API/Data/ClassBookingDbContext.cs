@@ -33,6 +33,8 @@ namespace ClassBooking.API.Data
         public DbSet<AnnouncementEntity> Announcements { get; set; }
         public DbSet<ResourceEntity> Resources { get; set; }
         public DbSet<ExamPreparationEntity> ExamPreparations { get; set; }
+        public DbSet<TeacherAvailabilitySlotEntity> TeacherAvailabilitySlots { get; set; }
+        public DbSet<TimetableEventEntity> TimetableEvents { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -97,6 +99,21 @@ namespace ClassBooking.API.Data
             {
                 entity.HasKey(e => e.Id);
                 entity.HasIndex(e => e.TeacherProfileId);
+            });
+
+            modelBuilder.Entity<TeacherAvailabilitySlotEntity>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.HasIndex(e => new { e.TeacherProfileId, e.Date });
+                entity.HasIndex(e => new { e.TeacherProfileId, e.Status });
+            });
+
+            modelBuilder.Entity<TimetableEventEntity>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.HasIndex(e => e.Date);
+                entity.HasIndex(e => e.Audience);
+                entity.Property(e => e.Title).IsRequired();
             });
 
             modelBuilder.Entity<ReviewEntity>(entity =>

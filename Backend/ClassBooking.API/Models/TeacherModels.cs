@@ -37,4 +37,15 @@ namespace ClassBooking.API.Models
         public string StartTime { get; set; } = string.Empty;
         public string EndTime { get; set; } = string.Empty;
     }
+
+    public class TeacherAvailabilitySlot
+    {
+        public string Id { get; set; } = string.Empty;
+        public string TeacherProfileId { get; set; } = string.Empty;
+        public DateTime Date { get; set; }
+        public string StartTime { get; set; } = string.Empty;
+        public string EndTime { get; set; } = string.Empty;
+        public string Status { get; set; } = "Available";
+        public string? BookingId { get; set; }
+    }
 }

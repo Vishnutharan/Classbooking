@@ -18,6 +18,7 @@ namespace ClassBooking.API.Services
         Task<BookingResponse> CompleteBookingAsync(string id);
         Task<List<string>> GetAvailableSlotsAsync(string teacherId, DateTime date);
         Task<BookingResponse> RescheduleBookingAsync(string id, DateTime newDate, string newStartTime, string newEndTime);
+        Task<BookingResponse> RejectBookingAsync(string id, string? reason);
     }
 
     public class BookingService : IBookingService
@@ -109,13 +110,53 @@ namespace ClassBooking.API.Services
 
         public async Task<BookingResponse> CreateBookingAsync(string studentId, BookingRequest request)
         {
+            var teacherProfile = await _teacherRepository.GetByIdAsync(request.TeacherId);
+            if (teacherProfile == null)
+            {
+                return new BookingResponse
+                {
+                    Success = false,
+                    Message = "Selected teacher not found",
+                    Status = "Error"
+                };
+            }
+
+            // Ensure the exact slot is present and not locked
+            var slot = await _teacherRepository.GetAvailabilitySlotAsync(request.TeacherId, request.Date, request.StartTime, request.EndTime);
+            if (slot == null || !string.Equals(slot.Status, "Available", StringComparison.OrdinalIgnoreCase))
+            {
+                return new BookingResponse
+                {
+                    Success = false,
+                    Message = "The selected slot is no longer available.",
+                    Status = "Unavailable"
+                };
+            }
+
+            // Guard against overlapping bookings on the same slot for this teacher
+            var conflicting = (await _bookingRepository.GetByTeacherIdAsync(request.TeacherId))
+                .Any(b => b.Date.Date == request.Date.Date &&
+                          b.StartTime == request.StartTime &&
+                          (b.Status == "Pending" || b.Status == "Confirmed"));
+            if (conflicting)
+            {
+                return new BookingResponse
+                {
+                    Success = false,
+                    Message = "This slot has just been taken by another student.",
+                    Status = "Unavailable"
+                };
+            }
+
+            var student = await _userRepository.GetByIdAsync(studentId);
+
             var booking = new BookingEntity
             {
                 Id = Guid.NewGuid().ToString(),
                 StudentId = studentId,
                 TeacherId = request.TeacherId,
                 Subject = request.Subject,
-                Date = request.Date,
+                Date = request.Date.Date,
                 StartTime = request.StartTime,
                 EndTime = request.EndTime,
                 Status = "Pending",
@@ -126,6 +167,7 @@ namespace ClassBooking.API.Services
             };
 
             await _bookingRepository.CreateAsync(booking);
+            await _teacherRepository.UpdateAvailabilitySlotStatusAsync(slot.Id, "Pending", booking.Id);
 
             // Create notification for teacher
             await _notificationRepository.CreateAsync(new NotificationEntity
@@ -133,7 +175,7 @@ namespace ClassBooking.API.Services
                 UserId = request.TeacherId,
                 Type = "NewBooking",
                 Title = "New Booking Request",
-                Message = $"New booking request for {request.Subject} on {request.Date:yyyy-MM-dd}",
+                Message = $"New booking request from {student?.FullName ?? "Student"} for {request.Subject} on {request.Date:yyyy-MM-dd} at {request.StartTime}",
                 RelatedEntityId = booking.Id,
                 CreatedAt = DateTime.UtcNow
             });
@@ -143,7 +185,7 @@ namespace ClassBooking.API.Services
             if (teacher != null)
             {
                 await _emailService.SendEmailAsync(teacher.Email, "New Booking Request", 
-                    $"You have a new booking request for {request.Subject} on {request.Date:yyyy-MM-dd} at {request.StartTime}.");
+                    $"You have a new booking request from {student?.FullName ?? "a student"} for {request.Subject} on {request.Date:yyyy-MM-dd} at {request.StartTime}. Student contact: {student?.Email ?? "N/A"}");
             }
 
             return new BookingResponse
@@ -160,6 +202,12 @@ namespace ClassBooking.API.Services
             var booking = await _bookingRepository.GetByIdAsync(id);
             if (booking == null)
                 return new BookingResponse { Id = id, Status = "Error", Message = "Booking not found", Success = false };
+
+            // Changing date/time should go through reschedule to manage slot locks
+            if (booking.Date.Date != request.Date.Date || booking.StartTime != request.StartTime || booking.EndTime != request.EndTime)
+            {
+                return new BookingResponse { Id = id, Status = "Error", Message = "Please use reschedule to change the time slot", Success = false };
+            }
 
             booking.Subject = request.Subject;
             booking.Date = request.Date;
@@ -186,6 +234,12 @@ namespace ClassBooking.API.Services
 
             booking.Status = "Confirmed";
             await _bookingRepository.UpdateAsync(booking);
+
+            var slot = await _teacherRepository.GetAvailabilitySlotByBookingAsync(id);
+            if (slot != null)
+            {
+                await _teacherRepository.UpdateAvailabilitySlotStatusAsync(slot.Id, "Booked", booking.Id);
+            }
 
             // Notify student
             await _notificationRepository.CreateAsync(new NotificationEntity
@@ -225,6 +279,8 @@ namespace ClassBooking.API.Services
             booking.CancellationReason = reason;
             await _bookingRepository.UpdateAsync(booking);
 
+            await _teacherRepository.ReleaseSlotByBookingAsync(id);
+
             // Notify both parties
             await _notificationRepository.CreateAsync(new NotificationEntity
             {
@@ -261,6 +317,43 @@ namespace ClassBooking.API.Services
             };
         }
 
+        public async Task<BookingResponse> RejectBookingAsync(string id, string? reason)
+        {
+            var booking = await _bookingRepository.GetByIdAsync(id);
+            if (booking == null)
+                return new BookingResponse { Id = id, Status = "Error", Message = "Booking not found", Success = false };
+
+            booking.Status = "Rejected";
+            booking.CancellationReason = reason;
+            await _bookingRepository.UpdateAsync(booking);
+            await _teacherRepository.ReleaseSlotByBookingAsync(id);
+
+            await _notificationRepository.CreateAsync(new NotificationEntity
+            {
+                UserId = booking.StudentId,
+                Type = "BookingRejected",
+                Title = "Booking Rejected",
+                Message = $"Your booking for {booking.Subject} on {booking.Date:yyyy-MM-dd} was rejected. {reason}",
+                RelatedEntityId = booking.Id,
+                CreatedAt = DateTime.UtcNow
+            });
+
+            var student = await _userRepository.GetByIdAsync(booking.StudentId);
+            if (student != null)
+            {
+                await _emailService.SendEmailAsync(student.Email, "Booking Rejected",
+                    $"Your booking for {booking.Subject} on {booking.Date:yyyy-MM-dd} was rejected by the teacher. {reason}");
+            }
+
+            return new BookingResponse
+            {
+                Success = true,
+                Id = booking.Id,
+                Status = booking.Status,
+                Message = "Booking rejected and slot released"
+            };
+        }
+
         public async Task<BookingResponse> CompleteBookingAsync(string id)
         {
             var booking = await _bookingRepository.GetByIdAsync(id);
@@ -281,35 +374,13 @@ namespace ClassBooking.API.Services
 
         public async Task<List<string>> GetAvailableSlotsAsync(string teacherId, DateTime date)
         {
-            // Get teacher's availability for the day
-            var teacher = await _teacherRepository.GetByIdAsync(teacherId);
-            if (teacher == null) return new List<string>();
+            var slots = await _teacherRepository.GetAvailabilitySlotsAsync(teacherId, date.Date, date.Date);
 
-            var dayOfWeek = date.DayOfWeek.ToString();
-            var availability = teacher.Availability.FirstOrDefault(a => a.DayOfWeek == dayOfWeek);
-            if (availability == null) return new List<string>();
-
-            // Get existing bookings for that day
-            var bookings = await _bookingRepository.GetByTeacherIdAsync(teacherId);
-            var dayBookings = bookings.Where(b => b.Date.Date == date.Date && 
-                (b.Status == "Confirmed" || b.Status == "Pending")).ToList();
-
-            // Generate time slots (assuming 1-hour slots)
-            var slots = new List<string>();
-            var startHour = int.Parse(availability.StartTime.Split(':')[0]);
-            var endHour = int.Parse(availability.EndTime.Split(':')[0]);
-
-            for (int hour = startHour; hour < endHour; hour++)
-            {
-                var slotTime = $"{hour:D2}:00";
-                var isBooked = dayBookings.Any(b => b.StartTime == slotTime);
-                if (!isBooked)
-                {
-                    slots.Add(slotTime);
-                }
-            }
-
-            return slots;
+            // Filter slots that are still free (status-based lock)
+            return slots
+                .Where(s => string.Equals(s.Status, "Available", StringComparison.OrdinalIgnoreCase))
+                .Select(s => $"{s.StartTime}-{s.EndTime}")
+                .ToList();
         }
 
         public async Task<BookingResponse> RescheduleBookingAsync(string id, DateTime newDate, string newStartTime, string newEndTime)
@@ -318,10 +389,35 @@ namespace ClassBooking.API.Services
             if (booking == null)
                 return new BookingResponse { Id = id, Status = "Error", Message = "Booking not found", Success = false };
 
-            booking.Date = newDate;
+            var targetSlot = await _teacherRepository.GetAvailabilitySlotAsync(booking.TeacherId, newDate, newStartTime, newEndTime);
+            if (targetSlot == null || !string.Equals(targetSlot.Status, "Available", StringComparison.OrdinalIgnoreCase))
+            {
+                return new BookingResponse { Id = id, Status = "Unavailable", Message = "New slot is not available", Success = false };
+            }
+
+            var conflicts = (await _bookingRepository.GetByTeacherIdAsync(booking.TeacherId))
+                .Any(b => b.Id != id &&
+                          b.Date.Date == newDate.Date &&
+                          b.StartTime == newStartTime &&
+                          (b.Status == "Pending" || b.Status == "Confirmed"));
+            if (conflicts)
+            {
+                return new BookingResponse { Id = id, Status = "Unavailable", Message = "Another student already requested this time", Success = false };
+            }
+
+            // Release existing slot lock if any
+            var existingSlot = await _teacherRepository.GetAvailabilitySlotByBookingAsync(id);
+            if (existingSlot != null)
+            {
+                await _teacherRepository.UpdateAvailabilitySlotStatusAsync(existingSlot.Id, "Available", null);
+            }
+
+            booking.Date = newDate.Date;
             booking.StartTime = newStartTime;
             booking.EndTime = newEndTime;
+            booking.Status = "Pending";
             await _bookingRepository.UpdateAsync(booking);
+            await _teacherRepository.UpdateAvailabilitySlotStatusAsync(targetSlot.Id, "Pending", booking.Id);
 
             // Notify both parties
             await _notificationRepository.CreateAsync(new NotificationEntity
@@ -329,7 +425,17 @@ namespace ClassBooking.API.Services
                 UserId = booking.StudentId,
                 Type = "BookingRescheduled",
                 Title = "Booking Rescheduled",
-                Message = $"Your booking has been rescheduled to {newDate:yyyy-MM-dd} at {newStartTime}",
+                Message = $"Your booking has been rescheduled to {newDate:yyyy-MM-dd} at {newStartTime}. Waiting for teacher confirmation.",
+                RelatedEntityId = booking.Id,
+                CreatedAt = DateTime.UtcNow
+            });
+
+            await _notificationRepository.CreateAsync(new NotificationEntity
+            {
+                UserId = booking.TeacherId,
+                Type = "BookingRescheduled",
+                Title = "Booking Reschedule Request",
+                Message = $"Student requested to move {booking.Subject} to {newDate:yyyy-MM-dd} at {newStartTime}",
                 RelatedEntityId = booking.Id,
                 CreatedAt = DateTime.UtcNow
             });
@@ -347,7 +453,7 @@ namespace ClassBooking.API.Services
                 Success = true,
                 Id = booking.Id,
                 Status = booking.Status,
-                Message = "Booking rescheduled successfully"
+                Message = "Booking rescheduled successfully and awaiting confirmation"
             };
         }
 

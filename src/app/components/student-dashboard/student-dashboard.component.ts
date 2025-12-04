@@ -5,7 +5,8 @@ import { FormsModule } from '@angular/forms';
 import { StudentService } from '../../core/services/student.service';
 import { TeacherService } from '../../core/services/teacher.service';
 import { ClassBookingService } from '../../core/services/class-booking.service';
-import { TeacherProfile, ClassBooking } from '../../core/models/shared.models';
+import { TeacherProfile, ClassBooking, TimetableEvent } from '../../core/models/shared.models';
+import { TimetableService } from '../../core/services/timetable.service';
 import { forkJoin } from 'rxjs';
 
 @Component({
@@ -21,6 +22,7 @@ export class StudentDashboardComponent implements OnInit {
   private teacherService = inject(TeacherService);
   private router = inject(Router);
   private platformId = inject(PLATFORM_ID);
+  private timetableService = inject(TimetableService);
 
   upcomingClasses: ClassBooking[] = [];
   recommendedTeachers: TeacherProfile[] = [];
@@ -42,6 +44,7 @@ export class StudentDashboardComponent implements OnInit {
     averageRating: 0,
     progressPercentage: 0
   };
+  timetableEvents: TimetableEvent[] = [];
   recentActivity: any[] = [];
   isLoading = false;
 
@@ -59,9 +62,10 @@ export class StudentDashboardComponent implements OnInit {
       bookings: this.bookingService.getStudentBookings(),
       recommended: this.studentService.getRecommendedTeachers(),
       progress: this.studentService.getProgressReport(),
-      allTeachers: this.teacherService.getAllTeachers()
+      allTeachers: this.teacherService.getAllTeachers(),
+      timetable: this.timetableService.getTimetableForUser()
     }).subscribe({
-      next: ({ summary, bookings, recommended, progress, allTeachers }) => {
+      next: ({ summary, bookings, recommended, progress, allTeachers, timetable }) => {
         this.upcomingClasses = bookings
           .filter(b => b.status === 'Confirmed')
           .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
@@ -78,7 +82,9 @@ export class StudentDashboardComponent implements OnInit {
 
         this.allTeachers = allTeachers || [];
         this.filteredTeachers = allTeachers || [];
+        this.timetableEvents = (timetable || []).slice(0, 5);
         this.recommendedTeachers = recommended || [];
+        this.isLoading = false;
       },
       error: () => {
         this.isLoading = false;
@@ -87,6 +93,10 @@ export class StudentDashboardComponent implements OnInit {
         this.isLoading = false;
       }
     });
+  }
+
+  navigateToTimetable(): void {
+    this.router.navigate(['/timetable']);
   }
 
   private calculateHours(bookings: ClassBooking[]): number {

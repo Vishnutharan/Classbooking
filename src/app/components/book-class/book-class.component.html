@@ -1,97 +1,91 @@
 <div class="book-class-container">
-  <!-- Header Section -->
   <div class="header-section">
     <div class="header-content">
       <div class="header-intro">
-        <h1 class="page-title">📚 Book a Class</h1>
-        <p class="page-description">Select an available time slot with your preferred teacher</p>
+        <h1 class="page-title">Book a Class</h1>
+        <p class="page-description">Pick your teacher first, then choose one of their open slots.</p>
       </div>
-      <button class="btn btn-primary refresh-btn" (click)="loadAvailableClasses()">
-        <span class="btn-icon">🔄</span>
+      <button class="btn btn-primary refresh-btn" (click)="refreshSelectedTeacher()">
         <span class="btn-text">Refresh Slots</span>
       </button>
     </div>
   </div>
 
-  <!-- Info Alert -->
+  <div class="teacher-picker">
+    <label class="form-label">Choose Teacher</label>
+    <select class="form-select" [(ngModel)]="selectedTeacherId" (ngModelChange)="onTeacherSelected($event)">
+      <option value="">-- Select a teacher --</option>
+      <option *ngFor="let teacher of teachers" [value]="teacher.id">
+        {{ teacher.fullName }} ({{ teacher.subjects.length ? teacher.subjects[0].name : 'Multi-subject' }})
+      </option>
+    </select>
+    <p class="hint">You will only see availability for the teacher you pick.</p>
+  </div>
+
   <div class="info-alert">
-    <div class="alert-icon">ℹ️</div>
+    <div class="alert-icon">ℹ</div>
     <div class="alert-content">
-      <p><strong>How to book:</strong> <span class="badge badge-success">Green slots</span> are available - click to
-        book. <span class="badge badge-gray">Gray slots</span> are already booked.</p>
+      <p><strong>Booking rules:</strong> Green slots are available for the selected teacher. Once you book, the slot is locked as pending until the teacher approves.</p>
     </div>
   </div>
 
-  <!-- Calendar Section -->
-  <div class="calendar-section">
+  <div class="calendar-section" *ngIf="selectedTeacherId; else selectTeacherHint">
     <div class="calendar-header">
-      <h2>Select Your Time Slot</h2>
-      <p class="calendar-subtitle">Click on any available green slot to book a class</p>
+      <h2>Select a time with {{ selectedTeacher?.fullName || 'your teacher' }}</h2>
+      <p class="calendar-subtitle">Only this teacher’s availability is shown.</p>
     </div>
     <div class="calendar-wrapper">
-      <app-calendar [events]="calendarEvents" [editable]="false" [selectable]="false"
+      <app-calendar
+        [events]="calendarEvents"
+        [editable]="false"
+        [selectable]="false"
         (eventClicked)="onEventClicked($event)">
       </app-calendar>
     </div>
   </div>
+  <ng-template #selectTeacherHint>
+    <div class="placeholder">
+      <p>Please select a teacher to view available time slots.</p>
+    </div>
+  </ng-template>
 </div>
 
-<!-- Booking Modal Overlay -->
 <div class="modal-overlay" *ngIf="showBookingDialog" (click)="closeBookingDialog()"></div>
 
-<!-- Booking Modal -->
 <div class="booking-modal" *ngIf="showBookingDialog" (click)="$event.stopPropagation()">
   <div class="modal-header">
-    <h2 class="modal-title">✨ Confirm Your Booking</h2>
-    <button class="modal-close" (click)="closeBookingDialog()">×</button>
+    <h2 class="modal-title">Confirm Your Booking</h2>
+    <button class="modal-close" (click)="closeBookingDialog()">&times;</button>
   </div>
 
   <div class="modal-body" *ngIf="selectedSlot">
-    <!-- Slot Summary -->
     <div class="slot-summary">
       <h3 class="summary-title">Class Details</h3>
       <div class="summary-grid">
         <div class="summary-item">
-          <span class="summary-icon">👨‍🏫</span>
-          <div class="summary-content">
-            <p class="summary-label">Teacher</p>
-            <p class="summary-value">{{ selectedSlot.teacherName }}</p>
-          </div>
+          <p class="summary-label">Teacher</p>
+          <p class="summary-value">{{ selectedSlot.teacherName }}</p>
         </div>
         <div class="summary-item">
-          <span class="summary-icon">📅</span>
-          <div class="summary-content">
-            <p class="summary-label">Date</p>
-            <p class="summary-value">{{ selectedSlot.date }}</p>
-          </div>
+          <p class="summary-label">Date</p>
+          <p class="summary-value">{{ selectedSlot.date }}</p>
         </div>
         <div class="summary-item">
-          <span class="summary-icon">⏰</span>
-          <div class="summary-content">
-            <p class="summary-label">Time</p>
-            <p class="summary-value">{{ selectedSlot.startTime }} - {{ selectedSlot.endTime }}</p>
-          </div>
+          <p class="summary-label">Time</p>
+          <p class="summary-value">{{ selectedSlot.startTime }} - {{ selectedSlot.endTime }}</p>
         </div>
         <div class="summary-item">
-          <span class="summary-icon">💰</span>
-          <div class="summary-content">
-            <p class="summary-label">Rate</p>
-            <p class="summary-value">LKR {{ selectedSlot.teacherRate }}/hr</p>
-          </div>
+          <p class="summary-label">Rate</p>
+          <p class="summary-value">LKR {{ selectedSlot.teacherRate || '0' }}/hr</p>
         </div>
       </div>
     </div>
 
-    <!-- Booking Form -->
     <div class="booking-form-section">
       <h3 class="form-title">Complete Your Details</h3>
       <form class="booking-form">
-        <!-- Subject Selection -->
         <div class="form-group">
-          <label class="form-label" for="subject">
-            <span class="label-icon">📖</span>
-            <span class="label-text">Select Subject *</span>
-          </label>
+          <label class="form-label" for="subject">Select Subject *</label>
           <select id="subject" class="form-select" [(ngModel)]="bookingForm.subject" name="subject" required>
             <option value="">Choose a subject</option>
             <option *ngFor="let subject of selectedSlot.subjects" [value]="subject.name">
@@ -103,46 +97,32 @@
           </select>
         </div>
 
-        <!-- Class Type Selection -->
         <div class="form-group">
-          <label class="form-label" for="classType">
-            <span class="label-icon">🔄</span>
-            <span class="label-text">Class Type</span>
-          </label>
+          <label class="form-label" for="classType">Class Type</label>
           <div class="radio-group">
             <label class="radio-label">
-              <input type="radio" name="classType" value="OneTime" [(ngModel)]="bookingForm.classType"
-                class="radio-input">
+              <input type="radio" name="classType" value="OneTime" [(ngModel)]="bookingForm.classType" class="radio-input">
               <span class="radio-text">One-Time Class</span>
             </label>
             <label class="radio-label">
-              <input type="radio" name="classType" value="Recurring" [(ngModel)]="bookingForm.classType"
-                class="radio-input">
+              <input type="radio" name="classType" value="Recurring" [(ngModel)]="bookingForm.classType" class="radio-input">
               <span class="radio-text">Recurring Class</span>
             </label>
           </div>
         </div>
 
-        <!-- Notes Field -->
         <div class="form-group">
-          <label class="form-label" for="notes">
-            <span class="label-icon">📝</span>
-            <span class="label-text">Additional Notes</span>
-          </label>
+          <label class="form-label" for="notes">Additional Notes</label>
           <textarea id="notes" class="form-textarea" [(ngModel)]="bookingForm.notes" name="notes" rows="4"
-            placeholder="Share any special requirements, topics you want to cover, or questions...">
-          </textarea>
-          <p class="form-hint">Optional - help the teacher prepare better</p>
+            placeholder="Share any special requirements or topics you want to cover"></textarea>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- Modal Footer -->
   <div class="modal-footer">
     <button class="btn btn-secondary" (click)="closeBookingDialog()">Cancel</button>
     <button class="btn btn-primary" (click)="confirmBooking()" [disabled]="!bookingForm.subject">
-      <span class="btn-icon">✓</span>
       <span class="btn-text">Confirm Booking</span>
     </button>
   </div>

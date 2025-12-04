@@ -26,6 +26,16 @@ export interface TeacherAvailability {
     endTime: string;
 }
 
+export interface TeacherAvailabilitySlot {
+    id: string;
+    teacherProfileId: string;
+    date: Date;
+    startTime: string;
+    endTime: string;
+    status: 'Available' | 'Pending' | 'Booked' | string;
+    bookingId?: string;
+}
+
 export interface TeacherProfile {
     id: string;
     userId: string;
@@ -43,6 +53,7 @@ export interface TeacherProfile {
     totalClasses: number;
     isAvailable: boolean;
     availability: TeacherAvailability[];
+    availabilitySlots?: TeacherAvailabilitySlot[];
     verificationStatus: 'Pending' | 'Verified' | 'Rejected';
     createdAt: Date;
     updatedAt: Date;
@@ -78,7 +89,7 @@ export interface ClassBooking {
     date: Date;
     startTime: string;
     endTime: string;
-    status: 'Pending' | 'Confirmed' | 'Cancelled' | 'Completed';
+    status: 'Pending' | 'Confirmed' | 'Cancelled' | 'Completed' | 'Rejected';
     classType: 'OneTime' | 'Recurring';
     recurringDays?: string[];
     notes?: string;
@@ -163,4 +174,15 @@ export interface SubjectPerformance {
     performanceLevel: 'Excellent' | 'Good' | 'Average' | 'NeedsImprovement';
     weakAreas?: string[];
     recommendations?: string[];
+}
+
+export interface TimetableEvent {
+    id: string;
+    title: string;
+    description?: string;
+    date: Date;
+    startTime?: string;
+    endTime?: string;
+    type?: string;
+    audience?: 'All' | 'Teachers' | 'Students' | string;
 }

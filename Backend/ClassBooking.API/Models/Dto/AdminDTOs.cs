@@ -16,6 +16,18 @@ namespace ClassBooking.API.Models.Dto
         public int NewUsersThisMonth { get; set; }
     }
 
+    public class DashboardStatsDto
+    {
+        public int TotalUsers { get; set; }
+        public int TotalStudents { get; set; }
+        public int TotalTeachers { get; set; }
+        public int TotalBookings { get; set; }
+        public int PendingBookings { get; set; }
+        public int CompletedBookings { get; set; }
+        public decimal TotalRevenue { get; set; }
+        public double AverageRating { get; set; }
+    }
+
     public class UpdateUserStatusRequest
     {
         [Required]
@@ -67,6 +79,11 @@ namespace ClassBooking.API.Models.Dto
         public string? PhoneNumber { get; set; }
     }
 
+    public class SuspendUserRequest
+    {
+        public string? Reason { get; set; }
+    }
+
     public class ReportRequest
     {
         [Required]
@@ -83,6 +100,27 @@ namespace ClassBooking.API.Models.Dto
         public string Title { get; set; } = string.Empty;
         public DateTime Date { get; set; }
         public string Type { get; set; } = string.Empty; // Holiday, ExamPeriod, Event
+        public string? Description { get; set; }
+        public string? Audience { get; set; } = "All";
+        public string? StartTime { get; set; }
+        public string? EndTime { get; set; }
+    }
+
+    public class PublicHolidayDto
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public DateTime Date { get; set; }
+        public string? Description { get; set; }
+    }
+
+    public class ExamSeasonDto
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public string ExamType { get; set; } = string.Empty; // Stored in Audience for now
         public string? Description { get; set; }
     }
 }

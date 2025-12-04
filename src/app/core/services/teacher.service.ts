@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, catchError, of } from 'rxjs';
-import { TeacherProfile, TeacherSubject, TeacherAvailability } from '../models/shared.models';
+import { Observable, catchError, of, map } from 'rxjs';
+import { TeacherProfile, TeacherSubject, TeacherAvailability, TeacherAvailabilitySlot } from '../models/shared.models';
 import { environment } from '../../../environments/environment';
 import { MockDataService } from './mock-data.service';
 import { AuthService } from './auth.service';
@@ -81,6 +81,37 @@ export class TeacherService {
     );
   }
 
+  getMyAvailabilitySlots(startDate?: Date, endDate?: Date): Observable<TeacherAvailabilitySlot[]> {
+    let params = new HttpParams();
+    if (startDate) params = params.set('startDate', startDate.toISOString());
+    if (endDate) params = params.set('endDate', endDate.toISOString());
+
+    return this.http.get<TeacherAvailabilitySlot[]>(`${this.apiUrl}/availability/slots`, { params }).pipe(
+      catchError(() => of([]))
+    );
+  }
+
+  addAvailabilitySlot(slot: { date: Date; startTime: string; endTime: string; }): Observable<TeacherAvailabilitySlot> {
+    return this.http.post<TeacherAvailabilitySlot>(`${this.apiUrl}/availability/slots`, slot).pipe(
+      catchError(() => this.mockData.getTeacherProfileForUser(this.authService.getCurrentUser()?.id).pipe(
+        map(() => ({
+          id: 'temp-slot',
+          teacherProfileId: this.authService.getCurrentUser()?.id || '',
+          date: slot.date,
+          startTime: slot.startTime,
+          endTime: slot.endTime,
+          status: 'Available'
+        } as TeacherAvailabilitySlot))
+      ))
+    );
+  }
+
+  deleteAvailabilitySlot(slotId: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/availability/slots/${slotId}`).pipe(
+      catchError(() => of(void 0))
+    );
+  }
+
   updateAvailability(availability: TeacherAvailability[]): Observable<TeacherProfile> {
     const teacherId = this.authService.getCurrentUser()?.id || 'teacher-1';
     return this.http.put<TeacherProfile>(`${this.apiUrl}/profile/availability`, availability).pipe(
@@ -126,6 +157,16 @@ export class TeacherService {
   getTeacherReviews(teacherId: string): Observable<any[]> {
     return this.http.get<any[]>(`${this.publicApiUrl}/${teacherId}/reviews`).pipe(
       catchError(() => this.mockData.getTeacherReviews())
+    );
+  }
+
+  getTeacherAvailabilitySlots(teacherId: string, startDate?: Date, endDate?: Date): Observable<TeacherAvailabilitySlot[]> {
+    let params = new HttpParams();
+    if (startDate) params = params.set('startDate', startDate.toISOString());
+    if (endDate) params = params.set('endDate', endDate.toISOString());
+
+    return this.http.get<TeacherAvailabilitySlot[]>(`${this.publicApiUrl}/${teacherId}/availability/slots`, { params }).pipe(
+      catchError(() => of([]))
     );
   }
 }

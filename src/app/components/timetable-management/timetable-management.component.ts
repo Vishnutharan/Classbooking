@@ -2,8 +2,9 @@ import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AdminService } from '../../core/services/admin.service';
-import { ExamSeason, PublicHoliday } from '../../core/models/shared.models';
+import { ExamSeason, PublicHoliday, TimetableEvent } from '../../core/models/shared.models';
 import { NotificationService } from '../../core/services/notification.service';
+import { TimetableService } from '../../core/services/timetable.service';
 
 @Component({
   selector: 'app-timetable-management',
@@ -16,21 +17,27 @@ export class TimetableManagementComponent implements OnInit {
   private adminService = inject(AdminService);
   private notificationService = inject(NotificationService);
   private fb = inject(FormBuilder);
+  private timetableService = inject(TimetableService);
 
   holidays: PublicHoliday[] = [];
   examSeasons: ExamSeason[] = [];
+  timetableEvents: TimetableEvent[] = [];
   isLoading = false;
 
   showHolidayForm = false;
   showExamForm = false;
+  showEventForm = false;
   editingHolidayId: string | null = null;
   editingExamId: string | null = null;
+  editingEventId: string | null = null;
 
   holidayForm!: FormGroup;
   examForm!: FormGroup;
+  eventForm!: FormGroup;
 
   examTypes = ['OLevel', 'ALevel', 'Scholarship'];
   currentTab: 'holidays' | 'exams' = 'holidays';
+  eventAudience = ['All', 'Teachers', 'Students'];
 
   ngOnInit(): void {
     this.initForms();
@@ -50,6 +57,16 @@ export class TimetableManagementComponent implements OnInit {
       endDate: ['', Validators.required],
       examType: ['OLevel', Validators.required]
     });
+
+    this.eventForm = this.fb.group({
+      title: ['', Validators.required],
+      date: ['', Validators.required],
+      startTime: ['09:00', Validators.required],
+      endTime: ['10:00', Validators.required],
+      type: ['General', Validators.required],
+      audience: ['All', Validators.required],
+      description: ['']
+    });
   }
 
   private loadTimetable(): void {
@@ -64,10 +81,23 @@ export class TimetableManagementComponent implements OnInit {
     this.adminService.getExamSeasons().subscribe({
       next: (seasons) => {
         this.examSeasons = seasons;
-        this.isLoading = false;
+        this.loadEvents();
       },
       error: () => {
         this.notificationService.showError('Failed to load timetable');
+        this.isLoading = false;
+      }
+    });
+  }
+
+  private loadEvents(): void {
+    this.timetableService.getAllTimetable().subscribe({
+      next: (events) => {
+        this.timetableEvents = events || [];
+        this.isLoading = false;
+      },
+      error: () => {
+        this.notificationService.showError('Failed to load timetable events');
         this.isLoading = false;
       }
     });
@@ -166,6 +196,39 @@ export class TimetableManagementComponent implements OnInit {
     this.editingExamId = null;
   }
 
+  openEventForm(): void {
+    this.editingEventId = null;
+    this.eventForm.reset({
+      title: '',
+      date: '',
+      startTime: '09:00',
+      endTime: '10:00',
+      type: 'General',
+      audience: 'All',
+      description: ''
+    });
+    this.showEventForm = true;
+  }
+
+  editEvent(event: TimetableEvent): void {
+    this.editingEventId = event.id;
+    this.eventForm.patchValue({
+      title: event.title,
+      date: new Date(event.date).toISOString().split('T')[0],
+      startTime: event.startTime,
+      endTime: event.endTime,
+      type: event.type || 'General',
+      audience: event.audience || 'All',
+      description: event.description || ''
+    });
+    this.showEventForm = true;
+  }
+
+  closeEventForm(): void {
+    this.showEventForm = false;
+    this.editingEventId = null;
+  }
+
   saveExam(): void {
     if (this.examForm.invalid) {
       this.notificationService.showWarning('Please fill all required fields');
@@ -217,6 +280,50 @@ export class TimetableManagementComponent implements OnInit {
     }
   }
 
+  saveEvent(): void {
+    if (this.eventForm.invalid) {
+      this.notificationService.showWarning('Please fill all required fields');
+      return;
+    }
+
+    const payload: Partial<TimetableEvent> = {
+      ...this.eventForm.value,
+      date: new Date(this.eventForm.value.date)
+    };
+
+    if (this.editingEventId) {
+      this.timetableService.updateEvent(this.editingEventId, payload).subscribe({
+        next: () => {
+          this.notificationService.showSuccess('Event updated');
+          this.closeEventForm();
+          this.loadEvents();
+        },
+        error: () => this.notificationService.showError('Failed to update event')
+      });
+    } else {
+      this.timetableService.createEvent(payload).subscribe({
+        next: () => {
+          this.notificationService.showSuccess('Event created');
+          this.closeEventForm();
+          this.loadEvents();
+        },
+        error: () => this.notificationService.showError('Failed to create event')
+      });
+    }
+  }
+
+  deleteEvent(id: string): void {
+    if (confirm('Delete this event?')) {
+      this.timetableService.deleteEvent(id).subscribe({
+        next: () => {
+          this.notificationService.showSuccess('Event deleted');
+          this.loadEvents();
+        },
+        error: () => this.notificationService.showError('Failed to delete event')
+      });
+    }
+  }
+
   getCalendarEvents(): any[] {
     const events = [
       ...this.holidays.map(h => ({
@@ -229,6 +336,14 @@ export class TimetableManagementComponent implements OnInit {
         title: `${e.name} (${e.examType})`,
         date: new Date(e.startDate),
         endDate: new Date(e.endDate)
+      })),
+      ...this.timetableEvents.map(ev => ({
+        type: ev.type || 'event',
+        title: ev.title,
+        date: new Date(ev.date),
+        startTime: ev.startTime,
+        endTime: ev.endTime,
+        audience: ev.audience
       }))
     ];
     return events.sort((a, b) => a.date.getTime() - b.date.getTime());

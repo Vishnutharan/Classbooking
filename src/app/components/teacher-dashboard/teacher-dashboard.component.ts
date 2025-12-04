@@ -3,8 +3,9 @@ import { Component, inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { Router } from '@angular/router';
 import { TeacherService } from '../../core/services/teacher.service';
 import { ClassBookingService } from '../../core/services/class-booking.service';
-import { TeacherProfile, ClassBooking } from '../../core/models/shared.models';
+import { TeacherProfile, ClassBooking, TimetableEvent } from '../../core/models/shared.models';
 import { NotificationService } from '../../core/services/notification.service';
+import { TimetableService } from '../../core/services/timetable.service';
 import { forkJoin } from 'rxjs';
 
 @Component({
@@ -21,6 +22,7 @@ export class TeacherDashboardComponent implements OnInit {
   private notificationService = inject(NotificationService);
   private router = inject(Router);
   private platformId = inject(PLATFORM_ID);
+  private timetableService = inject(TimetableService);
 
   teacherProfile: TeacherProfile | null = null;
   upcomingClasses: ClassBooking[] = [];
@@ -28,6 +30,7 @@ export class TeacherDashboardComponent implements OnInit {
   pendingRequests: ClassBooking[] = [];
   recentReviews: any[] = [];
   isLoading = false;
+  timetableEvents: TimetableEvent[] = [];
 
   stats = {
     totalStudents: 0,
@@ -56,10 +59,12 @@ export class TeacherDashboardComponent implements OnInit {
 
     forkJoin({
       profile: this.teacherService.getMyProfile(),
-      bookings: this.bookingService.getTeacherBookings()
+      bookings: this.bookingService.getTeacherBookings(),
+      timetable: this.timetableService.getTimetableForUser()
     }).subscribe({
-      next: ({ profile, bookings }) => {
+      next: ({ profile, bookings, timetable }) => {
         this.teacherProfile = profile;
+        this.timetableEvents = (timetable || []).slice(0, 5);
 
         this.populateBookingCollections(bookings);
         this.stats.averageRating = profile.averageRating || 0;

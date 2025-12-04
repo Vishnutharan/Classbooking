@@ -1,0 +1,84 @@
+.timetable-feed-container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.feed-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.btn {
+  background: #4f46e5;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.event-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.event-card {
+  display: flex;
+  gap: 16px;
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.event-date {
+  text-align: center;
+  min-width: 60px;
+}
+
+.event-date .day {
+  display: block;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.event-date .month {
+  display: block;
+  text-transform: uppercase;
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.event-info {
+  flex: 1;
+}
+
+.event-type {
+  color: #6b7280;
+  margin: 0;
+}
+
+.event-title {
+  margin: 2px 0;
+}
+
+.event-time {
+  color: #374151;
+  margin: 0;
+}
+
+.event-desc {
+  color: #6b7280;
+  margin: 4px 0 0 0;
+}
+
+.loading,
+.empty {
+  text-align: center;
+  color: #6b7280;
+  padding: 16px;
+}

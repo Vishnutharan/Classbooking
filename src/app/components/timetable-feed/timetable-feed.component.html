@@ -1,0 +1,27 @@
+<div class="timetable-feed-container">
+  <div class="feed-header">
+    <h1>Platform Timetable</h1>
+    <button class="btn" (click)="loadEvents()" [disabled]="isLoading">Refresh</button>
+  </div>
+
+  <div *ngIf="isLoading" class="loading">Loading...</div>
+
+  <div *ngIf="!isLoading && events.length === 0" class="empty">
+    <p>No events scheduled.</p>
+  </div>
+
+  <div class="event-list" *ngIf="events.length > 0">
+    <div class="event-card" *ngFor="let ev of events">
+      <div class="event-date">
+        <span class="day">{{ ev.date | date:'dd' }}</span>
+        <span class="month">{{ ev.date | date:'MMM' }}</span>
+      </div>
+      <div class="event-info">
+        <p class="event-type">{{ ev.type || 'Event' }} • {{ ev.audience || 'All' }}</p>
+        <h3 class="event-title">{{ ev.title }}</h3>
+        <p class="event-time">{{ ev.startTime }} - {{ ev.endTime }}</p>
+        <p class="event-desc" *ngIf="ev.description">{{ ev.description }}</p>
+      </div>
+    </div>
+  </div>
+</div>

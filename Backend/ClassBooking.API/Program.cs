@@ -43,6 +43,7 @@ builder.Services.AddScoped<IAttendanceRepository, AttendanceRepository>();
 builder.Services.AddScoped<ILessonPlanRepository, LessonPlanRepository>();
 builder.Services.AddScoped<IResourceRepository, ResourceRepository>();
 builder.Services.AddScoped<IAnalyticsRepository, AnalyticsRepository>();
+builder.Services.AddScoped<ITimetableRepository, TimetableRepository>();
 
 // Services
 builder.Services.AddScoped<IExamService, ExamService>();
@@ -56,6 +57,7 @@ builder.Services.AddScoped<IEmailService, MockEmailService>();
 builder.Services.AddScoped<IAttendanceService, AttendanceService>();
 builder.Services.AddScoped<ILessonPlanService, LessonPlanService>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
+builder.Services.AddScoped<ITimetableService, TimetableService>();
 
 // CORS Configuration (MUST be BEFORE Authentication)
 builder.Services.AddCors(options =>

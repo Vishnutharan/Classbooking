@@ -7,6 +7,8 @@ import { CalendarComponent } from '../shared/calendar/calendar.component';
 import { EventInput, DateSelectArg, EventClickArg } from '@fullcalendar/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { TeacherAvailabilitySlot } from '../../core/models/shared.models';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-manage-schedule',
@@ -23,15 +25,15 @@ export class ManageScheduleComponent implements OnInit {
 
   calendarEvents: EventInput[] = [];
   currentUser: any;
+  availabilitySlots: TeacherAvailabilitySlot[] = [];
 
   // Availability Modal
   showAvailabilityModal = false;
   availabilityForm = {
-    dayOfWeek: 'Monday',
+    date: '',
     startTime: '09:00',
-    endTime: '17:00'
+    endTime: '10:00'
   };
-  daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
   ngOnInit(): void {
     this.currentUser = this.authService.getCurrentUser();
@@ -41,45 +43,30 @@ export class ManageScheduleComponent implements OnInit {
   public loadSchedule(): void {
     if (!this.currentUser) return;
 
-    // Load Bookings
-    this.bookingService.getTeacherBookings().subscribe({
-      next: (bookings) => {
-        const bookingEvents = bookings.map(b => ({
-          id: b.id,
-          title: b.subject || 'Class',
-          start: `${b.date}T${b.startTime}`,
-          end: `${b.date}T${b.endTime}`,
-          backgroundColor: b.status === 'Confirmed' ? '#ff9f89' : (b.status === 'Pending' ? '#ffc107' : '#3788d8'),
-          borderColor: b.status === 'Confirmed' ? '#ff9f89' : (b.status === 'Pending' ? '#ffc107' : '#3788d8'),
-          extendedProps: {
-            status: b.status,
-            type: 'booking'
-          }
-        }));
+    const startRange = new Date();
+    const endRange = new Date();
+    endRange.setDate(endRange.getDate() + 30);
 
-        // Load Availability
-        this.teacherService.getMyProfile().subscribe({
-          next: (profile) => {
-            const availabilityEvents = this.mapAvailabilityToEvents(profile.availability);
+    forkJoin({
+      bookings: this.bookingService.getTeacherBookings(),
+      slots: this.teacherService.getMyAvailabilitySlots(startRange, endRange)
+    }).subscribe({
+      next: ({ bookings, slots }) => {
+        this.availabilitySlots = slots;
+        const bookingEvents = this.buildBookingEvents(bookings);
+        const slotEvents = this.mapAvailabilitySlotsToEvents(slots);
 
-            // Add past date masking
-            const today = new Date();
-            const pastDateEvent: EventInput = {
-              id: 'past-dates-mask',
-              start: '1970-01-01',
-              end: today.toISOString().split('T')[0], // Up to today
-              display: 'background',
-              backgroundColor: '#f0f0f0', // Light grey for past
-              classNames: ['past-date-mask']
-            };
+        const today = new Date();
+        const pastDateEvent: EventInput = {
+          id: 'past-dates-mask',
+          start: '1970-01-01',
+          end: today.toISOString().split('T')[0],
+          display: 'background',
+          backgroundColor: '#f5f5f5',
+          classNames: ['past-date-mask']
+        };
 
-            this.calendarEvents = [...bookingEvents, ...availabilityEvents, pastDateEvent];
-          },
-          error: () => {
-            this.notificationService.showError('Failed to load profile');
-            this.calendarEvents = bookingEvents; // Show bookings at least
-          }
-        });
+        this.calendarEvents = [...bookingEvents, ...slotEvents, pastDateEvent];
       },
       error: () => {
         this.notificationService.showError('Failed to load schedule');
@@ -87,64 +74,59 @@ export class ManageScheduleComponent implements OnInit {
     });
   }
 
-  private mapAvailabilityToEvents(availability: any[]): EventInput[] {
-    // Availability is generic (e.g., "Monday 09:00-17:00"). 
-    // We use FullCalendar's recurring events (daysOfWeek) to show this across all weeks.
-    const events: EventInput[] = [];
-
-    const dayMap: { [key: string]: number } = {
-      'Sunday': 0, 'Monday': 1, 'Tuesday': 2, 'Wednesday': 3,
-      'Thursday': 4, 'Friday': 5, 'Saturday': 6
-    };
-
-    availability.forEach((slot, index) => {
-      const dayOfWeek = dayMap[slot.dayOfWeek];
-      if (dayOfWeek !== undefined) {
-        events.push({
-          id: `avail-${index}`,
-          title: 'Available',
-          startTime: slot.startTime, // 'HH:mm'
-          endTime: slot.endTime,     // 'HH:mm'
-          daysOfWeek: [dayOfWeek],   // Recurring on this day
-          display: 'background',
-          backgroundColor: '#c6f6d5',
-          extendedProps: {
-            type: 'availability'
-          }
-        });
+  private buildBookingEvents(bookings: any[]): EventInput[] {
+    return bookings.map(b => ({
+      id: b.id,
+      title: `${b.subject || 'Class'} (${b.status})`,
+      start: `${this.toDateString(b.date)}T${b.startTime}`,
+      end: `${this.toDateString(b.date)}T${b.endTime}`,
+      backgroundColor: b.status === 'Confirmed' ? '#ff9f89' : (b.status === 'Pending' ? '#ffc107' : '#3788d8'),
+      borderColor: b.status === 'Confirmed' ? '#ff9f89' : (b.status === 'Pending' ? '#ffc107' : '#3788d8'),
+      extendedProps: {
+        status: b.status,
+        type: 'booking'
       }
-    });
+    }));
+  }
 
-    return events;
+  private mapAvailabilitySlotsToEvents(slots: TeacherAvailabilitySlot[]): EventInput[] {
+    return slots.map(slot => {
+      const status = slot.status || 'Available';
+      const isAvailable = status === 'Available';
+      const color = isAvailable ? '#c6f6d5' : (status === 'Pending' ? '#ffeeba' : '#a0aec0');
+
+      return {
+        id: `slot-${slot.id}`,
+        title: isAvailable ? 'Available' : status,
+        start: `${this.toDateString(slot.date)}T${slot.startTime}`,
+        end: `${this.toDateString(slot.date)}T${slot.endTime}`,
+        backgroundColor: color,
+        borderColor: color,
+        extendedProps: {
+          type: 'slot',
+          slotId: slot.id,
+          status: slot.status
+        }
+      };
+    });
   }
 
   onSlotSelected(arg: DateSelectArg): void {
     if (!this.currentUser) return;
 
-    // Validation: Cannot select past dates
     const selectedDate = new Date(arg.start);
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // Reset time for date comparison
+    today.setHours(0, 0, 0, 0);
 
     if (selectedDate < today) {
       this.notificationService.showError('Cannot add availability for past dates');
       return;
     }
 
-    // Pre-fill form based on selection
-    const date = arg.start;
-    const dayIndex = date.getDay(); // 0 = Sunday, 1 = Monday
-
-    const mapDay = (day: number) => {
-      if (day === 0) return 'Sunday';
-      return this.daysOfWeek[day - 1];
-    };
-
-    this.availabilityForm.dayOfWeek = mapDay(dayIndex);
+    this.availabilityForm.date = this.toDateString(selectedDate);
     this.availabilityForm.startTime = arg.startStr.split('T')[1]?.substring(0, 5) || '09:00';
 
-    // Default end time to start + 1 hour
-    const end = new Date(date.getTime() + 60 * 60 * 1000);
+    const end = new Date(selectedDate.getTime() + 60 * 60 * 1000);
     this.availabilityForm.endTime = end.toTimeString().substring(0, 5);
 
     this.showAvailabilityModal = true;
@@ -152,55 +134,111 @@ export class ManageScheduleComponent implements OnInit {
 
   closeAvailabilityModal(): void {
     this.showAvailabilityModal = false;
+    this.availabilityForm = { date: '', startTime: '09:00', endTime: '10:00' };
   }
 
   saveAvailability(): void {
-    this.teacherService.getMyProfile().subscribe({
-      next: (teacher) => {
-        const newAvailability = {
-          dayOfWeek: this.availabilityForm.dayOfWeek,
-          startTime: this.availabilityForm.startTime,
-          endTime: this.availabilityForm.endTime
-        };
+    if (!this.availabilityForm.date) {
+      this.notificationService.showWarning('Pick a date on the calendar first');
+      return;
+    }
 
-        const updatedAvailability = [...teacher.availability, newAvailability];
+    const slotDate = new Date(this.availabilityForm.date);
+    const duplicate = this.availabilitySlots.some(slot =>
+      this.toDateString(slot.date) === this.availabilityForm.date &&
+      slot.startTime === this.availabilityForm.startTime &&
+      slot.endTime === this.availabilityForm.endTime
+    );
 
-        this.teacherService.updateAvailability(updatedAvailability).subscribe({
-          next: () => {
-            this.notificationService.showSuccess('Availability added successfully');
-            this.closeAvailabilityModal();
-            this.loadSchedule(); // Refresh calendar
-          },
-          error: () => {
-            this.notificationService.showError('Failed to update availability');
-          }
-        });
+    if (duplicate) {
+      this.notificationService.showWarning('Slot already exists');
+      return;
+    }
+
+    this.teacherService.addAvailabilitySlot({
+      date: slotDate,
+      startTime: this.availabilityForm.startTime,
+      endTime: this.availabilityForm.endTime
+    }).subscribe({
+      next: () => {
+        this.notificationService.showSuccess('Availability added successfully');
+        this.closeAvailabilityModal();
+        this.loadSchedule();
       },
-      error: () => {
-        this.notificationService.showError('Failed to fetch profile');
-      }
+      error: () => this.notificationService.showError('Failed to add availability')
     });
   }
 
   onEventClicked(arg: EventClickArg): void {
-    const eventId = arg.event.id;
     const eventProps = arg.event.extendedProps;
 
-    if (eventProps['status'] === 'Confirmed') {
-      this.notificationService.showWarning('Cannot delete a confirmed booking');
+    if (eventProps['type'] === 'slot') {
+      if (eventProps['status'] && eventProps['status'] !== 'Available') {
+        this.notificationService.showWarning('This slot is locked by a booking');
+        return;
+      }
+
+      if (confirm('Remove this availability slot?')) {
+        const slotId = eventProps['slotId'] as string;
+        this.teacherService.deleteAvailabilitySlot(slotId).subscribe({
+          next: () => {
+            this.notificationService.showSuccess('Availability removed');
+            this.loadSchedule();
+          },
+          error: () => this.notificationService.showError('Failed to remove availability')
+        });
+      }
       return;
     }
 
-    if (confirm('Cancel this booking?')) {
-      this.bookingService.cancelBooking(eventId, 'Cancelled by teacher').subscribe({
-        next: () => {
-          this.notificationService.showSuccess('Booking cancelled');
-          this.loadSchedule();
-        },
-        error: () => {
-          this.notificationService.showError('Failed to cancel booking');
+    if (eventProps['type'] === 'booking') {
+      if (eventProps['status'] === 'Pending') {
+        const approve = confirm('Approve this booking request? Press Cancel to reject.');
+        if (approve) {
+          this.bookingService.confirmBooking(arg.event.id).subscribe({
+            next: () => {
+              this.notificationService.showSuccess('Booking approved');
+              this.loadSchedule();
+            },
+            error: () => this.notificationService.showError('Failed to approve booking')
+          });
+          return;
         }
-      });
+
+        const reject = confirm('Reject this booking request?');
+        if (reject) {
+          this.bookingService.rejectBooking(arg.event.id, 'Rejected by teacher').subscribe({
+            next: () => {
+              this.notificationService.showSuccess('Booking rejected');
+              this.loadSchedule();
+            },
+            error: () => this.notificationService.showError('Failed to reject booking')
+          });
+        }
+        return;
+      }
+
+      if (eventProps['status'] === 'Confirmed') {
+        if (confirm('Cancel this confirmed booking?')) {
+          this.bookingService.cancelBooking(arg.event.id, 'Cancelled by teacher').subscribe({
+            next: () => {
+              this.notificationService.showSuccess('Booking cancelled');
+              this.loadSchedule();
+            },
+            error: () => {
+              this.notificationService.showError('Failed to cancel booking');
+            }
+          });
+        }
+      }
     }
+  }
+
+  private toDateString(date: Date | string): string {
+    const d = typeof date === 'string' ? new Date(date) : date;
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 }
