@@ -24,6 +24,7 @@ export const serverRoutes: ServerRoute[] = [
   { path: 'exam-materials', renderMode: RenderMode.Server },
   { path: 'past-papers', renderMode: RenderMode.Server },
   { path: 'educational-content', renderMode: RenderMode.Server },
+  { path: 'student/lesson-plans', renderMode: RenderMode.Server },
 
   // Teacher & Student Profiles
   { path: 'teacher-profile/:id', renderMode: RenderMode.Server },

@@ -137,6 +137,10 @@ export class StudentDashboardComponent implements OnInit {
     this.router.navigate(['/my-reviews']);
   }
 
+  viewLessonPlans(): void {
+    this.router.navigate(['/student/lesson-plans']);
+  }
+
   applyFilters(): void {
     this.filteredTeachers = this.allTeachers.filter(teacher => {
       const matchesSubject = !this.searchFilters.subject ||

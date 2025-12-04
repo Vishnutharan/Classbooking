@@ -21,6 +21,7 @@ namespace ClassBooking.API.Controllers
         private readonly IExamService _examService;
         private readonly IResourceService _resourceService;
         private readonly IBookingService _bookingService;
+        private readonly ILessonPlanService _lessonPlanService;
 
         private record ActivityItem(string Type, string Message, DateTime Timestamp);
 
@@ -30,7 +31,8 @@ namespace ClassBooking.API.Controllers
             ITeacherRepository teacherRepository,
             IExamService examService,
             IResourceService resourceService,
-            IBookingService bookingService)
+            IBookingService bookingService,
+            ILessonPlanService lessonPlanService)
         {
             _studentService = studentService;
             _studentRepository = studentRepository;
@@ -38,6 +40,7 @@ namespace ClassBooking.API.Controllers
             _examService = examService;
             _resourceService = resourceService;
             _bookingService = bookingService;
+            _lessonPlanService = lessonPlanService;
         }
 
         [HttpGet("profile")]
@@ -363,6 +366,36 @@ namespace ClassBooking.API.Controllers
             if (!deleted) return NotFound(new { message = "Review not found or not owned by you" });
 
             return Ok(new { message = "Review deleted successfully" });
+        }
+
+        [HttpGet("lesson-plans")]
+        public async Task<ActionResult<List<object>>> GetLessonPlansForTeacher([FromQuery] string teacherId)
+        {
+            var userId = User.FindFirst("userId")?.Value ?? throw new UnauthorizedAccessException();
+            if (string.IsNullOrWhiteSpace(teacherId))
+                return BadRequest(new { message = "teacherId is required" });
+
+            var bookings = await _bookingService.GetBookingsForStudentAsync(userId);
+            var allowedStatuses = new[] { "Confirmed", "Completed" };
+            var hasBooking = bookings.Any(b => b.TeacherId == teacherId && allowedStatuses.Contains(b.Status));
+
+            if (!hasBooking)
+                return StatusCode(StatusCodes.Status403Forbidden, new { message = "You can only view lesson plans for teachers you have booked." });
+
+            var plans = await _lessonPlanService.GetByTeacherAsync(teacherId);
+            var result = plans.Select(p => new
+            {
+                id = p.Id,
+                title = p.Title,
+                subject = p.Subject,
+                level = p.Level,
+                description = p.Description,
+                scheduledDate = p.ScheduledDate,
+                durationMinutes = p.DurationMinutes,
+                status = p.Status
+            }).ToList();
+
+            return Ok(result);
         }
 
         // Progress Report endpoint

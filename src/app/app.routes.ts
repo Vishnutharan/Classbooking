@@ -100,6 +100,15 @@ export const routes: Routes = [
       )
   },
   {
+    path: 'student/lesson-plans',
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['Student'] },
+    loadComponent: () =>
+      import('./components/student-lesson-plans/student-lesson-plans.component').then(
+        m => m.StudentLessonPlansComponent
+      )
+  },
+  {
     path: 'my-reviews',
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['Student'] },
