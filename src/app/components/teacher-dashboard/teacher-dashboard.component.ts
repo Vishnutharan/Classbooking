@@ -7,13 +7,14 @@ import { TeacherProfile, ClassBooking, TimetableEvent } from '../../core/models/
 import { NotificationService } from '../../core/services/notification.service';
 import { TimetableService } from '../../core/services/timetable.service';
 import { forkJoin } from 'rxjs';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-teacher-dashboard',
   standalone: true,
   imports: [CommonModule],
   templateUrl: './teacher-dashboard.component.html',
-  styleUrl: './teacher-dashboard.component.css'
+  styleUrls: ['./teacher-dashboard.component.css']
 })
 
 export class TeacherDashboardComponent implements OnInit {
@@ -23,6 +24,7 @@ export class TeacherDashboardComponent implements OnInit {
   private router = inject(Router);
   private platformId = inject(PLATFORM_ID);
   private timetableService = inject(TimetableService);
+  private authService = inject(AuthService);
 
   teacherProfile: TeacherProfile | null = null;
   upcomingClasses: ClassBooking[] = [];
@@ -46,6 +48,16 @@ export class TeacherDashboardComponent implements OnInit {
   };
 
   monthlyEarnings: any[] = [];
+  today = new Date();
+
+  ratingWidth(value: number): number {
+    const safe = Number.isFinite(value) ? value : 0;
+    return Math.min(Math.max(safe * 20, 0), 100);
+  }
+
+  logout(): void {
+    this.authService.logout();
+  }
 
   ngOnInit(): void {
     // Only load data on the browser, not during SSR

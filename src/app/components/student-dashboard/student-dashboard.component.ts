@@ -8,13 +8,14 @@ import { ClassBookingService } from '../../core/services/class-booking.service';
 import { TeacherProfile, ClassBooking, TimetableEvent } from '../../core/models/shared.models';
 import { TimetableService } from '../../core/services/timetable.service';
 import { forkJoin } from 'rxjs';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-student-dashboard',
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './student-dashboard.component.html',
-  styleUrl: './student-dashboard.component.css'
+  styleUrls: ['./student-dashboard.component.css']
 })
 export class StudentDashboardComponent implements OnInit {
   private studentService = inject(StudentService);
@@ -23,6 +24,7 @@ export class StudentDashboardComponent implements OnInit {
   private router = inject(Router);
   private platformId = inject(PLATFORM_ID);
   private timetableService = inject(TimetableService);
+  private authService = inject(AuthService);
 
   upcomingClasses: ClassBooking[] = [];
   recommendedTeachers: TeacherProfile[] = [];
@@ -47,6 +49,7 @@ export class StudentDashboardComponent implements OnInit {
   timetableEvents: TimetableEvent[] = [];
   recentActivity: any[] = [];
   isLoading = false;
+  today = new Date();
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
@@ -163,5 +166,9 @@ export class StudentDashboardComponent implements OnInit {
       medium: ''
     };
     this.filteredTeachers = this.allTeachers;
+  }
+
+  logout(): void {
+    this.authService.logout();
   }
 }

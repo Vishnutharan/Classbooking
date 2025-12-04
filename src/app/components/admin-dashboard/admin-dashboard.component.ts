@@ -4,18 +4,20 @@ import { FormsModule } from '@angular/forms';
 import { NotificationService } from '../../core/services/notification.service';
 import { AdminService, AdminReview, DashboardStats } from '../../core/services/admin.service';
 import { Router } from '@angular/router';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './admin-dashboard.component.html',
-  styleUrl: './admin-dashboard.component.css'
+  styleUrls: ['./admin-dashboard.component.css']
 })
 export class AdminDashboardComponent implements OnInit {
   private adminService = inject(AdminService);
   private notificationService = inject(NotificationService);
   private router = inject(Router);
+  private authService = inject(AuthService);
 
   stats: DashboardStats = {
     totalUsers: 0,
@@ -39,6 +41,16 @@ export class AdminDashboardComponent implements OnInit {
   editingReviewId: string | null = null;
   editRating = 0;
   editComment = '';
+  today = new Date();
+
+  ratingWidth(value: number): number {
+    const safe = Number.isFinite(value) ? value : 0;
+    return Math.min(Math.max(safe * 20, 0), 100);
+  }
+
+  logout(): void {
+    this.authService.logout();
+  }
 
   ngOnInit(): void {
     this.loadDashboard();
@@ -114,10 +126,10 @@ export class AdminDashboardComponent implements OnInit {
 
   private loadActivities(): void {
     this.recentActivities = [
-      { icon: '??', message: 'New student registered', time: '5 minutes ago' },
-      { icon: '??', message: 'Class booking confirmed', time: '15 minutes ago' },
-      { icon: '?', message: 'Booking cancelled', time: '1 hour ago' },
-      { icon: '?', message: 'Teacher verified', time: '2 hours ago' }
+      { icon: '*', message: 'New student registered', time: '5 minutes ago' },
+      { icon: '*', message: 'Class booking confirmed', time: '15 minutes ago' },
+      { icon: '*', message: 'Booking cancelled', time: '1 hour ago' },
+      { icon: '*', message: 'Teacher verified', time: '2 hours ago' }
     ];
   }
 
