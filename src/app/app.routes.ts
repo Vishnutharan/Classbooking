@@ -46,6 +46,15 @@ export const routes: Routes = [
       )
   },
   {
+    path: 'find-teacher',
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['Student'] },
+    loadComponent: () =>
+      import('./components/find-teacher/find-teacher.component').then(
+        m => m.FindTeacherComponent
+      )
+  },
+  {
     path: 'my-bookings',
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['Student', 'Teacher'] },

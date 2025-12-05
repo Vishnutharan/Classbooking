@@ -28,9 +28,10 @@ export class SidebarComponent implements OnInit {
   isCollapsed = false;
   menuSections: { title: string; items: MenuItem[] }[] = [];
 
-    private studentMenuItems: MenuItem[] = [
+  private studentMenuItems: MenuItem[] = [
     { icon: '??', label: 'Dashboard', route: '/dashboard/student', roles: ['Student'] },
     { icon: '??', label: 'Book Class', route: '/book-class', roles: ['Student'] },
+    { icon: '🔍', label: 'Find Teacher', route: '/find-teacher', roles: ['Student'] },
     { icon: '??', label: 'My Bookings', route: '/my-bookings', roles: ['Student'] },
     { icon: '??', label: 'Lesson Planner', route: '/student/lesson-plans', roles: ['Student'] },
     { icon: '??', label: 'Exam Prep', route: '/exam-preparation', roles: ['Student'] },

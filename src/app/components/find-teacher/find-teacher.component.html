@@ -1,0 +1,123 @@
+<div class="page-wrapper" [class.loading]="isLoading">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">Teachers</p>
+      <h1>Find a Teacher</h1>
+      <p class="lede">Use filters to quickly locate the right tutor by subject, grade, medium, and teaching mode.</p>
+    </div>
+    <button class="pill-btn refresh-btn" type="button" (click)="refreshList()">
+      <span class="icon">⟳</span>
+      Refresh
+    </button>
+  </header>
+
+  <section class="filter-card">
+    <div class="filter-grid">
+      <div class="form-control">
+        <label for="subject">Subject</label>
+        <select id="subject" [(ngModel)]="filters.subject">
+          <option value="">All Subjects</option>
+          <option *ngFor="let subject of subjectOptions" [value]="subject">{{ subject }}</option>
+        </select>
+      </div>
+
+      <div class="form-control">
+        <label for="grade">Grade</label>
+        <select id="grade" [(ngModel)]="filters.grade">
+          <option value="">All Grades</option>
+          <option *ngFor="let grade of gradeOptions" [value]="grade">{{ grade }}</option>
+        </select>
+      </div>
+
+      <div class="form-control">
+        <label for="district">District</label>
+        <select id="district" [(ngModel)]="filters.district">
+          <option value="">All Districts</option>
+          <option *ngFor="let district of districtOptions" [value]="district">{{ district }}</option>
+        </select>
+      </div>
+
+      <div class="form-control">
+        <label for="medium">Medium</label>
+        <select id="medium" [(ngModel)]="filters.medium">
+          <option value="">All Mediums</option>
+          <option *ngFor="let medium of mediumOptions" [value]="medium">{{ medium }}</option>
+        </select>
+      </div>
+
+      <div class="form-control">
+        <label for="teachingMode">Teaching Mode</label>
+        <select id="teachingMode" [(ngModel)]="filters.teachingMode">
+          <option value="">All Modes</option>
+          <option *ngFor="let mode of teachingModeOptions" [value]="mode">{{ mode }}</option>
+        </select>
+      </div>
+
+      <div class="form-control">
+        <label for="classType">Class Type</label>
+        <select id="classType" [(ngModel)]="filters.classType">
+          <option value="">All Types</option>
+          <option *ngFor="let type of classTypeOptions" [value]="type">{{ type }}</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="pill-btn primary" type="button" (click)="applyFilters()">
+        <span class="icon">▸</span>
+        Apply Filters
+      </button>
+      <button class="pill-btn ghost" type="button" (click)="clearFilters()">
+        <span class="icon">✕</span>
+        Clear Filters
+      </button>
+    </div>
+  </section>
+
+  <section class="results" aria-live="polite">
+    <div class="cards-grid" *ngIf="filteredCards.length; else emptyState">
+      <article class="teacher-card" *ngFor="let teacher of filteredCards">
+        <div class="card-hero">
+          <div class="avatar" [class.image]="teacher.profilePicture" [style.backgroundImage]="teacher.profilePicture ? 'url(' + teacher.profilePicture + ')' : 'none'">
+            <span *ngIf="!teacher.profilePicture">{{ teacher.name ? teacher.name.charAt(0) : '?' }}</span>
+          </div>
+          <div>
+            <h3>{{ teacher.name }}</h3>
+            <p class="subhead">{{ teacher.subjects }}</p>
+          </div>
+        </div>
+
+        <ul class="card-meta">
+          <li><span class="icon">📍</span> {{ teacher.district }}</li>
+          <li><span class="icon">🎓</span> {{ teacher.grades }}</li>
+          <li><span class="icon">🖥️</span> {{ teacher.teachingMode }}</li>
+          <li><span class="icon">👥</span> {{ teacher.classType }}</li>
+          <li><span class="icon">📝</span> Medium: {{ teacher.medium }}</li>
+          <li><span class="icon">💰</span> LKR {{ teacher.rate }}/hour</li>
+        </ul>
+
+        <div class="card-footer">
+          <div class="badges">
+            <span class="badge success" *ngIf="teacher.verified">Verified</span>
+          </div>
+          <div class="footer-right">
+          <div class="rating">
+            <span class="star">★</span>
+            <span>{{ teacher.rating | number:'1.1-1' }}/5</span>
+          </div>
+          <button class="pill-btn outline" type="button" (click)="viewProfile(teacher.id)">
+            View Profile &amp; Book
+          </button>
+        </div>
+      </div>
+    </article>
+    </div>
+
+    <ng-template #emptyState>
+      <div class="empty-state" *ngIf="!isLoading">
+        <p>No teachers match your filters yet.</p>
+        <button class="pill-btn primary" type="button" (click)="refreshList()">Refresh</button>
+      </div>
+    </ng-template>
+  </section>
+</div>

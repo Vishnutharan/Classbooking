@@ -124,6 +124,10 @@ export class StudentDashboardComponent implements OnInit {
     this.router.navigate(['/past-papers']);
   }
 
+  findTeacher(): void {
+    this.router.navigate(['/find-teacher']);
+  }
+
   viewTeacherProfile(teacherId: string): void {
     this.router.navigate(['/teacher-profile', teacherId]);
   }
