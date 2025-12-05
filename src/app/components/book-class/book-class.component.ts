@@ -36,7 +36,9 @@ export class BookClassComponent implements OnInit {
   bookingForm = {
     subject: '',
     notes: '',
-    classType: 'OneTime' as 'OneTime' | 'Recurring'
+    classType: 'Personal_1_1' as 'Personal_1_1' | 'Group' | 'OneTime' | 'Recurring',
+    mode: 'ONLINE' as 'ONLINE' | 'IN_PERSON',
+    gradeLevel: ''
   };
 
   ngOnInit(): void {
@@ -167,7 +169,9 @@ export class BookClassComponent implements OnInit {
       date: new Date(this.selectedSlot.date),
       startTime: this.selectedSlot.startTime,
       endTime: this.selectedSlot.endTime,
-      classType: this.bookingForm.classType,
+      classType: this.bookingForm.classType as any, 
+      mode: this.bookingForm.mode,
+      bookingGradeLevel: this.bookingForm.gradeLevel,
       notes: this.bookingForm.notes
     };
 
@@ -193,7 +197,9 @@ export class BookClassComponent implements OnInit {
     this.bookingForm = {
       subject: '',
       notes: '',
-      classType: 'OneTime'
+      classType: 'Personal_1_1',
+      mode: 'ONLINE',
+      gradeLevel: ''
     };
   }
 }

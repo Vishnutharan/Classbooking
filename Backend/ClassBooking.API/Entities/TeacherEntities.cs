@@ -47,6 +47,19 @@ namespace ClassBooking.API.Entities
         [MaxLength(50)]
         public string VerificationStatus { get; set; } = "Pending"; // Pending, Verified, Rejected
         
+        [MaxLength(4000)]
+        public string? Policies { get; set; }
+
+        [Required]
+        [MaxLength(20)]
+        public string TeachingMode { get; set; } = "ONLINE"; // ONLINE, IN_PERSON, BOTH
+
+        [MaxLength(500)]
+        public string? LocationAddress { get; set; }
+
+        [MaxLength(500)]
+        public string? MeetingLink { get; set; }
+        
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
@@ -98,6 +111,13 @@ namespace ClassBooking.API.Entities
         [Required]
         [MaxLength(50)]
         public string Level { get; set; } = "OLevel"; // Primary, OLevel, ALevel, Secondary, Advanced
+
+        [MaxLength(50)]
+        public string? CurriculumBoard { get; set; } // CBSE, IB, IGCSE
+
+        [Required]
+        [MaxLength(100)]
+        public string ClassTypes { get; set; } = "PERSONAL_1_1"; // PERSONAL_1_1, GROUP
     }
     
     [Table("TeacherAvailabilities")]

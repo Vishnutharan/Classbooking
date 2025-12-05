@@ -34,7 +34,28 @@ namespace ClassBooking.API.Entities
         
         [Required]
         [MaxLength(50)]
-        public string ClassType { get; set; } = "OneTime"; // OneTime, Recurring
+        public string PaymentStatus { get; set; } = "PENDING"; // PENDING, PAID, FAILED, REFUNDED
+
+        [Required]
+        [MaxLength(50)]
+        public string ClassType { get; set; } = "PERSONAL_1_1"; // PERSONAL_1_1, GROUP
+
+        [Required]
+        [MaxLength(50)]
+        public string BookingGradeLevel { get; set; } = string.Empty;
+
+        [Required]
+        [MaxLength(20)]
+        public string Mode { get; set; } = "ONLINE"; // ONLINE, IN_PERSON
+
+        [Required]
+        public string LocationOrLink { get; set; } = string.Empty;
+
+        [Required]
+        public decimal Price { get; set; }
+
+        [Required]
+        public int DurationMinutes { get; set; }
         
         public string? RecurringDaysJson { get; set; } // JSON array of days
         
@@ -71,6 +92,12 @@ namespace ClassBooking.API.Entities
         
         [Phone]
         public string PhoneNumber { get; set; } = string.Empty;
+
+        [Required]
+        [MaxLength(50)]
+        public string Timezone { get; set; } = "UTC";
+        
+        public string? GuardianInfoJson { get; set; } // { name, contact }
         
         public string? ProfilePicture { get; set; }
         

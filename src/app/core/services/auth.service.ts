@@ -37,23 +37,13 @@ export class AuthService {
 
   register(userData: any): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/register`, userData).pipe(
-      tap(response => this.handleAuthResponse(response)),
-      catchError(() =>
-        this.mockData
-          .register(userData.fullName, userData.email, userData.password, userData.role)
-          .pipe(tap(response => this.handleAuthResponse(response)))
-      )
+      tap(response => this.handleAuthResponse(response))
     );
   }
 
   login(credentials: LoginRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, credentials).pipe(
-      tap(response => this.handleAuthResponse(response)),
-      catchError(() =>
-        this.mockData
-          .login(credentials.email, credentials.password)
-          .pipe(tap(response => this.handleAuthResponse(response)))
-      )
+      tap(response => this.handleAuthResponse(response))
     );
   }
 

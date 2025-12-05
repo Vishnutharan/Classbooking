@@ -91,6 +91,12 @@ namespace ClassBooking.API.Services
             if (updates.ExperienceYears >= 0) existing.ExperienceYears = updates.ExperienceYears;
             if (!string.IsNullOrEmpty(updates.ProfilePicture)) existing.ProfilePicture = updates.ProfilePicture;
             existing.IsAvailable = updates.IsAvailable;
+            
+            // New Fields
+            if (!string.IsNullOrEmpty(updates.TeachingMode)) existing.TeachingMode = updates.TeachingMode;
+            if (!string.IsNullOrEmpty(updates.Policies)) existing.Policies = updates.Policies;
+            if (!string.IsNullOrEmpty(updates.LocationAddress)) existing.LocationAddress = updates.LocationAddress;
+            if (!string.IsNullOrEmpty(updates.MeetingLink)) existing.MeetingLink = updates.MeetingLink;
 
             var updated = await _repository.UpdateTeacherAsync(existing);
             return MapToDto(updated);
@@ -271,7 +277,9 @@ namespace ClassBooking.API.Services
                     Id = s.Id,
                     Name = s.Name,
                     Medium = s.Medium,
-                    Level = s.Level
+                    Level = s.Level,
+                    CurriculumBoard = s.CurriculumBoard,
+                    ClassTypes = s.ClassTypes
                 }).ToList(),
                 HourlyRate = entity.HourlyRate,
                 ExperienceYears = entity.ExperienceYears,
@@ -287,9 +295,14 @@ namespace ClassBooking.API.Services
                 }).ToList(),
                 VerificationStatus = entity.VerificationStatus,
                 CreatedAt = entity.CreatedAt,
-                UpdatedAt = entity.UpdatedAt
+                UpdatedAt = entity.UpdatedAt,
+                TeachingMode = entity.TeachingMode,
+                Policies = entity.Policies,
+                LocationAddress = entity.LocationAddress,
+                MeetingLink = entity.MeetingLink
             };
         }
+
 
         private TeacherProfileEntity MapToEntity(TeacherProfile dto)
         {

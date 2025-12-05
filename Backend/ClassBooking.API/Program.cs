@@ -116,6 +116,8 @@ app.UseHttpsRedirection();
 // Global Exception Handler (MUST be early in pipeline)
 app.UseGlobalExceptionHandler();
 
+app.UseStaticFiles();
+
 // CORS MUST be called BEFORE Authentication & Authorization
 app.UseCors("AllowAngularApp");
 

@@ -109,7 +109,6 @@ namespace ClassBooking.API.Repositories
             return await _context.TeacherProfiles
                 .Include(t => t.Subjects)
                 .Include(t => t.Availability)
-                .Where(t => t.IsAvailable)
                 .OrderByDescending(t => t.AverageRating)
                 .ToListAsync();
         }
@@ -119,7 +118,6 @@ namespace ClassBooking.API.Repositories
             var query = _context.TeacherProfiles
                 .Include(t => t.Subjects)
                 .Include(t => t.Availability)
-                .Where(t => t.IsAvailable)
                 .AsQueryable();
 
             if (!string.IsNullOrEmpty(subject))

@@ -25,7 +25,8 @@
   <div class="info-alert">
     <div class="alert-icon">ℹ</div>
     <div class="alert-content">
-      <p><strong>Booking rules:</strong> Green slots are available for the selected teacher. Once you book, the slot is locked as pending until the teacher approves.</p>
+      <p><strong>Booking rules:</strong> Green slots are available for the selected teacher. Once you book, the slot is
+        locked as pending until the teacher approves.</p>
     </div>
   </div>
 
@@ -35,10 +36,7 @@
       <p class="calendar-subtitle">Only this teacher’s availability is shown.</p>
     </div>
     <div class="calendar-wrapper">
-      <app-calendar
-        [events]="calendarEvents"
-        [editable]="false"
-        [selectable]="false"
+      <app-calendar [events]="calendarEvents" [editable]="false" [selectable]="false"
         (eventClicked)="onEventClicked($event)">
       </app-calendar>
     </div>
@@ -54,7 +52,7 @@
 
 <div class="booking-modal" *ngIf="showBookingDialog" (click)="$event.stopPropagation()">
   <div class="modal-header">
-    <h2 class="modal-title">Confirm Your Booking</h2>
+    <h2 class="modal-title">Confirm Your <b>BOOKING</b></h2>
     <button class="modal-close" (click)="closeBookingDialog()">&times;</button>
   </div>
 
@@ -98,15 +96,43 @@
         </div>
 
         <div class="form-group">
+          <label class="form-label">Grade Level *</label>
+          <select class="form-select" [(ngModel)]="bookingForm.gradeLevel" name="gradeLevel" required>
+            <option value="">Select Grade</option>
+            <option value="Grade 6">Grade 6</option>
+            <option value="Grade 7">Grade 7</option>
+            <option value="Grade 8">Grade 8</option>
+            <option value="O-Level">O-Level</option>
+            <option value="A-Level">A-Level</option>
+          </select>
+        </div>
+
+        <div class="form-group">
           <label class="form-label" for="classType">Class Type</label>
           <div class="radio-group">
             <label class="radio-label">
-              <input type="radio" name="classType" value="OneTime" [(ngModel)]="bookingForm.classType" class="radio-input">
-              <span class="radio-text">One-Time Class</span>
+              <input type="radio" name="classType" value="Personal_1_1" [(ngModel)]="bookingForm.classType"
+                class="radio-input">
+              <span class="radio-text">Personal (1:1)</span>
             </label>
             <label class="radio-label">
-              <input type="radio" name="classType" value="Recurring" [(ngModel)]="bookingForm.classType" class="radio-input">
-              <span class="radio-text">Recurring Class</span>
+              <input type="radio" name="classType" value="Group" [(ngModel)]="bookingForm.classType"
+                class="radio-input">
+              <span class="radio-text">Group Class</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Class Mode</label>
+          <div class="radio-group">
+            <label class="radio-label">
+              <input type="radio" name="mode" value="ONLINE" [(ngModel)]="bookingForm.mode" class="radio-input">
+              <span class="radio-text">Online</span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="mode" value="IN_PERSON" [(ngModel)]="bookingForm.mode" class="radio-input">
+              <span class="radio-text">In-Person</span>
             </label>
           </div>
         </div>

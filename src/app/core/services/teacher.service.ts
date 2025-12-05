@@ -26,59 +26,43 @@ export class TeacherService {
   private publicApiUrl = `${environment.apiUrl}/teachers`; // Use /teachers for public APIs
 
   getAllTeachers(): Observable<TeacherProfile[]> {
-    return this.http.get<TeacherProfile[]>(this.publicApiUrl).pipe(
-      catchError(() => this.mockData.getAllTeachers())
-    );
+    return this.http.get<TeacherProfile[]>(this.publicApiUrl);
   }
 
   getTeachersBySubject(subject: string): Observable<TeacherProfile[]> {
     return this.http.get<TeacherProfile[]>(`${this.publicApiUrl}/search`, {
       params: { subject }
-    }).pipe(
-      catchError(() => this.mockData.getAllTeachers())
-    );
+    });
   }
 
   getTeachersByLevel(level: string): Observable<TeacherProfile[]> {
     return this.http.get<TeacherProfile[]>(`${this.publicApiUrl}/search`, {
       params: { level }
-    }).pipe(
-      catchError(() => this.mockData.getAllTeachers())
-    );
+    });
   }
 
   getTeacherById(id: string): Observable<TeacherProfile> {
-    return this.http.get<TeacherProfile>(`${this.publicApiUrl}/${id}`).pipe(
-      catchError(() => this.mockData.getTeacherById(id))
-    );
+    return this.http.get<TeacherProfile>(`${this.publicApiUrl}/${id}`);
   }
 
   // PROFILE MANAGEMENT (uses private teacher management API)
   getMyProfile(): Observable<TeacherProfile> {
     const userId = this.authService.getCurrentUser()?.id;
-    return this.http.get<TeacherProfile>(`${this.apiUrl}/profile`).pipe(
-      catchError(() => this.mockData.getTeacherProfileForUser(userId))
-    );
+    return this.http.get<TeacherProfile>(`${this.apiUrl}/profile`);
   }
 
   updateProfile(update: UpdateTeacherRequest): Observable<TeacherProfile> {
     const userId = this.authService.getCurrentUser()?.id;
-    return this.http.put<TeacherProfile>(`${this.apiUrl}/profile`, update).pipe(
-      catchError(() => this.mockData.updateTeacherProfile({ userId, ...update }))
-    );
+    return this.http.put<TeacherProfile>(`${this.apiUrl}/profile`, update);
   }
 
   addSubject(subject: TeacherSubject): Observable<TeacherProfile> {
     const teacherId = this.authService.getCurrentUser()?.id || 'teacher-1';
-    return this.http.post<TeacherProfile>(`${this.apiUrl}/profile/subjects`, subject).pipe(
-      catchError(() => this.mockData.addTeacherSubject(teacherId, subject))
-    );
+    return this.http.post<TeacherProfile>(`${this.apiUrl}/profile/subjects`, subject);
   }
 
   removeSubject(subjectId: string): Observable<TeacherProfile> {
-    return this.http.delete<TeacherProfile>(`${this.apiUrl}/profile/subjects/${subjectId}`).pipe(
-      catchError(() => this.mockData.getTeacherProfileForUser(this.authService.getCurrentUser()?.id))
-    );
+    return this.http.delete<TeacherProfile>(`${this.apiUrl}/profile/subjects/${subjectId}`);
   }
 
   getMyAvailabilitySlots(startDate?: Date, endDate?: Date): Observable<TeacherAvailabilitySlot[]> {
@@ -86,24 +70,11 @@ export class TeacherService {
     if (startDate) params = params.set('startDate', startDate.toISOString());
     if (endDate) params = params.set('endDate', endDate.toISOString());
 
-    return this.http.get<TeacherAvailabilitySlot[]>(`${this.apiUrl}/availability/slots`, { params }).pipe(
-      catchError(() => of([]))
-    );
+    return this.http.get<TeacherAvailabilitySlot[]>(`${this.apiUrl}/availability/slots`, { params });
   }
 
   addAvailabilitySlot(slot: { date: Date; startTime: string; endTime: string; }): Observable<TeacherAvailabilitySlot> {
-    return this.http.post<TeacherAvailabilitySlot>(`${this.apiUrl}/availability/slots`, slot).pipe(
-      catchError(() => this.mockData.getTeacherProfileForUser(this.authService.getCurrentUser()?.id).pipe(
-        map(() => ({
-          id: 'temp-slot',
-          teacherProfileId: this.authService.getCurrentUser()?.id || '',
-          date: slot.date,
-          startTime: slot.startTime,
-          endTime: slot.endTime,
-          status: 'Available'
-        } as TeacherAvailabilitySlot))
-      ))
-    );
+    return this.http.post<TeacherAvailabilitySlot>(`${this.apiUrl}/availability/slots`, slot);
   }
 
   deleteAvailabilitySlot(slotId: string): Observable<void> {
@@ -114,17 +85,13 @@ export class TeacherService {
 
   updateAvailability(availability: TeacherAvailability[]): Observable<TeacherProfile> {
     const teacherId = this.authService.getCurrentUser()?.id || 'teacher-1';
-    return this.http.put<TeacherProfile>(`${this.apiUrl}/profile/availability`, availability).pipe(
-      catchError(() => this.mockData.updateTeacherAvailability(teacherId, availability))
-    );
+    return this.http.put<TeacherProfile>(`${this.apiUrl}/profile/availability`, availability);
   }
 
   uploadProfilePicture(file: File): Observable<{ url: string }> {
     const formData = new FormData();
     formData.append('file', file);
-    return this.http.post<{ url: string }>(`${this.apiUrl}/profile/picture`, formData).pipe(
-      catchError(() => of({ url: 'https://via.placeholder.com/150' }))
-    );
+    return this.http.post<{ url: string }>(`${this.apiUrl}/profile/picture`, formData);
   }
 
   // PUBLIC APIs
@@ -135,29 +102,21 @@ export class TeacherService {
         params = params.set(key, filters[key]);
       }
     }
-    return this.http.get<TeacherProfile[]>(`${this.publicApiUrl}/search`, { params }).pipe(
-      catchError(() => this.mockData.getAllTeachers())
-    );
+    return this.http.get<TeacherProfile[]>(`${this.publicApiUrl}/search`, { params });
   }
 
   getTopRatedTeachers(limit: number = 10): Observable<TeacherProfile[]> {
     return this.http.get<TeacherProfile[]>(`${this.publicApiUrl}/top-rated`, {
       params: { limit: limit.toString() }
-    }).pipe(
-      catchError(() => this.mockData.getAllTeachers())
-    );
+    });
   }
 
   rateTeacher(teacherId: string, rating: number, review: string): Observable<any> {
-    return this.http.post(`${this.publicApiUrl}/${teacherId}/rate`, { rating, review }).pipe(
-      catchError(() => of({ success: true }))
-    );
+    return this.http.post(`${this.publicApiUrl}/${teacherId}/rate`, { rating, review });
   }
 
   getTeacherReviews(teacherId: string): Observable<any[]> {
-    return this.http.get<any[]>(`${this.publicApiUrl}/${teacherId}/reviews`).pipe(
-      catchError(() => this.mockData.getTeacherReviews())
-    );
+    return this.http.get<any[]>(`${this.publicApiUrl}/${teacherId}/reviews`);
   }
 
   getTeacherAvailabilitySlots(teacherId: string, startDate?: Date, endDate?: Date): Observable<TeacherAvailabilitySlot[]> {
@@ -165,8 +124,6 @@ export class TeacherService {
     if (startDate) params = params.set('startDate', startDate.toISOString());
     if (endDate) params = params.set('endDate', endDate.toISOString());
 
-    return this.http.get<TeacherAvailabilitySlot[]>(`${this.publicApiUrl}/${teacherId}/availability/slots`, { params }).pipe(
-      catchError(() => of([]))
-    );
+    return this.http.get<TeacherAvailabilitySlot[]>(`${this.publicApiUrl}/${teacherId}/availability/slots`, { params });
   }
 }

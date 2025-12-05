@@ -96,6 +96,44 @@ namespace ClassBooking.API.Controllers
         }
 
         // Subject Management
+        [HttpPost("profile/picture")]
+        public async Task<ActionResult> UploadProfilePicture([FromForm] IFormFile file)
+        {
+            var userId = User.FindFirst("userId")?.Value ?? User.FindFirst("sub")?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var teacher = await EnsureTeacherProfile(userId);
+            if (teacher == null)
+                return NotFound("Teacher profile not found");
+
+            if (file == null || file.Length == 0)
+                return BadRequest("No file uploaded");
+
+            // Ensure uploads directory exists
+            var uploadsPath = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+            if (!System.IO.Directory.Exists(uploadsPath))
+                System.IO.Directory.CreateDirectory(uploadsPath);
+
+            var fileName = $"{teacher.Id}_{Guid.NewGuid()}{System.IO.Path.GetExtension(file.FileName)}";
+            var filePath = System.IO.Path.Combine(uploadsPath, fileName);
+
+            using (var stream = new System.IO.FileStream(filePath, System.IO.FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            // Generate URL
+            var request = HttpContext.Request;
+            var baseUrl = $"{request.Scheme}://{request.Host}";
+            var fileUrl = $"{baseUrl}/uploads/{fileName}";
+
+            // Update Teacher Profile
+            await _teacherService.UpdateTeacherProfileAsync(teacher.Id, new TeacherProfile { ProfilePicture = fileUrl });
+
+            return Ok(new { url = fileUrl });
+        }
+
         [HttpPost("profile/subjects")]
         public async Task<ActionResult<TeacherSubject>> AddSubject([FromBody] TeacherSubject subject)
         {

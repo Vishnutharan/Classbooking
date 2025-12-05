@@ -18,6 +18,8 @@ export interface TeacherSubject {
     name: string;
     medium: 'Sinhala' | 'Tamil' | 'English';
     level: 'Primary' | 'OLevel' | 'ALevel' | 'Secondary' | 'Advanced';
+    curriculumBoard?: string;
+    classTypes?: string[];
 }
 
 export interface TeacherAvailability {
@@ -55,6 +57,10 @@ export interface TeacherProfile {
     availability: TeacherAvailability[];
     availabilitySlots?: TeacherAvailabilitySlot[];
     verificationStatus: 'Pending' | 'Verified' | 'Rejected';
+    policies?: string;
+    teachingMode: 'ONLINE' | 'IN_PERSON' | 'BOTH';
+    locationAddress?: string;
+    meetingLink?: string;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -90,9 +96,15 @@ export interface ClassBooking {
     startTime: string;
     endTime: string;
     status: 'Pending' | 'Confirmed' | 'Cancelled' | 'Completed' | 'Rejected';
-    classType: 'OneTime' | 'Recurring';
+    classType: 'Personal_1_1' | 'Group' | 'OneTime' | 'Recurring';
     recurringDays?: string[];
     notes?: string;
+    paymentStatus?: 'Pending' | 'Paid' | 'Failed' | 'Refunded';
+    mode: 'ONLINE' | 'IN_PERSON';
+    locationOrLink?: string;
+    price?: number;
+    durationMinutes?: number;
+    bookingGradeLevel?: string;
     meetingLink?: string;
     createdAt: Date;
     updatedAt: Date;

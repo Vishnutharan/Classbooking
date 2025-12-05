@@ -54,6 +54,35 @@
         </div>
       </div>
 
+      <div *ngIf="currentUser?.role === 'Teacher'" class="form-row">
+        <div class="form-group form-full">
+          <label>Teaching Mode</label>
+          <div class="radio-group-horizontal">
+            <label><input type="radio" value="ONLINE" formControlName="teachingMode"> Online Only</label>
+            <label><input type="radio" value="IN_PERSON" formControlName="teachingMode"> In-Person Only</label>
+            <label><input type="radio" value="BOTH" formControlName="teachingMode"> Both</label>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="currentUser?.role === 'Teacher'" class="form-row">
+        <div class="form-group" *ngIf="profileForm.get('teachingMode')?.value !== 'IN_PERSON'">
+          <label>Default Meeting Link</label>
+          <input type="url" formControlName="meetingLink" class="form-input" placeholder="https://zoom.us/...">
+        </div>
+        <div class="form-group" *ngIf="profileForm.get('teachingMode')?.value !== 'ONLINE'">
+          <label>Location Address</label>
+          <input type="text" formControlName="locationAddress" class="form-input" placeholder="City, Center, etc.">
+        </div>
+      </div>
+
+      <div *ngIf="currentUser?.role === 'Teacher'" class="form-row">
+        <div class="form-group form-full">
+          <label>Booking Policies</label>
+          <textarea formControlName="policies" class="form-input" rows="3" placeholder="Cancellation rules, etc."></textarea>
+        </div>
+      </div>
+
       <div class="form-row">
         <div class="form-group form-full">
           <label>Bio</label>

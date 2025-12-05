@@ -8,6 +8,8 @@ export interface TeacherSubject {
     name: string;
     medium: 'Sinhala' | 'Tamil' | 'English';
     level: 'Primary' | 'OLevel' | 'ALevel' | 'Secondary' | 'Advanced';
+    curriculumBoard?: string;
+    classTypes?: string[];
 }
 
 export interface TeacherAvailability {
@@ -34,6 +36,10 @@ export interface TeacherProfile {
     isAvailable: boolean;
     availability: TeacherAvailability[];
     verificationStatus: 'Pending' | 'Verified' | 'Rejected';
+    policies?: string;
+    teachingMode: 'ONLINE' | 'IN_PERSON' | 'BOTH';
+    locationAddress?: string;
+    meetingLink?: string;
     createdAt: Date;
     updatedAt: Date;
 }
