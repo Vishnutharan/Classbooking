@@ -227,18 +227,6 @@ namespace ClassBooking.API.Controllers
             if (!deleted)
                 return BadRequest("Unable to delete slot. It may be locked by a booking or does not exist.");
 
-            return Ok();
-        }
-
-        // Student Management
-       // Student Management
-[HttpGet("students")]
-        public async Task<ActionResult> GetTeacherStudents()
-        {
-            var userId = User.FindFirst("userId")?.Value ?? User.FindFirst("sub")?.Value;
-           if (string.IsNullOrEmpty(userId))
-                return Unauthorized();
-
             var teacher = await _teacherService.GetTeacherByUserIdAsync(userId);
             if (teacher == null)
                 return NotFound("Teacher profile not found");

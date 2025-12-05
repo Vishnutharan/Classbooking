@@ -66,17 +66,20 @@ export class TeacherDataService {
                 }
                 
                 return response.map(item => ({
-                    id: item.studentId || item.id || 'unknown',
-                    userId: item.studentId || item.userId || item.id || 'unknown',
-                    fullName: item.studentName || item.fullName || 'Unknown Student',
-                    email: item.email || 'N/A',
-                    phoneNumber: item.phoneNumber || 'N/A',
-                    grade: item.grade || 'N/A',
-                    subjects: item.subject ? (typeof item.subject === 'string' ? [item.subject] : item.subject) : [],
-                    enrollmentDate: item.enrolledDate ? new Date(item.enrolledDate) : new Date(item.enrollmentDate || new Date()),
-                    status: item.isActive ? 'Active' : 'Inactive',
+                    id: item.id || item.Id || item.studentId || item.StudentId || 'unknown',
+                    userId: item.userId || item.UserId || item.studentId || item.StudentId || 'unknown',
+                    fullName: item.fullName || item.FullName || item.studentName || item.StudentName || 'Unknown Student',
+                    email: item.email || item.Email || 'N/A',
+                    phoneNumber: item.phoneNumber || item.PhoneNumber || 'N/A',
+                    grade: item.grade || item.Grade || 'N/A',
+                    subjects: (item.subjects || item.Subjects) && (item.subjects || item.Subjects).length > 0 ? (item.subjects || item.Subjects) : (item.subject || item.Subject ? [item.subject || item.Subject] : []),
+                    enrollmentDate: item.enrolledDate ? new Date(item.enrolledDate) : (item.EnrolledDate ? new Date(item.EnrolledDate) : new Date()),
+                    status: (item.isActive || item.IsActive) ? 'Active' : 'Inactive',
                     performanceLevel: 'Good',
-                    profilePicture: item.profilePicture || ''
+                    profilePicture: item.profilePicture || item.ProfilePicture || '',
+                    school: item.school || item.School,
+                    parentName: item.parentName || item.ParentName,
+                    parentContact: item.parentContact || item.ParentContact
                 } as TeacherStudent));
             })
         );

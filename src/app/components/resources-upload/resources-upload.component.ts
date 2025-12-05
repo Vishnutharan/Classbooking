@@ -2,20 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NotificationService } from '../../core/services/notification.service';
-
-interface UploadedResource {
-  id: string;
-  title: string;
-  description: string;
-  type: 'PDF' | 'Video' | 'Document' | 'Image' | 'Quiz';
-  subject: string;
-  level: string;
-  fileName: string;
-  fileSize: number;
-  uploadedAt: Date;
-  isPublic: boolean;
-  progress: number;
-}
+import { ResourceService, Resource } from '../../core/services/resource.service';
 
 @Component({
   selector: 'app-resources-upload',
@@ -25,10 +12,11 @@ interface UploadedResource {
 })
 export class ResourcesUploadComponent implements OnInit {
   private fb = inject(FormBuilder);
-  private notificationService = inject(NotificationService);
+  privatenotificationService = inject(NotificationService);
+  private resourceService = inject(ResourceService);
 
   uploadForm!: FormGroup;
-  resources: UploadedResource[] = [];
+  resources: Resource[] = [];
   isLoading = false;
   isUploading = false;
   uploadProgress = 0;
@@ -52,25 +40,31 @@ export class ResourcesUploadComponent implements OnInit {
       type: ['PDF', Validators.required],
       subject: ['Mathematics', Validators.required],
       level: ['Primary', Validators.required],
+      studentId: [''], // Added Student Id
       isPublic: [false]
     });
   }
 
   private loadResources(): void {
     this.isLoading = true;
-    // TODO: Implement actual API call to fetch resources
-    // For now, start with empty list until ResourceService is implemented
-    setTimeout(() => {
-      this.resources = [];
-      this.isLoading = false;
-    }, 500);
+    this.resourceService.getTeacherResources().subscribe({
+      next: (data) => {
+        this.resources = data;
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Failed to load resources', err);
+        // this.notificationService.showError('Failed to load resources');
+        this.isLoading = false;
+      }
+    });
   }
 
   onFileSelected(event: any): void {
     const file = event.target.files[0];
     if (file) {
       this.selectedFile = file;
-      this.notificationService.showSuccess(`File selected: ${file.name}`);
+      // this.notificationService.showSuccess(`File selected: ${file.name}`);
     }
   }
 
@@ -94,54 +88,68 @@ export class ResourcesUploadComponent implements OnInit {
     const files = event.dataTransfer?.files;
     if (files && files.length > 0) {
       this.selectedFile = files[0];
-      this.notificationService.showSuccess(`File selected: ${files[0].name}`);
+      // this.notificationService.showSuccess(`File selected: ${files[0].name}`);
     }
   }
 
   uploadResource(): void {
     if (this.uploadForm.invalid) {
-      this.notificationService.showWarning('Please fill all required fields');
+      // this.notificationService.showWarning('Please fill all required fields');
       return;
     }
 
     if (!this.selectedFile) {
-      this.notificationService.showWarning('Please select a file to upload');
+      // this.notificationService.showWarning('Please select a file to upload');
       return;
     }
 
     this.isUploading = true;
-    this.uploadProgress = 0;
+    this.uploadProgress = 0; // Reset progress
 
+    const formData = new FormData();
+    formData.append('title', this.uploadForm.get('title')?.value);
+    formData.append('description', this.uploadForm.get('description')?.value);
+    formData.append('subject', this.uploadForm.get('subject')?.value);
+    formData.append('level', this.uploadForm.get('level')?.value);
+    
+    const studentId = this.uploadForm.get('studentId')?.value;
+    if (studentId) {
+        formData.append('studentId', studentId);
+    }
+    
+    // Note: 'type' is determined by backend from mime type in my implementation, 
+    // but we can send it or let backend handle it. My backend uses mime type.
+    // But sending selected type helps if mime type is generic.
+    // However, Request DTO didn't have 'Type', it had logic `GetResourceType`.
+    // So 'type' from form is ignored by backend logic unless I update backend. 
+    // I'll stick to backend logic for now.
+
+    formData.append('file', this.selectedFile);
+
+    // Mock progress for now as HttpClient doesn't report it easily without extra config
     const interval = setInterval(() => {
-      this.uploadProgress += Math.random() * 30;
-      if (this.uploadProgress >= 100) {
-        this.uploadProgress = 100;
+        if (this.uploadProgress < 90) this.uploadProgress += 10;
+    }, 200);
+
+    this.resourceService.uploadResource(formData).subscribe({
+      next: (res) => {
         clearInterval(interval);
-        this.completeUpload();
+        this.uploadProgress = 100;
+        
+        // Add to list
+        this.resources.unshift(res);
+        
+        // this.notificationService.showSuccess('Resource uploaded successfully');
+        this.resetForm();
+        this.isUploading = false;
+      },
+      error: (err) => {
+        clearInterval(interval);
+        this.isUploading = false;
+        console.error(err);
+        // this.notificationService.showError('Failed to upload resource');
       }
-    }, 300);
-  }
-
-  private completeUpload(): void {
-    const formValue = this.uploadForm.value;
-    const newResource: UploadedResource = {
-      id: Date.now().toString(),
-      title: formValue.title,
-      description: formValue.description,
-      type: formValue.type,
-      subject: formValue.subject,
-      level: formValue.level,
-      fileName: this.selectedFile?.name || 'file',
-      fileSize: this.selectedFile?.size || 0,
-      uploadedAt: new Date(),
-      isPublic: formValue.isPublic,
-      progress: 100
-    };
-
-    this.resources.push(newResource);
-    this.notificationService.showSuccess('Resource uploaded successfully');
-    this.resetForm();
-    this.isUploading = false;
+    });
   }
 
   private resetForm(): void {
@@ -149,40 +157,38 @@ export class ResourcesUploadComponent implements OnInit {
       type: 'PDF',
       subject: 'Mathematics',
       level: 'Primary',
+      studentId: '',
       isPublic: false
     });
     this.selectedFile = null;
     this.uploadProgress = 0;
   }
 
-  editResource(resource: UploadedResource): void {
-    this.uploadForm.patchValue({
-      title: resource.title,
-      description: resource.description,
-      type: resource.type,
-      subject: resource.subject,
-      level: resource.level,
-      isPublic: resource.isPublic
-    });
-    this.notificationService.showInfo('Edit mode activated. Update and re-upload');
+  editResource(resource: Resource): void {
+      // Edit not implemented in backend fully yet (Update endpoint missing in plan)
+      // So alert user
+      alert('Edit feature coming soon!');
   }
 
   deleteResource(id: string): void {
     if (confirm('Are you sure you want to delete this resource?')) {
-      this.resources = this.resources.filter(r => r.id !== id);
-      this.notificationService.showSuccess('Resource deleted successfully');
+      this.resourceService.deleteResource(id).subscribe({
+         next: () => {
+             this.resources = this.resources.filter(r => r.id !== id);
+             // this.notificationService.showSuccess('Resource deleted successfully');
+         },
+         error: (err) => console.error(err)
+      });
     }
   }
 
-  toggleVisibility(resource: UploadedResource): void {
-    resource.isPublic = !resource.isPublic;
-    this.notificationService.showSuccess(
-      `Resource is now ${resource.isPublic ? 'public' : 'private'}`
-    );
+  toggleVisibility(resource: Resource): void {
+    // Backend update for visibility not implemented
+     alert('Visibility toggle coming soon!');
   }
 
-  downloadResource(resource: UploadedResource): void {
-    this.notificationService.showInfo(`Downloading ${resource.fileName}...`);
+  downloadResource(resource: Resource): void {
+     window.open(resource.filePath, '_blank');
   }
 
   getFileSizeDisplay(bytes: number): string {

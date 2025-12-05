@@ -58,8 +58,25 @@ namespace ClassBooking.API.Controllers
                 UserId = profileEntity.UserId,
                 FullName = profileEntity.FullName,
                 Email = profileEntity.Email,
-                PhoneNumber = profileEntity.PhoneNumber
+                PhoneNumber = profileEntity.PhoneNumber,
+                School = profileEntity.School,
+                GradeLevel = profileEntity.GradeLevel
             };
+
+            if (!string.IsNullOrEmpty(profileEntity.GuardianInfoJson))
+            {
+               try 
+               {
+                    using (JsonDocument doc = JsonDocument.Parse(profileEntity.GuardianInfoJson))
+                    {
+                        if (doc.RootElement.TryGetProperty("name", out JsonElement nameElement))
+                            profile.ParentName = nameElement.GetString();
+                        if (doc.RootElement.TryGetProperty("contact", out JsonElement contactElement))
+                            profile.ParentContact = contactElement.GetString();
+                    }
+               }
+               catch {}
+            }
             
             return Ok(profile);
         }
@@ -77,7 +94,15 @@ namespace ClassBooking.API.Controllers
             // Update fields
             existing.FullName = profile.FullName;
             existing.PhoneNumber = profile.PhoneNumber;
+            existing.School = profile.School;
+            existing.GradeLevel = profile.GradeLevel;
             existing.UpdatedAt = DateTime.UtcNow;
+
+            if (!string.IsNullOrEmpty(profile.ParentName) || !string.IsNullOrEmpty(profile.ParentContact))
+            {
+                var guardianInfo = new { name = profile.ParentName, contact = profile.ParentContact };
+                existing.GuardianInfoJson = JsonSerializer.Serialize(guardianInfo);
+            }
             
             try 
             {
@@ -91,6 +116,8 @@ namespace ClassBooking.API.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = "Error updating profile", details = ex.Message });
+            }
+        }
             }
         }
 

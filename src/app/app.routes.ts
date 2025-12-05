@@ -129,6 +129,25 @@ export const routes: Routes = [
 
   // TEACHER & STUDENT PROFILE
   {
+    path: 'student/resources',
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['Student'] },
+    loadComponent: () =>
+      import('./components/student-dashboard/student-resources/student-resources.component').then(
+        m => m.StudentResourcesComponent
+      )
+  },
+  {
+    path: 'student/details',
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['Student'] },
+    loadComponent: () =>
+      import('./components/student-details/student-details.component').then(
+        m => m.StudentDetailsComponent
+      )
+  },
+
+  {
     path: 'teacher-profile/:id',
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['Student', 'Teacher', 'Admin'] },

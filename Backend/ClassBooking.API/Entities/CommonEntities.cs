@@ -394,6 +394,8 @@ namespace ClassBooking.API.Entities
         
         [Required]
         public string TeacherProfileId { get; set; } = string.Empty;
+
+        public string? StudentId { get; set; }
         
         [Required]
         [MaxLength(200)]

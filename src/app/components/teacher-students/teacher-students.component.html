@@ -27,17 +27,29 @@
     <div *ngIf="isLoading" class="loading">Loading students...</div>
 
     <div class="students-grid" *ngIf="!isLoading">
-        <div class="student-card" *ngFor="let student of filteredStudents" (click)="viewStudentDetails(student)">
+        <div class="student-card" *ngFor="let student of filteredStudents">
             <div class="student-avatar">{{ student.fullName.charAt(0) }}</div>
             <div class="student-info">
                 <h3>{{ student.fullName }}</h3>
-                <p class="grade">{{ student.grade }}</p>
+
+                <div class="details-row">
+                    <span class="grade">Grade: {{ student.grade }}</span>
+                    <span class="school" *ngIf="student.school">{{ student.school }}</span>
+                </div>
+
+                <div class="parent-info" *ngIf="student.parentName">
+                    <div>One Guardian: {{ student.parentName }}</div>
+                    <div *ngIf="student.parentContact">Tel: {{ student.parentContact }}</div>
+                </div>
+
                 <div class="subjects">
                     <span class="subject-tag" *ngFor="let subject of student.subjects">{{ subject }}</span>
                 </div>
+
                 <div class="performance" [ngClass]="getPerformanceClass(student.performanceLevel)">
                     {{ student.performanceLevel }}
                 </div>
+                <button class="view-details-btn" (click)="viewStudentDetails(student)">View Details</button>
             </div>
         </div>
     </div>
@@ -50,8 +62,19 @@
                 <div class="student-avatar large">{{ selectedStudent.fullName.charAt(0) }}</div>
                 <div>
                     <h2>{{ selectedStudent.fullName }}</h2>
-                    <p>{{ selectedStudent.email }}</p>
-                    <p>{{ selectedStudent.phoneNumber }}</p>
+                    <p class="detail-row"><i class="icon">📧</i> {{ selectedStudent.email }}</p>
+                    <p class="detail-row"><i class="icon">📞</i> {{ selectedStudent.phoneNumber }}</p>
+                    <p class="detail-row" *ngIf="selectedStudent.school"><i class="icon">🏫</i> {{
+                        selectedStudent.school }}</p>
+                    <p class="detail-row" *ngIf="selectedStudent.id">ID: {{ selectedStudent.id }}</p>
+
+                    <div class="guardian-info" *ngIf="selectedStudent.parentName"
+                        style="margin-top: 1rem; padding: 1rem; background: #f9f9f9; border-radius: 8px;">
+                        <h4 style="margin-top: 0;">Guardian Details</h4>
+                        <p><strong>Name:</strong> {{ selectedStudent.parentName }}</p>
+                        <p *ngIf="selectedStudent.parentContact"><strong>Contact:</strong> {{
+                            selectedStudent.parentContact }}</p>
+                    </div>
                 </div>
             </div>
 
@@ -67,7 +90,8 @@
                     </div>
                     <div class="stat">
                         <h4>Assignments</h4>
-                        <p class="big-number">{{ studentProgress.assignmentsCompleted }}/{{ studentProgress.totalAssignments }}</p>
+                        <p class="big-number">{{ studentProgress.assignmentsCompleted }}/{{
+                            studentProgress.totalAssignments }}</p>
                     </div>
                     <div class="stat">
                         <h4>Avg Score</h4>
@@ -83,7 +107,8 @@
                                 <strong>{{ perf.title }}</strong>
                                 <span class="type">{{ perf.type }}</span>
                             </div>
-                            <div class="score">{{ perf.score }}/{{ perf.maxScore }} ({{ perf.percentage | number:'1.0-0' }}%)</div>
+                            <div class="score">{{ perf.score }}/{{ perf.maxScore }} ({{ perf.percentage | number:'1.0-0'
+                                }}%)</div>
                         </div>
                     </div>
                 </div>

@@ -14,10 +14,11 @@ export interface TeacherStudent {
     subjects: string[];
     enrollmentDate: Date;
     status: 'Active' | 'Inactive' | 'Completed';
-    parentName?: string;
-    parentContact?: string;
     address?: string;
     performanceLevel: 'Excellent' | 'Good' | 'Average' | 'Needs Improvement';
+    school?: string;
+    parentName?: string;
+    parentContact?: string;
 }
 
 export interface StudentProgress {

@@ -4,16 +4,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ClassBooking.API.Repositories
 {
-    public interface IResourceRepository
-    {
-        Task<List<ResourceEntity>> GetByTeacherAsync(string teacherId);
-        Task<ResourceEntity?> GetByIdAsync(string id);
-        Task<ResourceEntity> CreateAsync(ResourceEntity resource);
-        Task<ResourceEntity?> UpdateAsync(string id, ResourceEntity resource);
-        Task<bool> DeleteAsync(string id);
-        Task IncrementDownloadCountAsync(string id);
-    }
-
     public class ResourceRepository : IResourceRepository
     {
         private readonly ClassBookingDbContext _context;
@@ -21,6 +11,13 @@ namespace ClassBooking.API.Repositories
         public ResourceRepository(ClassBookingDbContext context)
         {
             _context = context;
+        }
+
+        public async Task<ResourceEntity> CreateAsync(ResourceEntity resource)
+        {
+            await _context.Resources.AddAsync(resource);
+            await _context.SaveChangesAsync();
+            return resource;
         }
 
         public async Task<List<ResourceEntity>> GetByTeacherAsync(string teacherId)
@@ -31,37 +28,22 @@ namespace ClassBooking.API.Repositories
                 .ToListAsync();
         }
 
+        public async Task<List<ResourceEntity>> GetByStudentAsync(string studentId)
+        {
+            // Get resources specifically assigned to this student OR public resources (if logic requires, but per requirement "specific students", so filtering by StudentId)
+            // Also assuming resources where StudentId is null might be "General" resources? For now, implementing retrieval of resources specifically for this student.
+            // If the user wants general resources too, we can add `|| r.StudentId == null`. 
+            // Based on "Upload Resources that specifc students has to get", strict filtering seems appropriate.
+            
+            return await _context.Resources
+                .Where(r => r.StudentId == studentId)
+                .OrderByDescending(r => r.UploadedAt)
+                .ToListAsync();
+        }
+
         public async Task<ResourceEntity?> GetByIdAsync(string id)
         {
             return await _context.Resources.FindAsync(id);
-        }
-
-        public async Task<ResourceEntity> CreateAsync(ResourceEntity resource)
-        {
-            resource.Id = Guid.NewGuid().ToString();
-            resource.UploadedAt = DateTime.UtcNow;
-
-            await _context.Resources.AddAsync(resource);
-            await _context.SaveChangesAsync();
-            return resource;
-        }
-
-        public async Task<ResourceEntity?> UpdateAsync(string id, ResourceEntity resource)
-        {
-            var existing = await _context.Resources.FindAsync(id);
-            if (existing == null) return null;
-
-            existing.Title = resource.Title;
-            existing.Description = resource.Description;
-            existing.Type = resource.Type;
-            existing.Subject = resource.Subject;
-            existing.Level = resource.Level;
-            existing.IsPublic = resource.IsPublic;
-            existing.Tags = resource.Tags;
-            existing.UpdatedAt = DateTime.UtcNow;
-
-            await _context.SaveChangesAsync();
-            return existing;
         }
 
         public async Task<bool> DeleteAsync(string id)

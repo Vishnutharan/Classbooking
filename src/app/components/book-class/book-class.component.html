@@ -104,6 +104,24 @@
         </div>
 
         <div class="form-group">
+          <label class="form-label" for="school">School</label>
+          <input type="text" id="school" class="form-input" [(ngModel)]="bookingForm.school" name="school"
+            placeholder="Enter student's school">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="parentName">Parent/Guardian Name</label>
+          <input type="text" id="parentName" class="form-input" [(ngModel)]="bookingForm.parentName" name="parentName"
+            placeholder="Parent or Guardian name">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="parentContact">Parent Contact Number</label>
+          <input type="tel" id="parentContact" class="form-input" [(ngModel)]="bookingForm.parentContact"
+            name="parentContact" placeholder="Best number to reach parent">
+        </div>
+
+        <div class="form-group">
           <label class="form-label" for="classType">Class Type</label>
           <div class="radio-group">
             <label class="radio-label">

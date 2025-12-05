@@ -1,6 +1,8 @@
 using ClassBooking.API.Data;
 using ClassBooking.API.Entities;
+using ClassBooking.API.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 namespace ClassBooking.API.Repositories
 {
@@ -56,7 +58,7 @@ namespace ClassBooking.API.Repositories
         // Task<List<TeacherStudentEntity>> GetTeacherStudentsAsync(string teacherProfileId);
         Task<TeacherStudentEntity> AddTeacherStudentAsync(TeacherStudentEntity relationship);
         Task<bool> RemoveTeacherStudentAsync(string teacherProfileId, string studentId);
-        Task<List<TeacherStudentEntity>> GetTeacherStudentsAsync(string teacherProfileId);
+        Task<List<TeacherStudentDto>> GetTeacherStudentsAsync(string teacherProfileId);
 
         // Date-specific availability slots
         Task<List<TeacherAvailabilitySlotEntity>> GetAvailabilitySlotsAsync(string teacherProfileId, DateTime? startDate = null, DateTime? endDate = null);
@@ -394,7 +396,7 @@ namespace ClassBooking.API.Repositories
             return true;
         }
 
-        public async Task<List<TeacherStudentEntity>> GetTeacherStudentsAsync(string teacherProfileId)
+        public async Task<List<TeacherStudentDto>> GetTeacherStudentsAsync(string teacherProfileId)
         {
             var bookings = await _context.Bookings
                 .Where(b => b.TeacherId == teacherProfileId)
@@ -403,21 +405,56 @@ namespace ClassBooking.API.Repositories
             var studentIds = bookings.Select(b => b.StudentId).Distinct().ToList();
 
             if (!studentIds.Any())
-                return new List<TeacherStudentEntity>();
+                return new List<TeacherStudentDto>();
 
-            var students = await _context.StudentProfiles
+            var profiles = await _context.StudentProfiles
                 .Where(s => studentIds.Contains(s.UserId))
-                .Select(s => new TeacherStudentEntity
-                {
-                    Id = s.Id,
-                    StudentId = s.UserId,
-                    StudentName = s.FullName,
-                    Grade = s.GradeLevel,
-                    EnrolledDate = s.CreatedAt
-                })
                 .ToListAsync();
 
-            return students;
+            var result = new List<TeacherStudentDto>();
+
+            foreach (var profile in profiles)
+            {
+                var studentBookings = bookings.Where(b => b.StudentId == profile.UserId).ToList();
+                var subjects = studentBookings.Select(b => b.Subject).Distinct().ToList();
+                
+                string parentName = "";
+                string parentContact = "";
+
+                if (!string.IsNullOrEmpty(profile.GuardianInfoJson))
+                {
+                   try 
+                   {
+                        using (JsonDocument doc = JsonDocument.Parse(profile.GuardianInfoJson))
+                        {
+                            if (doc.RootElement.TryGetProperty("name", out JsonElement nameElement) || doc.RootElement.TryGetProperty("Name", out nameElement))
+                                parentName = nameElement.GetString() ?? "";
+                            if (doc.RootElement.TryGetProperty("contact", out JsonElement contactElement) || doc.RootElement.TryGetProperty("Contact", out contactElement))
+                                parentContact = contactElement.GetString() ?? "";
+                        }
+                   }
+                   catch {}
+                }
+
+                result.Add(new TeacherStudentDto
+                {
+                    Id = profile.Id,
+                    UserId = profile.UserId,
+                    FullName = profile.FullName,
+                    Email = profile.Email,
+                    PhoneNumber = profile.PhoneNumber,
+                    ProfilePicture = profile.ProfilePicture ?? "",
+                    Grade = profile.GradeLevel,
+                    Subjects = subjects,
+                    EnrolledDate = profile.CreatedAt,
+                    School = profile.School ?? "",
+                    ParentName = parentName,
+                    ParentContact = parentContact,
+                    IsActive = true // logic for active/inactive could be refined based on recent bookings
+                });
+            }
+
+            return result;
         }
 
 

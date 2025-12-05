@@ -21,8 +21,14 @@
       <p class="nav-label">Learning</p>
       <button class="nav-item" (click)="viewMyProgress()">Progress</button>
       <button class="nav-item" (click)="viewLessonPlans()">Lesson plans</button>
-      <button class="nav-item" (click)="seePastPapers()">Past papers</button>
-      <button class="nav-item" (click)="viewExamMaterials()">Exam materials</button>
+      <button class="nav-item" (click)="viewResources()">My resources</button>
+      <!-- <button class="nav-item" (click)="seePastPapers()">Past papers</button>
+      <button class="nav-item" (click)="viewExamMaterials()">Exam materials</button> -->
+    </div>
+
+    <div class="nav-group">
+      <p class="nav-label">Account</p>
+      <button class="nav-item" (click)="navigateToProfile()">My Profile</button>
     </div>
 
     <div class="nav-cta">
@@ -93,7 +99,8 @@
           <button class="ghost-btn" (click)="viewBooking('')">View all</button>
         </div>
         <div class="timeline" *ngIf="upcomingClasses.length; else noUpcoming">
-          <div class="timeline-item" *ngFor="let booking of upcomingClasses; let i = index" [style.animation-delay]="(i * 0.04) + 's'">
+          <div class="timeline-item" *ngFor="let booking of upcomingClasses; let i = index"
+            [style.animation-delay]="(i * 0.04) + 's'">
             <div class="timeline-date">
               <span class="day">{{ booking.date | date:'dd' }}</span>
               <span class="month">{{ booking.date | date:'MMM' }}</span>
@@ -105,7 +112,8 @@
               <p class="muted">Teacher: {{ booking.teacherName || booking.teacherId }}</p>
               <div class="card-actions">
                 <button class="ghost-btn" (click)="viewBooking(booking.id)">Details</button>
-                <a class="pill-btn" *ngIf="booking.status === 'Confirmed' && booking.meetingLink" [href]="booking.meetingLink" target="_blank">Join</a>
+                <a class="pill-btn" *ngIf="booking.status === 'Confirmed' && booking.meetingLink"
+                  [href]="booking.meetingLink" target="_blank">Join</a>
               </div>
             </div>
           </div>
@@ -121,7 +129,8 @@
           <button class="ghost-btn" (click)="navigateToTimetable()">Open timetable</button>
         </div>
         <div class="stacked-list" *ngIf="timetableEvents.length; else noEvents">
-          <div class="stacked-item" *ngFor="let ev of timetableEvents; let i = index" [style.animation-delay]="(i * 0.03) + 's'">
+          <div class="stacked-item" *ngFor="let ev of timetableEvents; let i = index"
+            [style.animation-delay]="(i * 0.03) + 's'">
             <div>
               <p class="stacked-title">{{ ev.title }}</p>
               <p class="muted">{{ ev.date | date:'MMM dd' }} | {{ ev.startTime }} - {{ ev.endTime }}</p>
@@ -141,7 +150,8 @@
           </div>
         </div>
         <div class="progress-list" *ngIf="subjectsProgress.length; else noProgress">
-          <div class="progress-row" *ngFor="let item of subjectsProgress; let i = index" [style.animation-delay]="(i * 0.03) + 's'">
+          <div class="progress-row" *ngFor="let item of subjectsProgress; let i = index"
+            [style.animation-delay]="(i * 0.03) + 's'">
             <div>
               <p class="stacked-title">{{ item.subject }}</p>
               <p class="muted">Auto-updates as classes finish</p>
@@ -193,7 +203,8 @@
           <button class="ghost-btn" (click)="viewMyReviews()">My reviews</button>
         </div>
         <div class="stacked-list" *ngIf="recentActivity.length; else noActivity">
-          <div class="stacked-item" *ngFor="let activity of recentActivity; let i = index" [style.animation-delay]="(i * 0.02) + 's'">
+          <div class="stacked-item" *ngFor="let activity of recentActivity; let i = index"
+            [style.animation-delay]="(i * 0.02) + 's'">
             <div class="dotline"></div>
             <div>
               <p class="stacked-title">{{ activity.message }}</p>

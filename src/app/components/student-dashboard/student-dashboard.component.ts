@@ -102,6 +102,10 @@ export class StudentDashboardComponent implements OnInit {
     this.router.navigate(['/timetable']);
   }
 
+  navigateToProfile(): void {
+    this.router.navigate(['/student/details']);
+  }
+
   private calculateHours(bookings: ClassBooking[]): number {
     return bookings
       .filter(b => b.status === 'Completed')
@@ -146,6 +150,10 @@ export class StudentDashboardComponent implements OnInit {
 
   viewLessonPlans(): void {
     this.router.navigate(['/student/lesson-plans']);
+  }
+
+  viewResources(): void {
+    this.router.navigate(['/student/resources']);
   }
 
   applyFilters(): void {

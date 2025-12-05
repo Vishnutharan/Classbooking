@@ -49,7 +49,10 @@ export class BookClassComponent implements OnInit {
     notes: '',
     classType: 'Personal_1_1' as 'Personal_1_1' | 'Group' | 'OneTime' | 'Recurring',
     mode: 'ONLINE' as 'ONLINE' | 'IN_PERSON',
-    gradeLevel: ''
+    gradeLevel: '',
+    school: '',
+    parentName: '',
+    parentContact: ''
   };
 
   ngOnInit(): void {
@@ -212,7 +215,10 @@ export class BookClassComponent implements OnInit {
       classType: this.bookingForm.classType as any, 
       mode: this.bookingForm.mode,
       bookingGradeLevel: this.bookingForm.gradeLevel,
-      notes: this.bookingForm.notes
+      notes: this.bookingForm.notes,
+      school: this.bookingForm.school,
+      parentName: this.bookingForm.parentName,
+      parentContact: this.bookingForm.parentContact
     };
 
     this.bookingService.createBooking(bookingRequest).subscribe({
@@ -239,7 +245,10 @@ export class BookClassComponent implements OnInit {
       notes: '',
       classType: 'Personal_1_1',
       mode: 'ONLINE',
-      gradeLevel: ''
+      gradeLevel: '',
+      school: '',
+      parentName: '',
+      parentContact: ''
     };
   }
 }

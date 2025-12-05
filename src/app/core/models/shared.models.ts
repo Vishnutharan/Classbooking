@@ -77,6 +77,8 @@ export interface StudentProfile {
     specificGrade?: number; // 1-13 for Sri Lankan system
     stream?: 'Science' | 'Commerce' | 'Arts' | 'Technology'; // For A/L students
     school?: string;
+    parentName?: string;
+    parentContact?: string;
     focusAreas: string[];
     targetExams: string[];
     examYear?: number; // Target O/L or A/L exam year

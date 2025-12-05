@@ -30,7 +30,13 @@ namespace ClassBooking.API.Models
         public string StartTime { get; set; } = string.Empty;
         public string EndTime { get; set; } = string.Empty;
         public string ClassType { get; set; } = "OneTime";
+        public string Mode { get; set; } = "ONLINE"; // ONLINE, IN_PERSON
         public string? Notes { get; set; }
+
+        // New fields for student details capture
+        public string? School { get; set; }
+        public string? ParentName { get; set; }
+        public string? ParentContact { get; set; }
     }
 
     public class BookingResponse
@@ -39,6 +45,6 @@ namespace ClassBooking.API.Models
         public string Id { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;
         public string Message { get; set; } = string.Empty;
+        public ClassBooking? Booking { get; set; }
     }
 }
-

@@ -27,6 +27,7 @@ namespace ClassBooking.API.Services
         private readonly ITeacherRepository _teacherRepository;
         private readonly INotificationRepository _notificationRepository;
         private readonly IEmailService _emailService;
+        private readonly IStudentRepository _studentRepository;
         private readonly IUserRepository _userRepository;
 
         public BookingService(
@@ -34,13 +35,15 @@ namespace ClassBooking.API.Services
             ITeacherRepository teacherRepository,
             INotificationRepository notificationRepository,
             IEmailService emailService,
-            IUserRepository userRepository)
+            IUserRepository userRepository,
+            IStudentRepository studentRepository)
         {
             _bookingRepository = bookingRepository;
             _teacherRepository = teacherRepository;
             _notificationRepository = notificationRepository;
             _emailService = emailService;
             _userRepository = userRepository;
+            _studentRepository = studentRepository;
         }
 
         public async Task<List<Models.ClassBooking>> GetBookingsForStudentAsync(string studentId)
@@ -149,6 +152,57 @@ namespace ClassBooking.API.Services
             }
 
             var student = await _userRepository.GetByIdAsync(studentId);
+            
+            // --- Update Student Profile with new details ---
+            try 
+            {
+                var studentProfileRepository = _teacherRepository as IStudentRepository; // Assumption: Or inject IStudentRepository
+                // Since I don't have IStudentRepository injected here, I might need to add it or do a direct DB context update if safe.
+                // However, let's verify if I can inject IStudentRepository. 
+                // Wait, BookingService construction:
+                // public BookingService(IBookingRepository..., ITeacherRepository..., ..., IUserRepository...)
+                // I need to update BookingService constructor to include IStudentRepository for this to work cleanly.
+                // For now, I will assume I can update the user details if they are in the User table, but School/Parent are in StudentProfile.
+                // It is safer to modify the Constructor in a separate step. 
+            // Re-evaluating: I should fix the DI first.
+            // Let's modify the entire method but I need IStudentRepository.
+            // Let's hold off on this replace            var student = await _userRepository.GetByIdAsync(studentId);
+
+            // Update Student Profile with new details if provided
+            try
+            {
+                var profile = await _studentRepository.GetByUserIdAsync(studentId);
+                if (profile != null)
+                {
+                    bool updated = false;
+                    if (!string.IsNullOrEmpty(request.School) && profile.School != request.School)
+                    {
+                        profile.School = request.School;
+                        updated = true;
+                    }
+
+                    if (!string.IsNullOrEmpty(request.ParentName) || !string.IsNullOrEmpty(request.ParentContact))
+                    {
+                        var guardianInfo = new { name = request.ParentName, contact = request.ParentContact };
+                        var json = System.Text.Json.JsonSerializer.Serialize(guardianInfo);
+                        if (profile.GuardianInfoJson != json)
+                        {
+                            profile.GuardianInfoJson = json;
+                            updated = true;
+                        }
+                    }
+
+                    if (updated)
+                    {
+                        await _studentRepository.UpdateAsync(profile);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log warning but don't fail booking
+                Console.WriteLine($"Failed to update student profile: {ex.Message}");
+            }
 
             var booking = new BookingEntity
             {

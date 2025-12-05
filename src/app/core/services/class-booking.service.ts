@@ -20,6 +20,9 @@ export interface BookingRequest {
   durationMinutes?: number;
   recurringDays?: string[];
   notes?: string;
+  school?: string;
+  parentName?: string;
+  parentContact?: string;
 }
 
 export interface BookingResponse {

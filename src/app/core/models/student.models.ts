@@ -12,6 +12,8 @@ export interface StudentProfile {
     profilePicture?: string;
     gradeLevel: 'Primary' | 'OLevel' | 'ALevel';
     school?: string;
+    parentName?: string;
+    parentContact?: string;
     focusAreas: string[];
     targetExams: string[];
     createdAt: Date;
@@ -23,6 +25,8 @@ export interface UpdateStudentProfileRequest {
     phoneNumber?: string;
     gradeLevel?: 'Primary' | 'OLevel' | 'ALevel';
     school?: string;
+    parentName?: string;
+    parentContact?: string;
     focusAreas?: string[];
     targetExams?: string[];
 }

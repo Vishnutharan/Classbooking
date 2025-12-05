@@ -14,6 +14,8 @@ namespace ClassBooking.API.Models
         public List<string> TargetExams { get; set; } = new();
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
+        public string? ParentName { get; set; }
+        public string? ParentContact { get; set; }
     }
 
     public class SubjectPerformance
