@@ -47,7 +47,11 @@ export class FindTeacherComponent implements OnInit {
   isLoading = false;
 
   subjectOptions: string[] = [];
-  gradeOptions = ['Grade 6-9', 'Grade 10-11', 'Grade 12-13', 'Primary', 'All grades'];
+  gradeOptions = [
+    'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 
+    'Grade 10', 'Grade 11', 
+    'Grade 12', 'Grade 13', 'A-Level'
+  ];
   districtOptions = ['Colombo', 'Gampaha', 'Kandy', 'Galle', 'Kalutara', 'Matara', 'Kurunegala'];
   mediumOptions = ['English', 'Sinhala', 'Tamil', 'Bilingual'];
   teachingModeOptions = ['Online & Physical', 'Online', 'Physical'];
@@ -84,8 +88,15 @@ export class FindTeacherComponent implements OnInit {
       const matchesSubject = !this.filters.subject ||
         card.subjects.toLowerCase().includes(this.filters.subject.toLowerCase());
 
-      const matchesGrade = !this.filters.grade ||
-        card.grades.toLowerCase().includes(this.filters.grade.toLowerCase());
+      // Strict grade matching if possible, or string inclusion
+      // Since card.grades is "Grade 6, Grade 7", searching for "Grade 6" matches.
+      // Searching for "Grade 1" might match "Grade 10" - be careful.
+      // Better to check tokenized.
+      let matchesGrade = true;
+      if (this.filters.grade) {
+         const cardGrades = card.grades.split(',').map(g => g.trim());
+         matchesGrade = cardGrades.includes(this.filters.grade);
+      }
 
       const matchesDistrict = !this.filters.district ||
         card.district === this.filters.district;
@@ -131,7 +142,13 @@ export class FindTeacherComponent implements OnInit {
       this.notificationService.showInfo('Teacher profile is not available yet.');
       return;
     }
-    this.router.navigate(['/teacher-profile', teacherId]);
+    // Pass filters as query params to pre-select in booking
+    this.router.navigate(['/teacher-profile', teacherId], {
+        queryParams: {
+            subject: this.filters.subject,
+            grade: this.filters.grade
+        }
+    });
   }
 
   private mapToCards(teachers: TeacherProfile[]): TeacherCardView[] {
@@ -180,33 +197,24 @@ export class FindTeacherComponent implements OnInit {
   }
 
   private getGrades(teacher: TeacherProfile): string {
-    const gradeLabels = new Set<string>();
+    const allGrades = new Set<string>();
 
     (teacher.subjects || []).forEach(sub => {
-      switch (sub.level) {
-        case 'Primary':
-          gradeLabels.add('Primary');
-          break;
-        case 'Secondary':
-          gradeLabels.add('Grade 6-9');
-          break;
-        case 'OLevel':
-          gradeLabels.add('Grade 10-11');
-          break;
-        case 'ALevel':
-        case 'Advanced':
-          gradeLabels.add('Grade 12-13');
-          break;
-        default:
-          break;
-      }
+       if (sub.grades) {
+           sub.grades.split(',').forEach(g => allGrades.add(g.trim()));
+       } else if (sub.level) {
+           // Fallback if grades not set
+           allGrades.add(sub.level);
+       }
     });
 
-    if (!gradeLabels.size) {
-      gradeLabels.add('All grades');
+    if (allGrades.size === 0) {
+        return 'All grades';
     }
 
-    return Array.from(gradeLabels).join(', ');
+    // Sort to make it look nice? 'Grade 6', 'Grade 10'
+    // Natural sort might be hard, alphabetical is okay for now
+    return Array.from(allGrades).join(', ');
   }
 
   private buildSubjectOptions(teachers: TeacherProfile[]): string[] {

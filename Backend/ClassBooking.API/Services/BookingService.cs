@@ -161,6 +161,7 @@ namespace ClassBooking.API.Services
                 EndTime = request.EndTime,
                 Status = "Pending",
                 ClassType = request.ClassType,
+                BookingGradeLevel = request.BookingGradeLevel,
                 Notes = request.Notes,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
@@ -470,6 +471,7 @@ namespace ClassBooking.API.Services
                 EndTime = entity.EndTime,
                 Status = entity.Status,
                 ClassType = entity.ClassType,
+                BookingGradeLevel = entity.BookingGradeLevel,
                 RecurringDays = !string.IsNullOrEmpty(entity.RecurringDaysJson) 
                     ? JsonSerializer.Deserialize<List<string>>(entity.RecurringDaysJson) 
                     : null,

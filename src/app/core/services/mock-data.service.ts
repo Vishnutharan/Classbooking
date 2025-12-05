@@ -576,8 +576,8 @@ export class MockDataService {
       { email: adminUser.email, password: 'Password123', userId: adminUser.id }
     ];
 
-    const mathSubject: TeacherSubject = { id: 'sub-math', name: 'Mathematics', medium: 'English', level: 'OLevel' };
-    const sciSubject: TeacherSubject = { id: 'sub-sci', name: 'Science', medium: 'English', level: 'OLevel' };
+    const mathSubject: TeacherSubject = { id: 'sub-math', name: 'Mathematics', medium: 'English', level: 'OLevel', grades: 'Grade 10, Grade 11' };
+    const sciSubject: TeacherSubject = { id: 'sub-sci', name: 'Science', medium: 'English', level: 'OLevel', grades: 'Grade 10, Grade 11' };
     const availability: TeacherAvailability[] = [
       { dayOfWeek: 'Monday', startTime: '09:00', endTime: '15:00' },
       { dayOfWeek: 'Wednesday', startTime: '10:00', endTime: '16:00' },

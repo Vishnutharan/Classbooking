@@ -8,6 +8,7 @@ namespace ClassBooking.API.Models
         public string TeacherId { get; set; } = string.Empty;
         public string TeacherName { get; set; } = string.Empty;
         public string Subject { get; set; } = string.Empty;
+        public string? BookingGradeLevel { get; set; }
         public DateTime Date { get; set; }
         public string StartTime { get; set; } = string.Empty;
         public string EndTime { get; set; } = string.Empty;
@@ -24,6 +25,7 @@ namespace ClassBooking.API.Models
     {
         public string TeacherId { get; set; } = string.Empty;
         public string Subject { get; set; } = string.Empty;
+        public string? BookingGradeLevel { get; set; }
         public DateTime Date { get; set; }
         public string StartTime { get; set; } = string.Empty;
         public string EndTime { get; set; } = string.Empty;

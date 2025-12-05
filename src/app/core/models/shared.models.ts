@@ -18,6 +18,7 @@ export interface TeacherSubject {
     name: string;
     medium: 'Sinhala' | 'Tamil' | 'English';
     level: 'Primary' | 'OLevel' | 'ALevel' | 'Secondary' | 'Advanced';
+    grades: string; // Comma-separated
     curriculumBoard?: string;
     classTypes?: string[];
 }

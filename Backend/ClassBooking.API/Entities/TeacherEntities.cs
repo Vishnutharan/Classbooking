@@ -112,6 +112,11 @@ namespace ClassBooking.API.Entities
         [MaxLength(50)]
         public string Level { get; set; } = "OLevel"; // Primary, OLevel, ALevel, Secondary, Advanced
 
+
+
+        [MaxLength(500)]
+        public string? Grades { get; set; } // Comma-separated: "Grade 6,Grade 7,Grade 8"
+
         [MaxLength(50)]
         public string? CurriculumBoard { get; set; } // CBSE, IB, IGCSE
 

@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { NotificationService } from '../../core/services/notification.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -23,6 +23,7 @@ export class BookClassComponent implements OnInit {
   private notificationService = inject(NotificationService);
   private authService = inject(AuthService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   calendarEvents: EventInput[] = [];
   currentUser: any;
@@ -30,6 +31,16 @@ export class BookClassComponent implements OnInit {
   selectedTeacherId = '';
   selectedTeacher?: TeacherProfile;
   availabilitySlots: TeacherAvailabilitySlot[] = [];
+
+  // Pre-selection Context
+  preSelectedSubject = '';
+  preSelectedGrade = '';
+  
+  gradeOptions = [
+    'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 
+    'Grade 10', 'Grade 11', 
+    'Grade 12', 'Grade 13', 'A-Level'
+  ];
 
   showBookingDialog = false;
   selectedSlot: any = null;
@@ -44,12 +55,27 @@ export class BookClassComponent implements OnInit {
   ngOnInit(): void {
     this.currentUser = this.authService.getCurrentUser();
     this.loadTeachers();
+
+    this.route.queryParams.subscribe(params => {
+        if (params['teacherId']) {
+            this.selectedTeacherId = params['teacherId'];
+        }
+        if (params['subject']) {
+            this.preSelectedSubject = params['subject'];
+        }
+        if (params['grade']) {
+            this.preSelectedGrade = params['grade'];
+        }
+    });
   }
 
   loadTeachers(): void {
     this.teacherService.getAllTeachers().subscribe({
       next: (teachers) => {
         this.teachers = teachers;
+        if (this.selectedTeacherId) {
+            this.onTeacherSelected(this.selectedTeacherId);
+        }
       },
       error: () => this.notificationService.showError('Failed to load teachers')
     });
@@ -152,8 +178,22 @@ export class BookClassComponent implements OnInit {
     this.selectedSlot = props;
     this.showBookingDialog = true;
 
-    if (props['subjects'] && props['subjects'].length > 0) {
+    // Pre-fill Logic
+    if (this.preSelectedSubject) {
+        // Verify if teacher actually teaches this? 
+        // For now just trust the context or check props['subjects']
+        const hasSubject = props['subjects']?.some((s: any) => s.name === this.preSelectedSubject);
+        if (hasSubject || !props['subjects'] || props['subjects'].length === 0) {
+             this.bookingForm.subject = this.preSelectedSubject;
+        } else if (props['subjects'] && props['subjects'].length > 0){
+             this.bookingForm.subject = props['subjects'][0].name;
+        }
+    } else if (props['subjects'] && props['subjects'].length > 0) {
       this.bookingForm.subject = props['subjects'][0].name;
+    }
+
+    if (this.preSelectedGrade) {
+        this.bookingForm.gradeLevel = this.preSelectedGrade;
     }
   }
 

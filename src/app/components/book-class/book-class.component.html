@@ -99,11 +99,7 @@
           <label class="form-label">Grade Level *</label>
           <select class="form-select" [(ngModel)]="bookingForm.gradeLevel" name="gradeLevel" required>
             <option value="">Select Grade</option>
-            <option value="Grade 6">Grade 6</option>
-            <option value="Grade 7">Grade 7</option>
-            <option value="Grade 8">Grade 8</option>
-            <option value="O-Level">O-Level</option>
-            <option value="A-Level">A-Level</option>
+            <option *ngFor="let grade of gradeOptions" [value]="grade">{{ grade }}</option>
           </select>
         </div>
 

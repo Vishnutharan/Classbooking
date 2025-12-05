@@ -109,7 +109,9 @@ namespace ClassBooking.API.Services
                 TeacherProfileId = teacherProfileId,
                 Name = subject.Name,
                 Medium = subject.Medium,
-                Level = subject.Level
+                Level = subject.Level,
+                Grades = subject.Grades,
+                ClassTypes = string.Join(",", subject.ClassTypes)
             };
 
             var created = await _repository.AddSubjectAsync(subjectEntity);
@@ -118,7 +120,9 @@ namespace ClassBooking.API.Services
                 Id = created.Id,
                 Name = created.Name,
                 Medium = created.Medium,
-                Level = created.Level
+                Level = created.Level,
+                Grades = created.Grades,
+                ClassTypes = created.ClassTypes.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList()
             };
         }
 
@@ -278,8 +282,9 @@ namespace ClassBooking.API.Services
                     Name = s.Name,
                     Medium = s.Medium,
                     Level = s.Level,
+                    Grades = s.Grades,
                     CurriculumBoard = s.CurriculumBoard,
-                    ClassTypes = s.ClassTypes
+                    ClassTypes = s.ClassTypes.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList()
                 }).ToList(),
                 HourlyRate = entity.HourlyRate,
                 ExperienceYears = entity.ExperienceYears,

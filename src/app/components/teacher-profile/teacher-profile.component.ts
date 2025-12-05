@@ -61,7 +61,16 @@ export class TeacherProfileComponent implements OnInit {
   }
 
   bookClass(): void {
-    this.router.navigate(['/book-class']);
+    const queryParams: any = {
+        teacherId: this.teacher?.id
+    };
+    
+    // Forward existing query params (context)
+    const currentParams = this.route.snapshot.queryParams;
+    if (currentParams['subject']) queryParams['subject'] = currentParams['subject'];
+    if (currentParams['grade']) queryParams['grade'] = currentParams['grade'];
+
+    this.router.navigate(['/book-class'], { queryParams });
   }
 
   shareProfile(): void {

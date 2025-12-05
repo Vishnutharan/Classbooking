@@ -4,7 +4,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule, Validators } 
 import { AuthService } from '../../core/services/auth.service';
 import { TeacherService } from '../../core/services/teacher.service';
 import { NotificationService } from '../../core/services/notification.service';
-import { User, TeacherProfile } from '../../core/models/shared.models';
+import { User, TeacherProfile, TeacherSubject } from '../../core/models/shared.models';
 
 @Component({
   selector: 'app-manage-profile',
@@ -32,6 +32,29 @@ export class ManageProfileComponent implements OnInit {
 
   showDeleteModal = false;
   deleteConfirmEmail = '';
+
+  // Subject Management
+  showSubjectModal = false;
+  newSubject: Partial<TeacherSubject> = {
+    name: '',
+    medium: 'English',
+    level: 'OLevel',
+    grades: '',
+    classTypes: ['PERSONAL_1_1'] // Using defaults
+  };
+  
+  availableGrades = [
+    'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 
+    'Grade 10', 'Grade 11', 
+    'Grade 12', 'Grade 13'
+  ];
+  selectedGrades: string[] = [];
+
+  subjectOptionsList = [
+    'Mathematics', 'Science', 'English', 'History', 
+    'Sinhala', 'Tamil', 'ICT', 'Commerce', 
+    'Accounting', 'Physics', 'Chemistry', 'Biology'
+  ];
 
   ngOnInit(): void {
     this.currentUser = this.authService.getCurrentUser();
@@ -196,6 +219,78 @@ export class ManageProfileComponent implements OnInit {
     if (this.deleteConfirmEmail === this.currentUser?.email) {
       this.notificationService.showSuccess('Account deleted');
       this.authService.logout();
+    }
+  }
+
+  // Subject Management Methods
+  openSubjectModal(): void {
+    this.newSubject = {
+        name: 'Mathematics',
+        medium: 'English',
+        level: 'OLevel',
+        grades: '',
+        classTypes: ['PERSONAL_1_1']
+    };
+    this.selectedGrades = [];
+    this.showSubjectModal = true;
+  }
+
+  closeSubjectModal(): void {
+    this.showSubjectModal = false;
+  }
+
+  toggleGrade(grade: string): void {
+    if (this.selectedGrades.includes(grade)) {
+      this.selectedGrades = this.selectedGrades.filter(g => g !== grade);
+    } else {
+      this.selectedGrades.push(grade);
+    }
+  }
+
+  saveSubject(): void {
+    if (!this.newSubject.name) {
+        this.notificationService.showWarning('Please select a subject');
+        return;
+    }
+    if (this.selectedGrades.length === 0) {
+        this.notificationService.showWarning('Please select at least one grade');
+        return;
+    }
+
+    this.newSubject.grades = this.selectedGrades.join(',');
+    
+    // Determine level from grades simply for backend compatibility if needed
+    // Logic: if any 12-13 -> ALevel, else OLevel/Secondary
+    if (this.selectedGrades.some(g => g.includes('12') || g.includes('13'))) {
+        this.newSubject.level = 'ALevel';
+    } else {
+        this.newSubject.level = 'OLevel'; // Default fallback
+    }
+
+    this.isSaving = true;
+    this.teacherService.addSubject(this.newSubject as TeacherSubject).subscribe({
+        next: (profile) => {
+            this.currentProfile = profile;
+            this.notificationService.showSuccess('Subject added successfully');
+            this.isSaving = false;
+            this.closeSubjectModal();
+        },
+        error: (err) => {
+            this.notificationService.showError('Failed to add subject');
+            this.isSaving = false;
+        }
+    });
+  }
+
+  deleteSubject(item: TeacherSubject): void {
+    if(confirm(`Are you sure you want to remove ${item.name}?`)) {
+        this.teacherService.removeSubject(item.id).subscribe({
+            next: (profile) => {
+                this.currentProfile = profile;
+                this.notificationService.showSuccess('Subject removed');
+            },
+            error: () => this.notificationService.showError('Failed to remove subject')
+        });
     }
   }
 }

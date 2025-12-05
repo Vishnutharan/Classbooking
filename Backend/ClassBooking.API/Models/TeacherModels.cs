@@ -35,7 +35,8 @@ namespace ClassBooking.API.Models
         public string Medium { get; set; } = "English"; // Sinhala, Tamil, English
         public string Level { get; set; } = "OLevel"; // Primary, OLevel, ALevel, Secondary, Advanced
         public string? CurriculumBoard { get; set; }
-        public string ClassTypes { get; set; } = "PERSONAL_1_1";
+        public string Grades { get; set; } = string.Empty;
+        public List<string> ClassTypes { get; set; } = new List<string> { "PERSONAL_1_1" };
     }
 
     public class TeacherAvailability
