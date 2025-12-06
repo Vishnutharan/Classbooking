@@ -154,19 +154,7 @@ namespace ClassBooking.API.Services
             var student = await _userRepository.GetByIdAsync(studentId);
             
             // --- Update Student Profile with new details ---
-            try 
-            {
-                var studentProfileRepository = _teacherRepository as IStudentRepository; // Assumption: Or inject IStudentRepository
-                // Since I don't have IStudentRepository injected here, I might need to add it or do a direct DB context update if safe.
-                // However, let's verify if I can inject IStudentRepository. 
-                // Wait, BookingService construction:
-                // public BookingService(IBookingRepository..., ITeacherRepository..., ..., IUserRepository...)
-                // I need to update BookingService constructor to include IStudentRepository for this to work cleanly.
-                // For now, I will assume I can update the user details if they are in the User table, but School/Parent are in StudentProfile.
-                // It is safer to modify the Constructor in a separate step. 
-            // Re-evaluating: I should fix the DI first.
-            // Let's modify the entire method but I need IStudentRepository.
-            // Let's hold off on this replace            var student = await _userRepository.GetByIdAsync(studentId);
+
 
             // Update Student Profile with new details if provided
             try

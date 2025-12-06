@@ -171,3 +171,4 @@ D:\ClassBookingAngular\Classbooking\Backend\ClassBooking.API\obj\Debug\net9.0\Cl
 D:\ClassBookingAngular\Classbooking\Backend\ClassBooking.API\obj\Debug\net9.0\ref\ClassBooking.API.dll
 D:\ClassBookingAngular\Classbooking\Backend\ClassBooking.API\bin\Debug\net9.0\ClassBooking.API.staticwebassets.runtime.json
 D:\ClassBookingAngular\Classbooking\Backend\ClassBooking.API\obj\Debug\net9.0\compressed\xyne3wg8ej-g7lvh8t8j2.gz
+D:\ClassBookingAngular\Classbooking\Backend\ClassBooking.API\obj\Debug\net9.0\compressed\zyro7n3ci8-blayl4d5ni.gz

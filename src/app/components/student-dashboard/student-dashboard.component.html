@@ -142,7 +142,7 @@
     </section>
 
     <section class="boards">
-      <article class="board">
+      <!-- <article class="board">
         <div class="board-header">
           <div>
             <p class="mini-label">Goals</p>
@@ -162,7 +162,7 @@
             <span class="pill neutral">{{ item.progress | number:'1.0-0' }}%</span>
           </div>
         </div>
-      </article>
+      </article> -->
 
       <article class="board">
         <div class="board-header">
@@ -193,7 +193,7 @@
       </article>
     </section>
 
-    <section class="boards single">
+    <!-- <section class="boards single">
       <article class="board">
         <div class="board-header">
           <div>
@@ -215,35 +215,52 @@
       </article>
     </section>
   </main>
-</div>
+</div> -->
 
-<ng-template #noUpcoming>
-  <div class="empty">
-    <p>No upcoming classes. Book a slot to get started.</p>
-    <button class="pill-btn" (click)="bookClass()">Book now</button>
-  </div>
-</ng-template>
+    <section class="boards single">
+      <article class="board">
+        <div class="board-header">
+          <div>
+            <p class="mini-label">Reviews</p>
+            <h3>My reviews</h3>
+          </div>
+          <button class="ghost-btn" (click)="viewMyReviews()">Open</button>
+        </div>
 
-<ng-template #noEvents>
-  <div class="empty">
-    <p>No platform events yet.</p>
-  </div>
-</ng-template>
+        <div class="empty">
+          <p>View feedback and ratings from your teachers.</p>
+          <button class="pill-btn" (click)="viewMyReviews()">Go to reviews</button>
+        </div>
+      </article>
+    </section>
 
-<ng-template #noProgress>
-  <div class="empty">
-    <p>Progress will show once classes are complete.</p>
-  </div>
-</ng-template>
+    <ng-template #noUpcoming>
+      <div class="empty">
+        <p>No upcoming classes. Book a slot to get started.</p>
+        <button class="pill-btn" (click)="bookClass()">Book now</button>
+      </div>
+    </ng-template>
 
-<ng-template #noTeachers>
-  <div class="empty">
-    <p>No recommendations yet. Book a class to discover teachers.</p>
-  </div>
-</ng-template>
+    <ng-template #noEvents>
+      <div class="empty">
+        <p>No platform events yet.</p>
+      </div>
+    </ng-template>
 
-<ng-template #noActivity>
-  <div class="empty">
-    <p>Activity will appear after your next class.</p>
-  </div>
-</ng-template>
+    <ng-template #noProgress>
+      <div class="empty">
+        <p>Progress will show once classes are complete.</p>
+      </div>
+    </ng-template>
+
+    <ng-template #noTeachers>
+      <div class="empty">
+        <p>No recommendations yet. Book a class to discover teachers.</p>
+      </div>
+    </ng-template>
+
+    <ng-template #noActivity>
+      <div class="empty">
+        <p>Activity will appear after your next class.</p>
+      </div>
+    </ng-template>

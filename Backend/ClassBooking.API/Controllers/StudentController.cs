@@ -118,8 +118,7 @@ namespace ClassBooking.API.Controllers
                 return StatusCode(500, new { message = "Error updating profile", details = ex.Message });
             }
         }
-            }
-        }
+
 
         [HttpGet("recommended-teachers")]
         public async Task<ActionResult<List<TeacherProfile>>> GetRecommendedTeachers()

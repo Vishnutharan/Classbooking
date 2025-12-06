@@ -92,102 +92,81 @@
       </div>
     </section>
 
-    <section class="panel-grid">
-      <article class="panel wide">
-        <div class="panel-header">
+    <article class="panel wide">
+      <div class="panel-header">
+        <div>
+          <p class="mini-label">Schedule</p>
+          <h3>Upcoming classes</h3>
+        </div>
+        <button class="ghost-btn" (click)="navigate('/my-classes')">View all</button>
+      </div>
+
+      <div class="timeline" *ngIf="upcomingClasses.length; else noUpcoming">
+        <div class="timeline-item" *ngFor="let cls of upcomingClasses; let i = index"
+          [style.animation-delay]="(i * 0.04) + 's'">
+          <div class="timeline-date">
+            <span class="day">{{ cls.date | date:'dd' }}</span>
+            <span class="month">{{ cls.date | date:'MMM' }}</span>
+          </div>
+          <div class="timeline-card">
+            <div class="pill success">{{ cls.status }}</div>
+            <h4>{{ cls.subject }}</h4>
+            <p class="muted">{{ cls.startTime }} - {{ cls.endTime }} | {{ cls.classType }}</p>
+            <p class="muted">Student: {{ cls.studentName || cls.studentId }}</p>
+            <div class="card-actions">
+              <button class="ghost-btn" (click)="navigate('/my-classes')">Details</button>
+              <button class="pill-btn" (click)="navigate('/manage-schedule')">Reschedule</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="panel slim">
+      <div class="panel-header">
+        <div>
+          <p class="mini-label">Platform</p>
+          <h3>Events</h3>
+        </div>
+        <button class="ghost-btn" (click)="navigate('/timetable')">Open timetable</button>
+      </div>
+
+      <div class="stacked-list" *ngIf="timetableEvents.length; else noEvents">
+        <div class="stacked-item" *ngFor="let ev of timetableEvents; let i = index"
+          [style.animation-delay]="(i * 0.03) + 's'">
           <div>
-            <p class="mini-label">Schedule</p>
-            <h3>Upcoming classes</h3>
+            <p class="stacked-title">{{ ev.title }}</p>
+            <p class="muted">{{ ev.date | date:'MMM dd' }} | {{ ev.startTime }} - {{ ev.endTime }}</p>
           </div>
-          <button class="ghost-btn" (click)="navigate('/my-classes')">View all</button>
+          <span class="pill neutral">{{ ev.type || 'Event' }}</span>
         </div>
+      </div>
+    </article>
 
-        <div class="timeline" *ngIf="upcomingClasses.length; else noUpcoming">
-          <div class="timeline-item" *ngFor="let cls of upcomingClasses; let i = index"
-            [style.animation-delay]="(i * 0.04) + 's'">
-            <div class="timeline-date">
-              <span class="day">{{ cls.date | date:'dd' }}</span>
-              <span class="month">{{ cls.date | date:'MMM' }}</span>
-            </div>
-            <div class="timeline-card">
-              <div class="pill success">{{ cls.status }}</div>
-              <h4>{{ cls.subject }}</h4>
-              <p class="muted">{{ cls.startTime }} - {{ cls.endTime }} | {{ cls.classType }}</p>
-              <p class="muted">Student: {{ cls.studentName || cls.studentId }}</p>
-              <div class="card-actions">
-                <button class="ghost-btn" (click)="navigate('/my-classes')">Details</button>
-                <button class="pill-btn" (click)="navigate('/manage-schedule')">Reschedule</button>
-              </div>
-            </div>
-          </div>
+    <article class="panel">
+      <div class="panel-header">
+        <div>
+          <p class="mini-label">Decisions</p>
+          <h3>Pending requests</h3>
         </div>
-      </article>
-
-      <article class="panel slim">
-        <div class="panel-header">
+      </div>
+      <div class="stacked-list" *ngIf="pendingRequests.length; else noPending">
+        <div class="stacked-item pending" *ngFor="let req of pendingRequests; let i = index"
+          [style.animation-delay]="(i * 0.04) + 's'">
           <div>
-            <p class="mini-label">Platform</p>
-            <h3>Events</h3>
+            <p class="stacked-title">{{ req.subject }}</p>
+            <p class="muted">{{ req.date | date:'MMM dd, yyyy' }} | {{ req.startTime }} - {{ req.endTime }}</p>
+            <p class="muted">Student: {{ req.studentName || req.studentId }}</p>
           </div>
-          <button class="ghost-btn" (click)="navigate('/timetable')">Open timetable</button>
+          <div class="pending-actions">
+            <button class="ghost-btn" (click)="acceptRequest(req)">Accept</button>
+            <button class="ghost-btn danger" (click)="rejectRequest(req)">Decline</button>
+            <button class="ghost-btn" (click)="navigate('/manage-schedule')">Reschedule</button>
+          </div>
         </div>
+      </div>
+    </article>
 
-        <div class="stacked-list" *ngIf="timetableEvents.length; else noEvents">
-          <div class="stacked-item" *ngFor="let ev of timetableEvents; let i = index"
-            [style.animation-delay]="(i * 0.03) + 's'">
-            <div>
-              <p class="stacked-title">{{ ev.title }}</p>
-              <p class="muted">{{ ev.date | date:'MMM dd' }} | {{ ev.startTime }} - {{ ev.endTime }}</p>
-            </div>
-            <span class="pill neutral">{{ ev.type || 'Event' }}</span>
-          </div>
-        </div>
-      </article>
-    </section>
-
-    <section class="panel-grid">
-      <article class="panel">
-        <div class="panel-header">
-          <div>
-            <p class="mini-label">Decisions</p>
-            <h3>Pending requests</h3>
-          </div>
-        </div>
-        <div class="stacked-list" *ngIf="pendingRequests.length; else noPending">
-          <div class="stacked-item pending" *ngFor="let req of pendingRequests; let i = index"
-            [style.animation-delay]="(i * 0.04) + 's'">
-            <div>
-              <p class="stacked-title">{{ req.subject }}</p>
-              <p class="muted">{{ req.date | date:'MMM dd, yyyy' }} | {{ req.startTime }} - {{ req.endTime }}</p>
-              <p class="muted">Student: {{ req.studentName || req.studentId }}</p>
-            </div>
-            <div class="pending-actions">
-              <button class="ghost-btn" (click)="acceptRequest(req)">Accept</button>
-              <button class="ghost-btn danger" (click)="rejectRequest(req)">Decline</button>
-              <button class="ghost-btn" (click)="navigate('/manage-schedule')">Reschedule</button>
-            </div>
-          </div>
-        </div>
-      </article>
-
-      <article class="panel">
-        <div class="panel-header">
-          <div>
-            <p class="mini-label">Revenue</p>
-            <h3>Earnings trend</h3>
-          </div>
-        </div>
-        <div class="bar-grid" *ngIf="monthlyEarnings.length">
-          <div class="bar-item" *ngFor="let month of monthlyEarnings">
-            <div class="bar-shell">
-              <div class="bar-fill" [style.height.%]="getBarHeight(month.earnings)"></div>
-            </div>
-            <p class="bar-label">{{ month.month }}</p>
-            <p class="muted">LKR {{ month.earnings | number:'1.0-0' }}</p>
-          </div>
-        </div>
-      </article>
-    </section>
 
     <section class="panel-grid">
       <article class="panel">

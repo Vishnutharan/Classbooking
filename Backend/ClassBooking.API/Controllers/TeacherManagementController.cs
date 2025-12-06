@@ -227,9 +227,7 @@ namespace ClassBooking.API.Controllers
             if (!deleted)
                 return BadRequest("Unable to delete slot. It may be locked by a booking or does not exist.");
 
-            var teacher = await _teacherService.GetTeacherByUserIdAsync(userId);
-            if (teacher == null)
-                return NotFound("Teacher profile not found");
+
 
             var students = await _teacherRepository.GetTeacherStudentsAsync(teacher.Id);
             return Ok(students);

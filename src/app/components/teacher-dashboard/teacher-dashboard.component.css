@@ -1,3 +1,9 @@
+/* =========================================================
+   Teacher Dashboard — same UI, better structure & alignment
+   (CSS only: no function changes, no markup changes)
+   Paste this CSS instead of your current one (or replace it).
+========================================================= */
+
 :host {
   --bg: #f7f8ff;
   --card: #ffffff;
@@ -8,27 +14,41 @@
   --text: #0f172a;
   --muted: #6b7280;
   --shadow: 0 12px 40px rgba(15, 23, 42, 0.12);
+  --radius-lg: 20px;
+  --radius-md: 16px;
+  --radius-sm: 12px;
+  --gap-lg: 24px;
+  --gap-md: 16px;
+  --gap-sm: 10px;
 }
 
 * {
   box-sizing: border-box;
 }
 
+/* ---------- Layout Shell ---------- */
 .dashboard-shell {
   display: grid;
-  grid-template-columns: 260px 1fr;
-  gap: 24px;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: var(--gap-lg);
   min-height: 100vh;
-  background: radial-gradient(circle at 10% 20%, #eef2ff, transparent 30%),
+  padding: 24px;
+  background:
+    radial-gradient(circle at 10% 20%, #eef2ff, transparent 30%),
     radial-gradient(circle at 80% 0%, #e0f2fe, transparent 25%),
     var(--bg);
-  padding: 24px;
 }
 
+/* Keep main content from overflowing when grids shrink */
+.dashboard-main {
+  min-width: 0;
+}
+
+/* ---------- Sidebar ---------- */
 .sidebar {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 20px;
+  border-radius: var(--radius-lg);
   padding: 20px;
   position: sticky;
   top: 16px;
@@ -57,6 +77,7 @@
   margin: 0;
   font-weight: 800;
   color: var(--text);
+  line-height: 1.1;
 }
 
 .brand-sub {
@@ -141,19 +162,23 @@
   box-shadow: 0 10px 24px rgba(99, 102, 241, 0.35);
 }
 
+/* ---------- Main Stack ---------- */
 .dashboard-main {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  align-items: stretch;
 }
 
+/* ---------- Header ---------- */
 .page-header {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 260px;
   gap: 16px;
+  align-items: stretch;
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 20px;
+  border-radius: var(--radius-lg);
   padding: 24px;
   box-shadow: var(--shadow);
 }
@@ -182,6 +207,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  align-items: center;
 }
 
 .chip {
@@ -200,13 +226,17 @@
 }
 
 .hero-card {
-  min-width: 220px;
-  max-width: 260px;
+  min-width: 0;
   padding: 18px;
-  border-radius: 16px;
-  background: radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.12), transparent 45%),
+  border-radius: var(--radius-md);
+  background:
+    radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.12), transparent 45%),
     var(--card);
   border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
 }
 
 .mini-label {
@@ -223,7 +253,7 @@
 }
 
 .small-text {
-  margin: 4px 0 12px 0;
+  margin: 4px 0 0 0;
   color: var(--muted);
   font-size: 13px;
 }
@@ -233,7 +263,6 @@
   background: var(--primary-soft);
   border-radius: 8px;
   overflow: hidden;
-  margin-bottom: 12px;
 }
 
 .spark-fill {
@@ -250,6 +279,7 @@
   cursor: pointer;
   font-weight: 700;
   transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .ghost-btn.danger {
@@ -262,24 +292,29 @@
   color: var(--primary);
 }
 
+/* ---------- Stats Row ---------- */
 .stat-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
 }
 
 .stat-card {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: var(--radius-md);
   padding: 18px;
   box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
 .stat-meta {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 10px;
 }
 
 .meta-label {
@@ -324,33 +359,48 @@
   font-size: 13px;
 }
 
-.panel-grid {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 16px;
+/* ---------- Panels & Grids ---------- */
+/* IMPORTANT: you have some panels NOT wrapped in .panel-grid.
+   So we make main a grid for panels, while keeping header/stat-grid full width. */
+.dashboard-main>article.panel,
+.dashboard-main>section.panel-grid,
+.dashboard-main>section.panel {
+  width: 100%;
 }
 
+/* Default panel */
 .panel {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 18px;
   padding: 18px;
   box-shadow: var(--shadow);
+  min-width: 0;
 }
 
-.panel.wide {
-  grid-column: span 2;
+/* Create a 2-column "dashboard content" layout for standalone panels.
+   Upcoming (wide) should span full width, slim should sit right column. */
+.dashboard-main>article.panel.wide {
+  /* stays full width */
 }
 
-.panel.slim {
-  grid-column: span 1;
+.dashboard-main>article.panel.slim {
+  /* make it look like it belongs in a grid by limiting width on large screens */
+  max-width: 520px;
+  justify-self: end;
 }
 
+/* Panel headers aligned */
 .panel-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
   margin-bottom: 14px;
+}
+
+.panel-header>div {
+  min-width: 0;
 }
 
 .panel h3 {
@@ -358,6 +408,7 @@
   color: var(--text);
 }
 
+/* Timeline */
 .timeline {
   display: flex;
   flex-direction: column;
@@ -366,9 +417,9 @@
 
 .timeline-item {
   display: grid;
-  grid-template-columns: 80px 1fr;
+  grid-template-columns: 80px minmax(0, 1fr);
   gap: 12px;
-  align-items: center;
+  align-items: stretch;
 }
 
 .timeline-date {
@@ -377,6 +428,8 @@
   padding: 10px;
   text-align: center;
   border: 1px solid var(--border);
+  display: grid;
+  place-content: center;
 }
 
 .timeline-date .day {
@@ -397,8 +450,20 @@
   border-radius: 12px;
   padding: 12px;
   background: #fbfbff;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
+.card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+/* Pills */
 .pill {
   display: inline-flex;
   align-items: center;
@@ -406,6 +471,7 @@
   border-radius: 999px;
   font-weight: 700;
   font-size: 12px;
+  white-space: nowrap;
 }
 
 .pill.success {
@@ -418,19 +484,14 @@
   color: var(--primary);
 }
 
+/* Muted text */
 .muted {
   color: var(--muted);
   margin: 4px 0;
   font-size: 13px;
 }
 
-.card-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 8px;
-  flex-wrap: wrap;
-}
-
+/* Stacked lists — better side-by-side alignment */
 .stacked-list {
   display: flex;
   flex-direction: column;
@@ -449,6 +510,16 @@
   gap: 10px;
 }
 
+.stacked-item>div {
+  flex: 1 1 auto;
+  min-width: 220px;
+}
+
+.stacked-item .pill {
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
 .stacked-item.pending {
   border-color: #fed7aa;
   background: #fff7ed;
@@ -460,47 +531,35 @@
   color: var(--text);
 }
 
+/* Pending actions aligned right and wrap nicely */
 .pending-actions {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  margin-left: auto;
 }
 
-.bar-grid {
+/* ---------- Panel grid sections (your Feedback + Momentum row) ---------- */
+.panel-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-  gap: 10px;
-  align-items: end;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: stretch;
 }
 
-.bar-item {
-  text-align: center;
+.panel-grid>.panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
-.bar-shell {
-  width: 100%;
-  height: 150px;
-  background: var(--primary-soft);
-  border-radius: 10px;
-  overflow: hidden;
-  border: 1px solid var(--border);
-}
-
-.bar-fill {
-  width: 100%;
-  background: linear-gradient(180deg, var(--primary), #22c55e);
-  height: 40%;
-}
-
-.bar-label {
-  margin: 6px 0 0 0;
-  font-weight: 700;
-  color: var(--text);
-}
-
+/* Momentum stats */
 .stat-bites {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
+  align-items: stretch;
 }
 
 .bite {
@@ -508,6 +567,8 @@
   border-radius: 12px;
   padding: 12px;
   background: #fbfbff;
+  display: flex;
+  flex-direction: column;
 }
 
 .bite h4 {
@@ -516,9 +577,10 @@
   color: var(--text);
 }
 
+/* Actions grid */
 .action-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
 }
 
@@ -531,6 +593,9 @@
   cursor: pointer;
   text-align: center;
   transition: all 0.2s ease;
+  display: grid;
+  place-items: center;
+  min-height: 46px;
 }
 
 .action:hover {
@@ -547,6 +612,17 @@
   color: var(--muted);
 }
 
+/* ---------- Responsive: keep items side-by-side as long as possible ---------- */
+@media (max-width: 1200px) {
+  .stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .action-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 1024px) {
   .dashboard-shell {
     grid-template-columns: 1fr;
@@ -556,29 +632,110 @@
     position: static;
   }
 
+  .page-header {
+    grid-template-columns: 1fr;
+  }
+
   .panel-grid {
     grid-template-columns: 1fr;
   }
 
-  .panel.wide {
-    grid-column: span 1;
+  .stat-bites {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .timeline-item {
-    grid-template-columns: 70px 1fr;
+  /* let slim panel behave full width on smaller screens */
+  .dashboard-main>article.panel.slim {
+    max-width: none;
+    justify-self: stretch;
   }
 }
 
 @media (max-width: 720px) {
-  .page-header {
-    flex-direction: column;
+  .stat-grid {
+    grid-template-columns: 1fr;
   }
 
-  .stat-grid {
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  .action-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .timeline-item {
     grid-template-columns: 1fr;
+  }
+
+  .stacked-item>div {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .pending-actions {
+    justify-content: flex-start;
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .stacked-item .pill {
+    margin-left: 0;
+  }
+
+  .ghost-btn {
+    white-space: normal;
+  }
+}
+
+@media (max-width: 420px) {
+  .action-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* =========================================================
+   FORCE: Pending requests + Events side-by-side (CSS only)
+   Assumes your standalone panels order is:
+   1) Upcoming classes  (article.panel.wide)
+   2) Events            (article.panel.slim)
+   3) Pending requests  (article.panel)   <-- no extra class
+========================================================= */
+
+@media (min-width: 1025px) {
+  .dashboard-main {
+    display: grid !important;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+
+  /* Full-width blocks */
+  .dashboard-main>.page-header,
+  .dashboard-main>.stat-grid,
+  .dashboard-main>section.panel-grid,
+  .dashboard-main>section.panel {
+    grid-column: 1 / -1;
+  }
+
+  /* Upcoming classes (1st article panel) full width */
+  .dashboard-main>article.panel.wide {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    /* after header + stats */
+  }
+
+  /* Events (2nd article panel) -> RIGHT column */
+  .dashboard-main>article.panel.slim {
+    grid-column: 2 / 3;
+    grid-row: 4;
+    /* same row as pending */
+    max-width: none;
+    /* prevent "floating" look */
+    justify-self: stretch;
+  }
+
+  /* Pending requests (3rd article panel) -> LEFT column */
+  .dashboard-main>article.panel:not(.wide):not(.slim) {
+    grid-column: 1 / 2;
+    grid-row: 4;
+    /* same row as events */
   }
 }
