@@ -227,7 +227,23 @@ namespace ClassBooking.API.Controllers
             if (!deleted)
                 return BadRequest("Unable to delete slot. It may be locked by a booking or does not exist.");
 
+            var students = await _teacherRepository.GetTeacherStudentsAsync(teacher.Id);
+            return Ok(students);
+        }
 
+        [HttpGet("students")]
+        public async Task<ActionResult> GetMyStudents()
+        {
+            var userId = User.FindFirst("userId")?.Value ?? User.FindFirst("sub")?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var teacher = await EnsureTeacherProfile(userId);
+            if (teacher == null)
+            {
+                // Fallback: avoid 404 to keep UI usable, return empty list with hint
+                return Ok(Array.Empty<object>());
+            }
 
             var students = await _teacherRepository.GetTeacherStudentsAsync(teacher.Id);
             return Ok(students);
@@ -253,7 +269,7 @@ namespace ClassBooking.API.Controllers
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized();
 
-            var teacher = await _teacherService.GetTeacherByUserIdAsync(userId);
+            var teacher = await EnsureTeacherProfile(userId);
             if (teacher == null)
                 return NotFound("Teacher profile not found");
 
@@ -268,7 +284,7 @@ namespace ClassBooking.API.Controllers
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized();
 
-            var teacher = await _teacherService.GetTeacherByUserIdAsync(userId);
+            var teacher = await EnsureTeacherProfile(userId);
             if (teacher == null)
                 return NotFound("Teacher profile not found");
 

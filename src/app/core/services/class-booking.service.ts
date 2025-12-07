@@ -28,6 +28,8 @@ export interface BookingRequest {
 export interface BookingResponse {
   success: boolean;
   message: string;
+  id?: string;
+  status?: string;
   booking?: ClassBooking;
 }
 

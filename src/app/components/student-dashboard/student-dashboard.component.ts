@@ -9,6 +9,8 @@ import { TeacherProfile, ClassBooking, TimetableEvent } from '../../core/models/
 import { TimetableService } from '../../core/services/timetable.service';
 import { forkJoin } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
+import { PaymentIntegrationService } from '../../core/services/payment-integration.service';
+import { PaymentRecord } from '../../core/models/payment.models';
 
 @Component({
   selector: 'app-student-dashboard',
@@ -25,6 +27,7 @@ export class StudentDashboardComponent implements OnInit {
   private platformId = inject(PLATFORM_ID);
   private timetableService = inject(TimetableService);
   private authService = inject(AuthService);
+  private paymentService = inject(PaymentIntegrationService);
 
   upcomingClasses: ClassBooking[] = [];
   recommendedTeachers: TeacherProfile[] = [];
@@ -48,6 +51,7 @@ export class StudentDashboardComponent implements OnInit {
   };
   timetableEvents: TimetableEvent[] = [];
   recentActivity: any[] = [];
+  recentPayments: PaymentRecord[] = [];
   isLoading = false;
   today = new Date();
 
@@ -66,9 +70,10 @@ export class StudentDashboardComponent implements OnInit {
       recommended: this.studentService.getRecommendedTeachers(),
       progress: this.studentService.getProgressReport(),
       allTeachers: this.teacherService.getAllTeachers(),
-      timetable: this.timetableService.getTimetableForUser()
+      timetable: this.timetableService.getTimetableForUser(),
+      payments: this.paymentService.getStudentPayments()
     }).subscribe({
-      next: ({ summary, bookings, recommended, progress, allTeachers, timetable }) => {
+      next: ({ summary, bookings, recommended, progress, allTeachers, timetable, payments }) => {
         this.upcomingClasses = bookings
           .filter(b => b.status === 'Confirmed')
           .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
@@ -87,6 +92,7 @@ export class StudentDashboardComponent implements OnInit {
         this.filteredTeachers = allTeachers || [];
         this.timetableEvents = (timetable || []).slice(0, 5);
         this.recommendedTeachers = recommended || [];
+        this.recentPayments = (payments || []).slice(0, 4);
         this.isLoading = false;
       },
       error: () => {

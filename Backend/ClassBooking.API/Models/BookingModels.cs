@@ -13,6 +13,11 @@ namespace ClassBooking.API.Models
         public string StartTime { get; set; } = string.Empty;
         public string EndTime { get; set; } = string.Empty;
         public string Status { get; set; } = "Pending"; // Pending, Confirmed, Cancelled, Completed
+        public string PaymentStatus { get; set; } = "Pending";
+        public decimal Price { get; set; }
+        public int DurationMinutes { get; set; }
+        public string Mode { get; set; } = "ONLINE";
+        public string? LocationOrLink { get; set; }
         public string ClassType { get; set; } = "OneTime"; // OneTime, Recurring
         public List<string>? RecurringDays { get; set; }
         public string? Notes { get; set; }

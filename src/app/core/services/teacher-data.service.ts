@@ -7,7 +7,8 @@ import { map } from 'rxjs/operators';
 import {
     AttendanceRecord,
     AttendanceStats,
-    StudentAttendanceSummary
+    StudentAttendanceSummary,
+    AttendanceStatus
 } from '../models/teacher-attendance.models';
 
 import {
@@ -46,7 +47,23 @@ export class TeacherDataService {
         if (startDate) params = params.set('startDate', startDate.toISOString());
         if (endDate) params = params.set('endDate', endDate.toISOString());
 
-        return this.http.get<AttendanceRecord[]>(`${this.apiUrl}/attendance`, { params });
+        return this.http.get<any[]>(`${this.apiUrl}/attendance`, { params: params.keys().length ? params : undefined }).pipe(
+            map(records => {
+                if (!Array.isArray(records)) return [];
+                return records.map(r => ({
+                    id: r.id || r.Id || '',
+                    studentId: r.studentId || r.StudentId || '',
+                    studentName: r.studentName || r.StudentName || r.studentId || '',
+                    classId: r.classId || r.ClassId || '',
+                    subject: r.subject || r.Subject || 'Class',
+                    date: r.classDate ? new Date(r.classDate) : (r.ClassDate ? new Date(r.ClassDate) : new Date()),
+                    status: (r.status || r.Status || 'Present') as AttendanceStatus,
+                    notes: r.notes || r.Notes,
+                    markedBy: teacherId,
+                    markedAt: r.markedAt ? new Date(r.markedAt) : new Date()
+                } as AttendanceRecord));
+            })
+        );
     }
 
     markAttendance(records: AttendanceRecord[]): Observable<boolean> {

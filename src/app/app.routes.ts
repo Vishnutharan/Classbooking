@@ -46,6 +46,15 @@ export const routes: Routes = [
       )
   },
   {
+    path: 'payment/:bookingId',
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['Student'] },
+    loadComponent: () =>
+      import('./components/payment/payment.component').then(
+        m => m.PaymentComponent
+      )
+  },
+  {
     path: 'find-teacher',
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['Student'] },

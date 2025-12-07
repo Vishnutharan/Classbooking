@@ -80,32 +80,63 @@ export class ReportsComponent implements OnInit {
 
     this.adminService.getBookingStats('monthly').subscribe({
       next: (stats) => {
+        const data = (stats?.data || []) as Array<{ status: string; count: number }>;
+        const total = data.reduce((sum, item) => sum + (item.count || 0), 0);
+        const getCount = (status: string) =>
+          data.find(d => d.status?.toLowerCase() === status.toLowerCase())?.count || 0;
+
         this.bookingStats = {
-          ...stats,
-          topSubjects: [
-            { subject: 'Mathematics', count: 145 },
-            { subject: 'Science', count: 132 },
-            { subject: 'English', count: 128 }
-          ]
+          total,
+          confirmed: getCount('Confirmed'),
+          pending: getCount('Pending'),
+          completed: getCount('Completed'),
+          cancelled: getCount('Cancelled'),
+          topSubjects: []
         };
       }
     });
 
     this.adminService.getUserStats('monthly').subscribe({
       next: (stats) => {
-        this.userStats = stats;
+        const data = (stats?.data || []) as Array<{ role: string; count: number }>;
+        const totalUsers = data.reduce((sum, item) => sum + (item.count || 0), 0);
+        const getRole = (role: string) =>
+          data.find(r => r.role?.toLowerCase() === role.toLowerCase())?.count || 0;
+
+        this.userStats = {
+          totalUsers,
+          newThisMonth: 0,
+          students: getRole('Student'),
+          teachers: getRole('Teacher'),
+          admins: getRole('Admin'),
+          byRole: data
+        };
       }
     });
 
     this.adminService.getRevenueStats('monthly').subscribe({
       next: (stats) => {
-        this.revenueStats = stats;
+        this.revenueStats = {
+          totalRevenue: stats?.total || 0,
+          monthlyRevenue: stats?.points || [],
+          byTeacher: [],
+          commission: 0
+        };
       }
     });
 
     this.adminService.getTeacherPerformanceStats().subscribe({
       next: (stats) => {
-        this.teacherStats = stats;
+        const list = Array.isArray(stats) ? stats : [];
+        const averageRating = list.length
+          ? list.reduce((sum, t) => sum + (t.rating || 0), 0) / list.length
+          : 0;
+        this.teacherStats = {
+          topTeachers: list,
+          averageRating,
+          completionRate: 0,
+          earningsLeaderboard: []
+        };
         this.isLoading = false;
       },
       error: () => {

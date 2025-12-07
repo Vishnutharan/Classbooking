@@ -226,9 +226,12 @@ export class BookClassComponent implements OnInit {
         this.notificationService.showSuccess(response.message);
         this.closeBookingDialog();
         this.onTeacherSelected(this.selectedTeacherId);
-        setTimeout(() => {
+        const bookingId = response.id || response.booking?.id;
+        if (bookingId) {
+          this.router.navigate(['/payment', bookingId]);
+        } else {
           this.router.navigate(['/my-bookings']);
-        }, 1000);
+        }
       },
       error: (err) => {
         const message = err?.error?.message || 'Failed to create booking';

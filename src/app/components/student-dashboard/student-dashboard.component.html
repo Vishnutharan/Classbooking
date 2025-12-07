@@ -193,6 +193,33 @@
       </article>
     </section>
 
+    <section class="boards">
+      <article class="board">
+        <div class="board-header">
+          <div>
+            <p class="mini-label">Payments</p>
+            <h3>Recent payment activity</h3>
+          </div>
+          <button class="ghost-btn" (click)="viewBooking('')">Manage bookings</button>
+        </div>
+
+        <div class="stacked-list" *ngIf="recentPayments.length; else noPayments">
+          <div class="stacked-item" *ngFor="let pay of recentPayments">
+            <div>
+              <p class="stacked-title">{{ pay.subject }} • {{ pay.classType }}</p>
+              <p class="muted">{{ pay.sessionDate | date:'MMM dd' }} | {{ pay.startTime }} - {{ pay.endTime }} • {{ pay.paymentMethod }}</p>
+            </div>
+            <div class="mini-actions">
+              <span class="pill" [ngClass]="pay.paymentStatus === 'Paid' ? 'success' : 'neutral'">
+                {{ pay.paymentStatus }}
+              </span>
+              <strong>LKR {{ pay.amount | number:'1.0-0' }}</strong>
+            </div>
+          </div>
+        </div>
+      </article>
+    </section>
+
     <!-- <section class="boards single">
       <article class="board">
         <div class="board-header">
@@ -256,6 +283,12 @@
     <ng-template #noTeachers>
       <div class="empty">
         <p>No recommendations yet. Book a class to discover teachers.</p>
+      </div>
+    </ng-template>
+
+    <ng-template #noPayments>
+      <div class="empty">
+        <p>No payments yet. Complete a booking to see your history.</p>
       </div>
     </ng-template>
 

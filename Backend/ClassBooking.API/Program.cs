@@ -58,6 +58,7 @@ builder.Services.AddScoped<IAttendanceService, AttendanceService>();
 builder.Services.AddScoped<ILessonPlanService, LessonPlanService>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 builder.Services.AddScoped<ITimetableService, TimetableService>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
 
 // CORS Configuration (MUST be BEFORE Authentication)
 builder.Services.AddCors(options =>

@@ -220,17 +220,14 @@ namespace ClassBooking.API.Services
 
         public async Task<object> GetRevenueStatsAsync(string period)
         {
-            // Placeholder revenue stats
+            var total = await _feeRepository.GetTotalRevenueAsync();
+            var points = await _feeRepository.GetMonthlyRevenueAsync(6);
+
             return new
             {
                 period,
-                total = await _feeRepository.GetTotalEarningsAsync(string.Empty),
-                points = new[]
-                {
-                    new { label = "Jan", value = 0 },
-                    new { label = "Feb", value = 0 },
-                    new { label = "Mar", value = 0 }
-                }
+                total,
+                points = points.Select(p => new { label = p.label, value = p.value }).ToList()
             };
         }
 

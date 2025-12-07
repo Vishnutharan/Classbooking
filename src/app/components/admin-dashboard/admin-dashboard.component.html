@@ -214,23 +214,30 @@
       </article>
     </section> -->
 
-    <!-- <section class="panel">
+    <section class="panel">
       <div class="panel-header">
         <div>
-          <p class="mini-label">Activity</p>
-          <h3>Recent platform activity</h3>
+          <p class="mini-label">Payments</p>
+          <h3>Latest payment records</h3>
+          <p class="muted">Full detail is visible per booking.</p>
         </div>
+        <button class="ghost-btn" (click)="navigate('/admin/fees')">Manage fees</button>
       </div>
-      <div class="stacked-list" *ngIf="recentActivities.length">
-        <div class="stacked-item" *ngFor="let activity of recentActivities">
-          <div class="dotline"></div>
+      <div class="stacked-list" *ngIf="latestPayments.length; else noPayments">
+        <div class="stacked-item" *ngFor="let pay of latestPayments">
           <div>
-            <p class="stacked-title">{{ activity.message }}</p>
-            <p class="muted">{{ activity.time }}</p>
+            <p class="stacked-title">{{ pay.studentName }} → {{ pay.teacherName }}</p>
+            <p class="muted">{{ pay.subject }} | {{ pay.paymentMethod }} | {{ pay.sessionDate | date:'MMM dd' }}</p>
+          </div>
+          <div class="mini-actions">
+            <span class="pill" [ngClass]="pay.paymentStatus === 'Paid' ? 'success' : 'warning'">
+              {{ pay.paymentStatus }}
+            </span>
+            <strong>LKR {{ pay.amount | number:'1.0-0' }}</strong>
           </div>
         </div>
       </div>
-    </section> -->
+    </section>
 
     <section class="panel">
       <div class="panel-header">
@@ -277,3 +284,9 @@
     </section>
   </main>
 </div>
+
+<ng-template #noPayments>
+  <div class="empty">
+    <p>No payments recorded yet.</p>
+  </div>
+</ng-template>

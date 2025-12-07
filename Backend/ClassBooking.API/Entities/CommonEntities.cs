@@ -229,6 +229,9 @@ namespace ClassBooking.API.Entities
         
         [MaxLength(100)]
         public string? PaymentMethod { get; set; } // Cash, Card, Bank Transfer, etc.
+
+        [MaxLength(2000)]
+        public string? PaymentMetadataJson { get; set; } // Serialized payment + booking context
         
         public DateTime? TransactionDate { get; set; }
         

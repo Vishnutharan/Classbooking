@@ -214,6 +214,28 @@
           </div>
         </div>
       </article>
+
+      <article class="panel">
+        <div class="panel-header">
+          <div>
+            <p class="mini-label">Payments</p>
+            <h3>Recent payment activity</h3>
+          </div>
+          <button class="ghost-btn" (click)="navigate('/my-classes')">Open bookings</button>
+        </div>
+        <div class="stacked-list" *ngIf="recentPayments.length; else noPayments">
+          <div class="stacked-item" *ngFor="let payment of recentPayments">
+            <div>
+              <p class="stacked-title">{{ payment.studentName }}</p>
+              <p class="muted">{{ payment.subject }} • {{ payment.paymentMethod }} • {{ payment.sessionDate | date:'MMM dd' }}</p>
+            </div>
+            <div class="mini-actions">
+              <span class="pill" [ngClass]="payment.paymentStatus === 'Paid' ? 'success' : 'neutral'">{{ payment.paymentStatus }}</span>
+              <strong>LKR {{ payment.amount | number:'1.0-0' }}</strong>
+            </div>
+          </div>
+        </div>
+      </article>
     </section>
 
     <section class="panel">
@@ -259,5 +281,11 @@
 <ng-template #noReviews>
   <div class="empty">
     <p>No reviews yet. Invite students to share feedback.</p>
+  </div>
+</ng-template>
+
+<ng-template #noPayments>
+  <div class="empty">
+    <p>No payment records yet.</p>
   </div>
 </ng-template>

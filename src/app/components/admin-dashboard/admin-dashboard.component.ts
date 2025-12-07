@@ -5,6 +5,8 @@ import { NotificationService } from '../../core/services/notification.service';
 import { AdminService, AdminReview, DashboardStats } from '../../core/services/admin.service';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { PaymentIntegrationService } from '../../core/services/payment-integration.service';
+import { PaymentRecord } from '../../core/models/payment.models';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -18,6 +20,7 @@ export class AdminDashboardComponent implements OnInit {
   private notificationService = inject(NotificationService);
   private router = inject(Router);
   private authService = inject(AuthService);
+  private paymentService = inject(PaymentIntegrationService);
 
   stats: DashboardStats = {
     totalUsers: 0,
@@ -42,6 +45,7 @@ export class AdminDashboardComponent implements OnInit {
   editRating = 0;
   editComment = '';
   today = new Date();
+  latestPayments: PaymentRecord[] = [];
 
   ratingWidth(value: number): number {
     const safe = Number.isFinite(value) ? value : 0;
@@ -65,6 +69,7 @@ export class AdminDashboardComponent implements OnInit {
         this.stats = stats;
         this.generateMockCharts();
         this.loadActivities();
+        this.loadPayments();
         this.isLoading = false;
       },
       error: () => {
@@ -84,6 +89,17 @@ export class AdminDashboardComponent implements OnInit {
       error: () => {
         this.notificationService.showError('Failed to load reviews');
         this.reviewsLoading = false;
+      }
+    });
+  }
+
+  private loadPayments(): void {
+    this.paymentService.getAdminPayments().subscribe({
+      next: (payments) => {
+        this.latestPayments = (payments || []).slice(0, 5);
+      },
+      error: () => {
+        this.latestPayments = [];
       }
     });
   }

@@ -8,6 +8,8 @@ import { NotificationService } from '../../core/services/notification.service';
 import { TimetableService } from '../../core/services/timetable.service';
 import { forkJoin } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
+import { PaymentIntegrationService } from '../../core/services/payment-integration.service';
+import { PaymentRecord } from '../../core/models/payment.models';
 
 @Component({
   selector: 'app-teacher-dashboard',
@@ -25,6 +27,7 @@ export class TeacherDashboardComponent implements OnInit {
   private platformId = inject(PLATFORM_ID);
   private timetableService = inject(TimetableService);
   private authService = inject(AuthService);
+  private paymentService = inject(PaymentIntegrationService);
 
   teacherProfile: TeacherProfile | null = null;
   upcomingClasses: ClassBooking[] = [];
@@ -49,6 +52,7 @@ export class TeacherDashboardComponent implements OnInit {
 
   monthlyEarnings: any[] = [];
   today = new Date();
+  recentPayments: PaymentRecord[] = [];
 
   ratingWidth(value: number): number {
     const safe = Number.isFinite(value) ? value : 0;
@@ -72,9 +76,10 @@ export class TeacherDashboardComponent implements OnInit {
     forkJoin({
       profile: this.teacherService.getMyProfile(),
       bookings: this.bookingService.getTeacherBookings(),
-      timetable: this.timetableService.getTimetableForUser()
+      timetable: this.timetableService.getTimetableForUser(),
+      payments: this.paymentService.getTeacherPayments()
     }).subscribe({
-      next: ({ profile, bookings, timetable }) => {
+      next: ({ profile, bookings, timetable, payments }) => {
         this.teacherProfile = profile;
         this.timetableEvents = (timetable || []).slice(0, 5);
 
@@ -90,6 +95,7 @@ export class TeacherDashboardComponent implements OnInit {
 
         this.updateMonthlyTrend(bookings);
         this.loadReviews(profile.id);
+        this.recentPayments = (payments || []).slice(0, 5);
         this.isLoading = false;
       },
       error: () => {

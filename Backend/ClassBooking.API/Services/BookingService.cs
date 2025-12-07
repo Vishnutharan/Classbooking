@@ -192,6 +192,11 @@ namespace ClassBooking.API.Services
                 Console.WriteLine($"Failed to update student profile: {ex.Message}");
             }
 
+            var durationMinutes = CalculateDurationInMinutes(request.StartTime, request.EndTime);
+            var price = teacherProfile.HourlyRate > 0 && durationMinutes > 0
+                ? Math.Round((decimal)durationMinutes * teacherProfile.HourlyRate / 60m, 2)
+                : 0;
+
             var booking = new BookingEntity
             {
                 Id = Guid.NewGuid().ToString(),
@@ -201,10 +206,16 @@ namespace ClassBooking.API.Services
                 Date = request.Date.Date,
                 StartTime = request.StartTime,
                 EndTime = request.EndTime,
+                DurationMinutes = durationMinutes > 0 ? durationMinutes : 60,
+                Price = price,
                 Status = "Pending",
                 ClassType = request.ClassType,
                 BookingGradeLevel = request.BookingGradeLevel,
                 Notes = request.Notes,
+                Mode = request.Mode,
+                LocationOrLink = request.Mode == "ONLINE"
+                    ? (teacherProfile.MeetingLink ?? "To be shared")
+                    : (teacherProfile.LocationAddress ?? "To be decided"),
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -512,7 +523,12 @@ namespace ClassBooking.API.Services
                 StartTime = entity.StartTime,
                 EndTime = entity.EndTime,
                 Status = entity.Status,
+                PaymentStatus = entity.PaymentStatus,
                 ClassType = entity.ClassType,
+                Mode = entity.Mode,
+                LocationOrLink = entity.LocationOrLink,
+                DurationMinutes = entity.DurationMinutes,
+                Price = entity.Price,
                 BookingGradeLevel = entity.BookingGradeLevel,
                 RecurringDays = !string.IsNullOrEmpty(entity.RecurringDaysJson) 
                     ? JsonSerializer.Deserialize<List<string>>(entity.RecurringDaysJson) 
@@ -523,7 +539,16 @@ namespace ClassBooking.API.Services
                 UpdatedAt = entity.UpdatedAt
             };
         }
+
+        private int CalculateDurationInMinutes(string startTime, string endTime)
+        {
+            if (TimeSpan.TryParse(startTime, out var start) && TimeSpan.TryParse(endTime, out var end))
+            {
+                var duration = end - start;
+                return Math.Max((int)duration.TotalMinutes, 0);
+            }
+            return 60;
+        }
     }
 }
-
 

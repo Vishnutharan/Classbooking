@@ -56,6 +56,7 @@ namespace ClassBooking.API.Data
                 entity.HasKey(e => e.Id);
                 entity.HasIndex(e => e.UserId).IsUnique();
                 entity.HasIndex(e => e.Email);
+                entity.Property(e => e.HourlyRate).HasColumnType("decimal(18,2)");
                 
                 entity.HasOne(e => e.User)
                     .WithMany()
@@ -151,6 +152,7 @@ namespace ClassBooking.API.Data
                 entity.HasIndex(e => e.TeacherId);
                 entity.HasIndex(e => e.Date);
                 entity.HasIndex(e => e.Status);
+                entity.Property(e => e.Price).HasColumnType("decimal(18,2)");
             });
 
             // Configure StudentProfile entity
