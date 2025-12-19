@@ -18,12 +18,25 @@ export interface TeacherSubject {
     name: string;
     medium: 'Sinhala' | 'Tamil' | 'English';
     level: 'Primary' | 'OLevel' | 'ALevel' | 'Secondary' | 'Advanced';
+    grades: string; // Comma-separated
+    curriculumBoard?: string;
+    classTypes?: string[];
 }
 
 export interface TeacherAvailability {
     dayOfWeek: string;
     startTime: string;
     endTime: string;
+}
+
+export interface TeacherAvailabilitySlot {
+    id: string;
+    teacherProfileId: string;
+    date: Date;
+    startTime: string;
+    endTime: string;
+    status: 'Available' | 'Pending' | 'Booked' | string;
+    bookingId?: string;
 }
 
 export interface TeacherProfile {
@@ -43,7 +56,12 @@ export interface TeacherProfile {
     totalClasses: number;
     isAvailable: boolean;
     availability: TeacherAvailability[];
+    availabilitySlots?: TeacherAvailabilitySlot[];
     verificationStatus: 'Pending' | 'Verified' | 'Rejected';
+    policies?: string;
+    teachingMode: 'ONLINE' | 'IN_PERSON' | 'BOTH';
+    locationAddress?: string;
+    meetingLink?: string;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -59,6 +77,8 @@ export interface StudentProfile {
     specificGrade?: number; // 1-13 for Sri Lankan system
     stream?: 'Science' | 'Commerce' | 'Arts' | 'Technology'; // For A/L students
     school?: string;
+    parentName?: string;
+    parentContact?: string;
     focusAreas: string[];
     targetExams: string[];
     examYear?: number; // Target O/L or A/L exam year
@@ -78,10 +98,16 @@ export interface ClassBooking {
     date: Date;
     startTime: string;
     endTime: string;
-    status: 'Pending' | 'Confirmed' | 'Cancelled' | 'Completed';
-    classType: 'OneTime' | 'Recurring';
+    status: 'Pending' | 'Confirmed' | 'Cancelled' | 'Completed' | 'Rejected';
+    classType: 'Personal_1_1' | 'Group' | 'OneTime' | 'Recurring';
     recurringDays?: string[];
     notes?: string;
+    paymentStatus?: 'Pending' | 'Paid' | 'Failed' | 'Refunded';
+    mode: 'ONLINE' | 'IN_PERSON';
+    locationOrLink?: string;
+    price?: number;
+    durationMinutes?: number;
+    bookingGradeLevel?: string;
     meetingLink?: string;
     createdAt: Date;
     updatedAt: Date;
@@ -163,4 +189,15 @@ export interface SubjectPerformance {
     performanceLevel: 'Excellent' | 'Good' | 'Average' | 'NeedsImprovement';
     weakAreas?: string[];
     recommendations?: string[];
+}
+
+export interface TimetableEvent {
+    id: string;
+    title: string;
+    description?: string;
+    date: Date;
+    startTime?: string;
+    endTime?: string;
+    type?: string;
+    audience?: 'All' | 'Teachers' | 'Students' | string;
 }

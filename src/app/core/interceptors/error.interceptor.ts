@@ -1,7 +1,8 @@
 ﻿import { HttpErrorResponse, HttpEvent, HttpRequest } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { inject } from '@angular/core';
+import { inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { NotificationService } from '../services/notification.service';
 
 export function errorInterceptor(
@@ -9,12 +10,13 @@ export function errorInterceptor(
   next: any
 ): Observable<HttpEvent<any>> {
   const notificationService = inject(NotificationService);
+  const platformId = inject(PLATFORM_ID);
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
       let errorMessage = 'An error occurred';
 
-      if (error.error instanceof ErrorEvent) {
+      if (isPlatformBrowser(platformId) && error.error instanceof ErrorEvent) {
         // Client-side error
         errorMessage = `Error: ${error.error.message}`;
       } else {

@@ -2,7 +2,6 @@ using ClassBooking.API.Models.Dto;
 using ClassBooking.API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ClassBooking.API.Repositories;
 
 namespace ClassBooking.API.Controllers
 {
@@ -13,16 +12,20 @@ namespace ClassBooking.API.Controllers
     {
         private readonly IAdminService _adminService;
 
-        public AdminController(IAdminService adminService)
+        private readonly ITimetableService _timetableService;
+
+        public AdminController(IAdminService adminService, ITimetableService timetableService)
         {
             _adminService = adminService;
+            _timetableService = timetableService;
         }
 
         [HttpGet("users")]
-        public async Task<IActionResult> GetAllUsers()
+        public async Task<IActionResult> GetAllUsers([FromQuery] int page = 1, [FromQuery] int pageSize = 100)
         {
             var users = await _adminService.GetAllUsersAsync();
-            return Ok(users);
+            var paged = users.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+            return Ok(new { users = paged, total = users.Count });
         }
 
         [HttpGet("users/{id}")]
@@ -42,34 +45,53 @@ namespace ClassBooking.API.Controllers
             return Ok(users);
         }
 
-        [HttpPut("users/{id}/status")]
-        public async Task<IActionResult> UpdateUserStatus(string id, [FromBody] UpdateUserStatusRequest request)
+        [HttpPost("users")]
+        public async Task<IActionResult> CreateUser([FromBody] CreateUserRequest request)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            var result = await _adminService.UpdateUserStatusAsync(id, request.Status);
-            if (!result)
-                return NotFound(new { message = "User not found" });
-
-            return Ok(new { message = "User status updated successfully" });
-        }
-
-        [HttpPut("users")]
-        public async Task<IActionResult> UpdateUser([FromBody] UpdateUserRequest request)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
             try
             {
-                var user = await _adminService.UpdateUserAsync(request);
-                return Ok(new { message = "User updated successfully", user });
+                var user = await _adminService.CreateUserAsync(request);
+                return Ok(user);
             }
             catch (Exception ex)
             {
                 return BadRequest(new { message = ex.Message });
             }
+        }
+
+        [HttpPut("users/{id}")]
+        public async Task<IActionResult> UpdateUser(string id, [FromBody] UpdateUserRequest request)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            request.Id = id;
+            try
+            {
+                var user = await _adminService.UpdateUserAsync(request);
+                return Ok(user);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpPost("users/{id}/suspend")]
+        public async Task<IActionResult> SuspendUser(string id, [FromBody] SuspendUserRequest request)
+        {
+            var result = await _adminService.SuspendUserAsync(id, request.Reason ?? "Suspended by admin");
+            if (!result) return NotFound(new { message = "User not found" });
+            return Ok(new { message = "User suspended" });
+        }
+
+        [HttpPost("users/{id}/activate")]
+        public async Task<IActionResult> ActivateUser(string id)
+        {
+            var result = await _adminService.ActivateUserAsync(id);
+            if (!result) return NotFound(new { message = "User not found" });
+            return Ok(new { message = "User activated" });
         }
 
         [HttpDelete("users/{id}")]
@@ -82,6 +104,13 @@ namespace ClassBooking.API.Controllers
             return Ok(new { message = "User deleted successfully" });
         }
 
+        [HttpGet("users/search")]
+        public async Task<IActionResult> SearchUsers([FromQuery] string query)
+        {
+            var results = await _adminService.SearchUsersAsync(query ?? string.Empty);
+            return Ok(results);
+        }
+
         [HttpGet("stats")]
         public async Task<IActionResult> GetSystemStats()
         {
@@ -89,19 +118,289 @@ namespace ClassBooking.API.Controllers
             return Ok(stats);
         }
 
+        [HttpGet("stats/dashboard")]
+        public async Task<IActionResult> GetDashboardStats()
+        {
+            var stats = await _adminService.GetDashboardStatsAsync();
+            return Ok(stats);
+        }
+
+        [HttpGet("stats/users")]
+        public async Task<IActionResult> GetUserStats([FromQuery] string period = "monthly")
+        {
+            var stats = await _adminService.GetUserStatsAsync(period);
+            return Ok(stats);
+        }
+
+        [HttpGet("stats/bookings")]
+        public async Task<IActionResult> GetBookingStats([FromQuery] string period = "monthly")
+        {
+            var stats = await _adminService.GetBookingStatsAsync(period);
+            return Ok(stats);
+        }
+
+        [HttpGet("stats/revenue")]
+        public async Task<IActionResult> GetRevenueStats([FromQuery] string period = "monthly")
+        {
+            var stats = await _adminService.GetRevenueStatsAsync(period);
+            return Ok(stats);
+        }
+
+        [HttpGet("stats/teacher-performance")]
+        public async Task<IActionResult> GetTeacherPerformance()
+        {
+            var stats = await _adminService.GetTeacherPerformanceStatsAsync();
+            return Ok(stats);
+        }
+
+        // Review management
+        [HttpGet("reviews")]
+        public async Task<IActionResult> GetAllReviews()
+        {
+            var reviews = await _adminService.GetAllReviewsAsync();
+            var shaped = reviews.Select(r => new
+            {
+                id = r.Id,
+                teacherId = r.TeacherProfileId,
+                teacherName = r.TeacherProfile?.FullName ?? "Unknown",
+                studentId = r.StudentId,
+                studentName = r.StudentName,
+                rating = r.Rating,
+                comment = r.Comment,
+                createdAt = r.CreatedAt
+            });
+
+            return Ok(shaped);
+        }
+
+        [HttpPut("reviews/{id}")]
+        public async Task<IActionResult> UpdateReview(string id, [FromBody] AdminUpdateReviewRequest request)
+        {
+            if (request == null) return BadRequest(new { message = "Invalid request" });
+
+            var review = await _adminService.UpdateReviewAsync(id, request.Rating, request.Comment ?? string.Empty);
+            if (review == null) return NotFound(new { message = "Review not found" });
+
+            return Ok(new { message = "Review updated", review });
+        }
+
+        [HttpDelete("reviews/{id}")]
+        public async Task<IActionResult> DeleteReview(string id)
+        {
+            var deleted = await _adminService.DeleteReviewAsync(id);
+            if (!deleted) return NotFound(new { message = "Review not found" });
+
+            return Ok(new { message = "Review deleted" });
+        }
+
+        [HttpGet("reports/bookings")]
+        public IActionResult ExportBookingReport([FromQuery] string format = "pdf")
+        {
+            var bytes = Array.Empty<byte>();
+            var contentType = format == "excel" ? "application/vnd.ms-excel" : "application/pdf";
+            var fileName = $"bookings-report-{DateTime.UtcNow:yyyyMMdd}.{(format == "excel" ? "xlsx" : "pdf")}";
+            return File(bytes, contentType, fileName);
+        }
+
+        [HttpGet("reports/users")]
+        public IActionResult ExportUserReport([FromQuery] string format = "pdf")
+        {
+            var bytes = Array.Empty<byte>();
+            var contentType = format == "excel" ? "application/vnd.ms-excel" : "application/pdf";
+            var fileName = $"users-report-{DateTime.UtcNow:yyyyMMdd}.{(format == "excel" ? "xlsx" : "pdf")}";
+            return File(bytes, contentType, fileName);
+        }
+
+        [HttpGet("reports/revenue")]
+        public IActionResult ExportRevenueReport([FromQuery] string format = "pdf")
+        {
+            var bytes = Array.Empty<byte>();
+            var contentType = format == "excel" ? "application/vnd.ms-excel" : "application/pdf";
+            var fileName = $"revenue-report-{DateTime.UtcNow:yyyyMMdd}.{(format == "excel" ? "xlsx" : "pdf")}";
+            return File(bytes, contentType, fileName);
+        }
+
         // Placeholder endpoints for features to be implemented later
         [HttpGet("timetable")]
-        public IActionResult GetTimetable()
+        public async Task<IActionResult> GetTimetable([FromQuery] DateTime? from = null, [FromQuery] DateTime? to = null)
         {
-            // TODO: Implement timetable management (holidays, exam periods, etc.)
-            return Ok(new List<TimetableEventDto>());
+            var events = await _timetableService.GetEventsAsync(from, to);
+            return Ok(events);
         }
 
         [HttpPost("timetable")]
-        public IActionResult CreateTimetableEvent([FromBody] TimetableEventDto eventDto)
+        public async Task<IActionResult> CreateTimetableEvent([FromBody] TimetableEventDto eventDto)
         {
-            // TODO: Implement timetable event creation
-            return Ok(new { message = "Timetable event created (placeholder)" });
+            var created = await _timetableService.CreateAsync(eventDto, User.FindFirst("userId")?.Value ?? "admin");
+            return Ok(created);
+        }
+
+        [HttpPut("timetable/{id}")]
+        public async Task<IActionResult> UpdateTimetableEvent(string id, [FromBody] TimetableEventDto eventDto)
+        {
+            var updated = await _timetableService.UpdateAsync(id, eventDto);
+            if (updated == null) return NotFound(new { message = "Event not found" });
+            return Ok(updated);
+        }
+
+        [HttpDelete("timetable/{id}")]
+        public async Task<IActionResult> DeleteTimetableEvent(string id)
+        {
+            var deleted = await _timetableService.DeleteAsync(id);
+            if (!deleted) return NotFound(new { message = "Event not found" });
+            return Ok(new { message = "Event deleted" });
+        }
+
+        // Holidays CRUD
+        [HttpGet("holidays")]
+        public async Task<IActionResult> GetHolidays()
+        {
+            var events = await _timetableService.GetEventsAsync();
+            var holidays = events
+                .Where(e => string.Equals(e.Type, "Holiday", StringComparison.OrdinalIgnoreCase))
+                .Select(e => new PublicHolidayDto
+                {
+                    Id = e.Id,
+                    Name = e.Title,
+                    Date = e.Date,
+                    Description = e.Description
+                });
+            return Ok(holidays);
+        }
+
+        [HttpPost("holidays")]
+        public async Task<IActionResult> CreateHoliday([FromBody] PublicHolidayDto dto)
+        {
+            var created = await _timetableService.CreateAsync(new TimetableEventDto
+            {
+                Title = dto.Name,
+                Description = dto.Description,
+                Date = dto.Date,
+                StartTime = "00:00",
+                EndTime = "23:59",
+                Type = "Holiday",
+                Audience = "All"
+            }, User.FindFirst("userId")?.Value ?? "admin");
+
+            return Ok(new PublicHolidayDto
+            {
+                Id = created.Id,
+                Name = created.Title,
+                Date = created.Date,
+                Description = created.Description
+            });
+        }
+
+        [HttpPut("holidays/{id}")]
+        public async Task<IActionResult> UpdateHoliday(string id, [FromBody] PublicHolidayDto dto)
+        {
+            var updated = await _timetableService.UpdateAsync(id, new TimetableEventDto
+            {
+                Title = dto.Name,
+                Description = dto.Description,
+                Date = dto.Date,
+                StartTime = "00:00",
+                EndTime = "23:59",
+                Type = "Holiday",
+                Audience = "All"
+            });
+
+            if (updated == null) return NotFound(new { message = "Holiday not found" });
+
+            return Ok(new PublicHolidayDto
+            {
+                Id = updated.Id,
+                Name = updated.Title,
+                Date = updated.Date,
+                Description = updated.Description
+            });
+        }
+
+        [HttpDelete("holidays/{id}")]
+        public async Task<IActionResult> DeleteHoliday(string id)
+        {
+            var deleted = await _timetableService.DeleteAsync(id);
+            if (!deleted) return NotFound(new { message = "Holiday not found" });
+            return Ok(new { message = "Holiday deleted" });
+        }
+
+        // Exam Seasons CRUD
+        [HttpGet("exam-seasons")]
+        public async Task<IActionResult> GetExamSeasons()
+        {
+            var events = await _timetableService.GetEventsAsync();
+            var exams = events
+                .Where(e => string.Equals(e.Type, "Exam", StringComparison.OrdinalIgnoreCase))
+                .Select(e => new ExamSeasonDto
+                {
+                    Id = e.Id,
+                    Name = e.Title,
+                    StartDate = e.Date,
+                    EndDate = e.Date,
+                    ExamType = e.Audience ?? "Exam",
+                    Description = e.Description
+                });
+            return Ok(exams);
+        }
+
+        [HttpPost("exam-seasons")]
+        public async Task<IActionResult> CreateExamSeason([FromBody] ExamSeasonDto dto)
+        {
+            var created = await _timetableService.CreateAsync(new TimetableEventDto
+            {
+                Title = dto.Name,
+                Description = dto.Description,
+                Date = dto.StartDate,
+                StartTime = "09:00",
+                EndTime = "17:00",
+                Type = "Exam",
+                Audience = "Students"
+            }, User.FindFirst("userId")?.Value ?? "admin");
+
+            return Ok(new ExamSeasonDto
+            {
+                Id = created.Id,
+                Name = created.Title,
+                StartDate = created.Date,
+                EndDate = created.Date,
+                ExamType = created.Audience ?? "Exam",
+                Description = created.Description
+            });
+        }
+
+        [HttpPut("exam-seasons/{id}")]
+        public async Task<IActionResult> UpdateExamSeason(string id, [FromBody] ExamSeasonDto dto)
+        {
+            var updated = await _timetableService.UpdateAsync(id, new TimetableEventDto
+            {
+                Title = dto.Name,
+                Description = dto.Description,
+                Date = dto.StartDate,
+                StartTime = "09:00",
+                EndTime = "17:00",
+                Type = "Exam",
+                Audience = "Students"
+            });
+
+            if (updated == null) return NotFound(new { message = "Exam season not found" });
+
+            return Ok(new ExamSeasonDto
+            {
+                Id = updated.Id,
+                Name = updated.Title,
+                StartDate = updated.Date,
+                EndDate = updated.Date,
+                ExamType = updated.Audience ?? "Exam",
+                Description = updated.Description
+            });
+        }
+
+        [HttpDelete("exam-seasons/{id}")]
+        public async Task<IActionResult> DeleteExamSeason(string id)
+        {
+            var deleted = await _timetableService.DeleteAsync(id);
+            if (!deleted) return NotFound(new { message = "Exam season not found" });
+            return Ok(new { message = "Exam season deleted" });
         }
 
         [HttpGet("reports")]
@@ -124,5 +423,11 @@ namespace ClassBooking.API.Controllers
             // TODO: Implement exam management for admin
             return Ok(new List<object>());
         }
+    }
+
+    public class AdminUpdateReviewRequest
+    {
+        public int Rating { get; set; }
+        public string? Comment { get; set; }
     }
 }

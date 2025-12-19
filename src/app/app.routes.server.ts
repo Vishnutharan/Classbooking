@@ -20,10 +20,12 @@ export const serverRoutes: ServerRoute[] = [
   // Student Bookings & Learning
   { path: 'my-bookings', renderMode: RenderMode.Server },
   { path: 'book-class', renderMode: RenderMode.Server },
+  { path: 'find-teacher', renderMode: RenderMode.Server },
   { path: 'exam-preparation', renderMode: RenderMode.Server },
   { path: 'exam-materials', renderMode: RenderMode.Server },
   { path: 'past-papers', renderMode: RenderMode.Server },
   { path: 'educational-content', renderMode: RenderMode.Server },
+  { path: 'student/lesson-plans', renderMode: RenderMode.Server },
 
   // Teacher & Student Profiles
   { path: 'teacher-profile/:id', renderMode: RenderMode.Server },

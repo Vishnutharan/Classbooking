@@ -12,7 +12,8 @@ namespace ClassBooking.API.Services
         Task<List<StudyGoal>> GetStudyGoalsAsync(string userId);
         Task<List<Entities.ReviewEntity>> GetStudentReviewsAsync(string studentId);
         Task SubmitReviewAsync(Entities.ReviewEntity review);
-        Task UpdateReviewAsync(string reviewId, string studentId, int rating, string comment);
+        Task<bool> UpdateReviewAsync(string reviewId, string studentId, int rating, string comment);
+        Task<bool> DeleteReviewAsync(string reviewId, string studentId);
     }
 
     public class StudentService : IStudentService
@@ -21,17 +22,20 @@ namespace ClassBooking.API.Services
         private readonly IExamRepository _examRepository;
         private readonly IFeeRepository _feeRepository;
         private readonly Data.ClassBookingDbContext _context;
+        private readonly ITeacherRepository _teacherRepository;
 
         public StudentService(
             IStudentRepository studentRepository,
             IExamRepository examRepository,
             IFeeRepository feeRepository,
-            Data.ClassBookingDbContext context)
+            Data.ClassBookingDbContext context,
+            ITeacherRepository teacherRepository)
         {
             _studentRepository = studentRepository;
             _examRepository = examRepository;
             _feeRepository = feeRepository;
             _context = context;
+            _teacherRepository = teacherRepository;
         }
 
         public async Task<StudentProfile> GetProfileAsync(string userId)
@@ -119,21 +123,39 @@ namespace ClassBooking.API.Services
 
         public async Task SubmitReviewAsync(Entities.ReviewEntity review)
         {
-            _context.Reviews.Add(review);
-            await _context.SaveChangesAsync();
+            await _teacherRepository.AddReviewAsync(review);
         }
 
-        public async Task UpdateReviewAsync(string reviewId, string studentId, int rating, string comment)
+        public async Task<bool> UpdateReviewAsync(string reviewId, string studentId, int rating, string comment)
         {
             var review = await _context.Reviews
                 .FirstOrDefaultAsync(r => r.Id == reviewId && r.StudentId == studentId);
             
-            if (review != null)
+            if (review == null) return false;
+
+            review.Rating = rating;
+            review.Comment = comment;
+            await _context.SaveChangesAsync();
+            await _teacherRepository.RefreshTeacherRatingAsync(review.TeacherProfileId);
+            return true;
+        }
+
+        public async Task<bool> DeleteReviewAsync(string reviewId, string studentId)
+        {
+            var review = await _context.Reviews
+                .FirstOrDefaultAsync(r => r.Id == reviewId && r.StudentId == studentId);
+
+            if (review == null)
             {
-                review.Rating = rating;
-                review.Comment = comment;
-                await _context.SaveChangesAsync();
+                return false;
             }
+
+            var teacherId = review.TeacherProfileId;
+            _context.Reviews.Remove(review);
+            await _context.SaveChangesAsync();
+            await _teacherRepository.RefreshTeacherRatingAsync(teacherId);
+
+            return true;
         }
     }
 }

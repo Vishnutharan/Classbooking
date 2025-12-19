@@ -1,9 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms'; // ✅ Added FormsModule
+import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
-import { User } from '../../core/models/shared.models';
+import { TeacherService } from '../../core/services/teacher.service';
 import { NotificationService } from '../../core/services/notification.service';
+import { User, TeacherProfile, TeacherSubject } from '../../core/models/shared.models';
 
 @Component({
   selector: 'app-manage-profile',
@@ -14,6 +15,7 @@ import { NotificationService } from '../../core/services/notification.service';
 })
 export class ManageProfileComponent implements OnInit {
   private authService = inject(AuthService);
+  private teacherService = inject(TeacherService);
   private fb = inject(FormBuilder);
   private notificationService = inject(NotificationService);
 
@@ -22,14 +24,37 @@ export class ManageProfileComponent implements OnInit {
   privacyForm!: FormGroup;
 
   currentUser: User | null = null;
+  currentProfile: TeacherProfile | null = null;
   isLoading = false;
   isSaving = false;
 
-  // ✅ Fix: Typed explicitly to allow null
   profilePicture: string | null = null;
 
   showDeleteModal = false;
   deleteConfirmEmail = '';
+
+  // Subject Management
+  showSubjectModal = false;
+  newSubject: Partial<TeacherSubject> = {
+    name: '',
+    medium: 'English',
+    level: 'OLevel',
+    grades: '',
+    classTypes: ['PERSONAL_1_1'] // Using defaults
+  };
+  
+  availableGrades = [
+    'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 
+    'Grade 10', 'Grade 11', 
+    'Grade 12', 'Grade 13'
+  ];
+  selectedGrades: string[] = [];
+
+  subjectOptionsList = [
+    'Mathematics', 'Science', 'English', 'History', 
+    'Sinhala', 'Tamil', 'ICT', 'Commerce', 
+    'Accounting', 'Physics', 'Chemistry', 'Biology'
+  ];
 
   ngOnInit(): void {
     this.currentUser = this.authService.getCurrentUser();
@@ -40,12 +65,15 @@ export class ManageProfileComponent implements OnInit {
   private initForms(): void {
     this.profileForm = this.fb.group({
       fullName: ['', [Validators.required, Validators.minLength(2)]],
-      // ✅ Note: 'disabled: true' here handles the HTML disabled state automatically
       email: [{ value: '', disabled: true }],
       phoneNumber: [''],
       hourlyRate: [0],
       experienceYears: [0],
-      bio: ['']
+      bio: [''],
+      policies: [''],
+      teachingMode: ['ONLINE', Validators.required],
+      locationAddress: [''],
+      meetingLink: ['']
     });
 
     this.passwordForm = this.fb.group({
@@ -63,20 +91,44 @@ export class ManageProfileComponent implements OnInit {
 
   private loadProfile(): void {
     this.isLoading = true;
+    
+    // First fill basic info from Auth User
     if (this.currentUser) {
-      // ✅ Fix: safely cast to any if properties are missing from your User interface
-      const user: any = this.currentUser;
-
-      this.profileForm.patchValue({
-        fullName: user.fullName,
-        email: user.email,
-        phoneNumber: user.phoneNumber || ''
-      });
-
-      // ✅ Fix: Handle undefined vs null mismatch
-      this.profilePicture = user.profilePicture || null;
+       this.profileForm.patchValue({
+         fullName: this.currentUser.fullName,
+         email: this.currentUser.email
+       });
     }
-    this.isLoading = false;
+
+    // Then fetch full Teacher Profile from API
+    if (this.currentUser?.role === 'Teacher') {
+        this.teacherService.getMyProfile().subscribe({
+        next: (profile) => {
+            this.currentProfile = profile;
+            this.profileForm.patchValue({
+            fullName: profile.fullName,
+            email: profile.email,
+            phoneNumber: profile.phoneNumber || '',
+            experienceYears: profile.experienceYears || 0,
+            hourlyRate: profile.hourlyRate || 0,
+            bio: profile.bio || '',
+            policies: profile.policies || '',
+            teachingMode: profile.teachingMode || 'ONLINE',
+            locationAddress: profile.locationAddress || '',
+            meetingLink: profile.meetingLink || ''
+            });
+            this.profilePicture = profile.profilePicture || null;
+            this.isLoading = false;
+        },
+        error: (err) => {
+            console.error('Failed to load profile', err);
+            // If 404, maybe profile not created yet, just keep loading false
+            this.isLoading = false;
+        }
+        });
+    } else {
+        this.isLoading = false;
+    }
   }
 
   onProfilePictureChange(event: any): void {
@@ -87,6 +139,20 @@ export class ManageProfileComponent implements OnInit {
         this.profilePicture = e.target.result;
       };
       reader.readAsDataURL(file);
+
+      // Upload immediately
+      this.isSaving = true;
+      this.teacherService.uploadProfilePicture(file).subscribe({
+        next: (res) => {
+           this.profilePicture = res.url;
+           this.notificationService.showSuccess('Profile picture updated');
+           this.isSaving = false;
+        },
+        error: (err) => {
+            this.notificationService.showError('Failed to upload picture');
+            this.isSaving = false;
+        }
+      });
     }
   }
 
@@ -110,11 +176,20 @@ export class ManageProfileComponent implements OnInit {
     }
     this.isSaving = true;
 
-    // Simulate API call
-    setTimeout(() => {
-      this.notificationService.showSuccess('Profile updated successfully');
-      this.isSaving = false;
-    }, 1000);
+    const formValues = this.profileForm.getRawValue();
+
+    this.teacherService.updateProfile(formValues).subscribe({
+        next: (updatedProfile) => {
+            this.currentProfile = updatedProfile; 
+            this.notificationService.showSuccess('Profile updated successfully');
+            this.isSaving = false;
+        },
+        error: (err) => {
+            console.error('Error updating profile', err);
+            this.notificationService.showError('Failed to update profile');
+            this.isSaving = false;
+        }
+    });
   }
 
   changePassword(): void {
@@ -122,20 +197,13 @@ export class ManageProfileComponent implements OnInit {
       this.notificationService.showError('Passwords do not match');
       return;
     }
-    this.isSaving = true;
-    setTimeout(() => {
-      this.notificationService.showSuccess('Password changed successfully');
-      this.passwordForm.reset();
-      this.isSaving = false;
-    }, 1000);
+    // Implement real password change via AuthService if available
+    this.notificationService.showWarning('Password change not implemented in this demo');
   }
 
   savePrivacy(): void {
-    this.isSaving = true;
-    setTimeout(() => {
-      this.notificationService.showSuccess('Privacy settings saved');
-      this.isSaving = false;
-    }, 1000);
+     // Implement privacy settings update if backend supports it
+     this.notificationService.showSuccess('Privacy settings saved (Local)');
   }
 
   openDeleteModal(): void {
@@ -151,6 +219,78 @@ export class ManageProfileComponent implements OnInit {
     if (this.deleteConfirmEmail === this.currentUser?.email) {
       this.notificationService.showSuccess('Account deleted');
       this.authService.logout();
+    }
+  }
+
+  // Subject Management Methods
+  openSubjectModal(): void {
+    this.newSubject = {
+        name: 'Mathematics',
+        medium: 'English',
+        level: 'OLevel',
+        grades: '',
+        classTypes: ['PERSONAL_1_1']
+    };
+    this.selectedGrades = [];
+    this.showSubjectModal = true;
+  }
+
+  closeSubjectModal(): void {
+    this.showSubjectModal = false;
+  }
+
+  toggleGrade(grade: string): void {
+    if (this.selectedGrades.includes(grade)) {
+      this.selectedGrades = this.selectedGrades.filter(g => g !== grade);
+    } else {
+      this.selectedGrades.push(grade);
+    }
+  }
+
+  saveSubject(): void {
+    if (!this.newSubject.name) {
+        this.notificationService.showWarning('Please select a subject');
+        return;
+    }
+    if (this.selectedGrades.length === 0) {
+        this.notificationService.showWarning('Please select at least one grade');
+        return;
+    }
+
+    this.newSubject.grades = this.selectedGrades.join(',');
+    
+    // Determine level from grades simply for backend compatibility if needed
+    // Logic: if any 12-13 -> ALevel, else OLevel/Secondary
+    if (this.selectedGrades.some(g => g.includes('12') || g.includes('13'))) {
+        this.newSubject.level = 'ALevel';
+    } else {
+        this.newSubject.level = 'OLevel'; // Default fallback
+    }
+
+    this.isSaving = true;
+    this.teacherService.addSubject(this.newSubject as TeacherSubject).subscribe({
+        next: (profile) => {
+            this.currentProfile = profile;
+            this.notificationService.showSuccess('Subject added successfully');
+            this.isSaving = false;
+            this.closeSubjectModal();
+        },
+        error: (err) => {
+            this.notificationService.showError('Failed to add subject');
+            this.isSaving = false;
+        }
+    });
+  }
+
+  deleteSubject(item: TeacherSubject): void {
+    if(confirm(`Are you sure you want to remove ${item.name}?`)) {
+        this.teacherService.removeSubject(item.id).subscribe({
+            next: (profile) => {
+                this.currentProfile = profile;
+                this.notificationService.showSuccess('Subject removed');
+            },
+            error: () => this.notificationService.showError('Failed to remove subject')
+        });
     }
   }
 }

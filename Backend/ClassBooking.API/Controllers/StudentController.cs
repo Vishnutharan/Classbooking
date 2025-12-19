@@ -3,8 +3,10 @@ using ClassBooking.API.Services;
 using ClassBooking.API.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 using System.Text.Json;
 using ClassBooking.API.Entities;
+using System.Linq;
 
 namespace ClassBooking.API.Controllers
 {
@@ -19,6 +21,7 @@ namespace ClassBooking.API.Controllers
         private readonly IExamService _examService;
         private readonly IResourceService _resourceService;
         private readonly IBookingService _bookingService;
+        private readonly ILessonPlanService _lessonPlanService;
 
         private record ActivityItem(string Type, string Message, DateTime Timestamp);
 
@@ -28,7 +31,8 @@ namespace ClassBooking.API.Controllers
             ITeacherRepository teacherRepository,
             IExamService examService,
             IResourceService resourceService,
-            IBookingService bookingService)
+            IBookingService bookingService,
+            ILessonPlanService lessonPlanService)
         {
             _studentService = studentService;
             _studentRepository = studentRepository;
@@ -36,6 +40,7 @@ namespace ClassBooking.API.Controllers
             _examService = examService;
             _resourceService = resourceService;
             _bookingService = bookingService;
+            _lessonPlanService = lessonPlanService;
         }
 
         [HttpGet("profile")]
@@ -53,8 +58,25 @@ namespace ClassBooking.API.Controllers
                 UserId = profileEntity.UserId,
                 FullName = profileEntity.FullName,
                 Email = profileEntity.Email,
-                PhoneNumber = profileEntity.PhoneNumber
+                PhoneNumber = profileEntity.PhoneNumber,
+                School = profileEntity.School,
+                GradeLevel = profileEntity.GradeLevel
             };
+
+            if (!string.IsNullOrEmpty(profileEntity.GuardianInfoJson))
+            {
+               try 
+               {
+                    using (JsonDocument doc = JsonDocument.Parse(profileEntity.GuardianInfoJson))
+                    {
+                        if (doc.RootElement.TryGetProperty("name", out JsonElement nameElement))
+                            profile.ParentName = nameElement.GetString();
+                        if (doc.RootElement.TryGetProperty("contact", out JsonElement contactElement))
+                            profile.ParentContact = contactElement.GetString();
+                    }
+               }
+               catch {}
+            }
             
             return Ok(profile);
         }
@@ -72,7 +94,15 @@ namespace ClassBooking.API.Controllers
             // Update fields
             existing.FullName = profile.FullName;
             existing.PhoneNumber = profile.PhoneNumber;
+            existing.School = profile.School;
+            existing.GradeLevel = profile.GradeLevel;
             existing.UpdatedAt = DateTime.UtcNow;
+
+            if (!string.IsNullOrEmpty(profile.ParentName) || !string.IsNullOrEmpty(profile.ParentContact))
+            {
+                var guardianInfo = new { name = profile.ParentName, contact = profile.ParentContact };
+                existing.GuardianInfoJson = JsonSerializer.Serialize(guardianInfo);
+            }
             
             try 
             {
@@ -88,6 +118,7 @@ namespace ClassBooking.API.Controllers
                 return StatusCode(500, new { message = "Error updating profile", details = ex.Message });
             }
         }
+
 
         [HttpGet("recommended-teachers")]
         public async Task<ActionResult<List<TeacherProfile>>> GetRecommendedTeachers()
@@ -288,7 +319,7 @@ namespace ClassBooking.API.Controllers
             if (profile == null)
                 return Ok(new List<object>());
 
-            var reviews = await _studentService.GetStudentReviewsAsync(profile.Id);
+            var reviews = await _studentService.GetStudentReviewsAsync(userId);
             
             return Ok(reviews.Select(r => new
             {
@@ -310,10 +341,17 @@ namespace ClassBooking.API.Controllers
             if (profile == null)
                 return NotFound("Student profile not found");
 
+            // Ensure the student actually booked this teacher (confirmed or completed)
+            var bookings = await _bookingService.GetBookingsForStudentAsync(userId);
+            var hasBooking = bookings.Any(b => b.TeacherId == request.TeacherId &&
+                (b.Status == "Confirmed" || b.Status == "Completed"));
+            if (!hasBooking)
+                return StatusCode(StatusCodes.Status403Forbidden, new { message = "You can only review teachers you have booked." });
+
             var review = new Entities.ReviewEntity
             {
                 Id = Guid.NewGuid().ToString(),
-                StudentId = profile.Id,
+                StudentId = userId,
                 StudentName = profile.FullName,
                 TeacherProfileId = request.TeacherId,
                 Rating = request.Rating,
@@ -335,9 +373,55 @@ namespace ClassBooking.API.Controllers
             if (profile == null)
                 return NotFound("Student profile not found");
 
-            await _studentService.UpdateReviewAsync(reviewId, profile.Id, request.Rating, request.Comment);
+            var updated = await _studentService.UpdateReviewAsync(reviewId, userId, request.Rating, request.Comment);
+            if (!updated) return NotFound(new { message = "Review not found or not owned by you" });
             
             return Ok(new { message = "Review updated successfully" });
+        }
+
+        [HttpDelete("reviews/{reviewId}")]
+        public async Task<ActionResult> DeleteReview(string reviewId)
+        {
+            var userId = User.FindFirst("userId")?.Value ?? throw new UnauthorizedAccessException();
+            var profile = await _studentRepository.GetByUserIdAsync(userId);
+            
+            if (profile == null)
+                return NotFound("Student profile not found");
+
+            var deleted = await _studentService.DeleteReviewAsync(reviewId, userId);
+            if (!deleted) return NotFound(new { message = "Review not found or not owned by you" });
+
+            return Ok(new { message = "Review deleted successfully" });
+        }
+
+        [HttpGet("lesson-plans")]
+        public async Task<ActionResult<List<object>>> GetLessonPlansForTeacher([FromQuery] string teacherId)
+        {
+            var userId = User.FindFirst("userId")?.Value ?? throw new UnauthorizedAccessException();
+            if (string.IsNullOrWhiteSpace(teacherId))
+                return BadRequest(new { message = "teacherId is required" });
+
+            var bookings = await _bookingService.GetBookingsForStudentAsync(userId);
+            var allowedStatuses = new[] { "Confirmed", "Completed" };
+            var hasBooking = bookings.Any(b => b.TeacherId == teacherId && allowedStatuses.Contains(b.Status));
+
+            if (!hasBooking)
+                return StatusCode(StatusCodes.Status403Forbidden, new { message = "You can only view lesson plans for teachers you have booked." });
+
+            var plans = await _lessonPlanService.GetByTeacherAsync(teacherId);
+            var result = plans.Select(p => new
+            {
+                id = p.Id,
+                title = p.Title,
+                subject = p.Subject,
+                level = p.Level,
+                description = p.Description,
+                scheduledDate = p.ScheduledDate,
+                durationMinutes = p.DurationMinutes,
+                status = p.Status
+            }).ToList();
+
+            return Ok(result);
         }
 
         // Progress Report endpoint

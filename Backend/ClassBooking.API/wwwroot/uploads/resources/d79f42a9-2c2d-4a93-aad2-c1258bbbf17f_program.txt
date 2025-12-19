@@ -1,0 +1,83 @@
+
+  
+  
+  using SFA_Dreamron.Services;
+using SFA_Dreamron.Components;
+using Microsoft.EntityFrameworkCore;
+using SFA_Dreamron.Context;
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.Server;
+using SFA_Dreamron.Auth.AuthService;
+using SFA_Dreamron.Service;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+builder.Services.AddRazorComponents()
+    .AddInteractiveServerComponents();
+
+builder.Services.AddDevExpressBlazor(options => {
+    options.SizeMode = DevExpress.Blazor.SizeMode.Medium;
+});
+builder.Services.AddMvc();
+
+
+builder.Services.AddDbContext<DefaultContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Optional: custom auth state provider if you want
+builder.Services.AddScoped<AuthenticationStateProvider,
+    ServerAuthenticationStateProvider>();
+
+builder.Services.AddServerSideBlazor().AddCircuitOptions(options => { options.DetailedErrors = true; });
+
+builder.Services.AddScoped<DapperContext>();
+builder.Services.AddScoped<EncryptionService>();
+builder.Services.AddScoped<SecurityService>();
+builder.Services.AddScoped<MenuService>();
+
+builder.Services.AddScoped<ToastService>();
+builder.Services.AddScoped<PageConfigurationService>();
+builder.Services.AddScoped<DxThemesService>();
+builder.Services.AddScoped<SalesPromotionOfficeerService>();
+builder.Services.AddScoped<DesignationService>();
+builder.Services.AddScoped<CompanyService>();
+builder.Services.AddScoped<SalesCoordinatorService>();
+builder.Services.AddScoped<AreaSalesManagerService>();
+builder.Services.AddScoped<SalesManagerService>();
+builder.Services.AddScoped<ItemCategoryService>();
+builder.Services.AddScoped<ItemMasterService>();
+builder.Services.AddScoped<ProductGroupService>();
+builder.Services.AddScoped<BudgetGroupService>();
+
+
+
+var app = builder.Build();
+if (!app.Environment.IsDevelopment()) {
+    app.UseExceptionHandler("/Error", createScopeForErrors: true);
+    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    app.UseHsts();
+}
+
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+app.UseAntiforgery();
+
+
+
+// Add authentication & authorization middleware
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapStaticAssets();
+
+
+app.MapRazorComponents<App>()
+    .AddInteractiveServerRenderMode()
+    .AllowAnonymous();
+
+app.Run();
+
+
+
+

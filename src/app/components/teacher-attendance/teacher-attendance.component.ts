@@ -48,10 +48,7 @@ export class TeacherAttendanceComponent implements OnInit {
         const user = this.authService.getCurrentUser();
         if (!user) return;
 
-        const startDate = new Date();
-        startDate.setDate(startDate.getDate() - 30);
-
-        this.teacherDataService.getAttendanceRecords(user.id, startDate).subscribe({
+        this.teacherDataService.getAttendanceRecords(user.id).subscribe({
             next: (records) => {
                 this.attendanceRecords = records;
                 this.filterRecordsByDate();
@@ -131,25 +128,17 @@ export class TeacherAttendanceComponent implements OnInit {
     }
 
     filterRecordsByDate(): void {
-        // Compare dates using local YYYY-MM-DD strings to avoid timezone issues
-        const targetDateStr = this.formatDate(this.selectedDate);
-        
+        // Compare dates using ISO yyyy-mm-dd to avoid timezone drift
+        const targetDateStr = this.toIsoDate(this.selectedDate);
+
         this.displayRecords = this.attendanceRecords.filter(r => {
             const recordDate = new Date(r.date);
-            return this.formatDate(recordDate) === targetDateStr;
+            return this.toIsoDate(recordDate) === targetDateStr;
         });
     }
 
-    private formatDate(date: Date): string {
-        const d = new Date(date);
-        let month = '' + (d.getMonth() + 1);
-        let day = '' + d.getDate();
-        const year = d.getFullYear();
-
-        if (month.length < 2) month = '0' + month;
-        if (day.length < 2) day = '0' + day;
-
-        return [year, month, day].join('-');
+    private toIsoDate(date: Date): string {
+        return new Date(date).toISOString().split('T')[0];
     }
 
     onDateChange(event: any): void {

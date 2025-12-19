@@ -1,6 +1,8 @@
 using ClassBooking.API.Data;
 using ClassBooking.API.Entities;
+using ClassBooking.API.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 namespace ClassBooking.API.Repositories
 {
@@ -34,6 +36,11 @@ namespace ClassBooking.API.Repositories
         Task<ReviewEntity> AddReviewAsync(ReviewEntity review);
         Task<List<ReviewEntity>> GetTeacherReviewsAsync(string teacherProfileId);
         Task<double> CalculateAverageRatingAsync(string teacherProfileId);
+        Task<List<ReviewEntity>> GetAllReviewsAsync();
+        Task<ReviewEntity?> GetReviewByIdAsync(string reviewId);
+        Task<ReviewEntity> UpdateReviewAsync(ReviewEntity review);
+        Task<bool> DeleteReviewAsync(string reviewId);
+        Task RefreshTeacherRatingAsync(string teacherProfileId);
         
         // Attendance Operations
         Task<AttendanceRecordEntity> CreateAttendanceAsync(AttendanceRecordEntity attendance);
@@ -51,7 +58,16 @@ namespace ClassBooking.API.Repositories
         // Task<List<TeacherStudentEntity>> GetTeacherStudentsAsync(string teacherProfileId);
         Task<TeacherStudentEntity> AddTeacherStudentAsync(TeacherStudentEntity relationship);
         Task<bool> RemoveTeacherStudentAsync(string teacherProfileId, string studentId);
-        Task<List<TeacherStudentEntity>> GetTeacherStudentsAsync(string teacherProfileId);
+        Task<List<TeacherStudentDto>> GetTeacherStudentsAsync(string teacherProfileId);
+
+        // Date-specific availability slots
+        Task<List<TeacherAvailabilitySlotEntity>> GetAvailabilitySlotsAsync(string teacherProfileId, DateTime? startDate = null, DateTime? endDate = null);
+        Task<TeacherAvailabilitySlotEntity?> GetAvailabilitySlotAsync(string teacherProfileId, DateTime date, string startTime, string endTime);
+        Task<TeacherAvailabilitySlotEntity> AddAvailabilitySlotAsync(TeacherAvailabilitySlotEntity slot);
+        Task<bool> UpdateAvailabilitySlotStatusAsync(string slotId, string status, string? bookingId = null);
+        Task<TeacherAvailabilitySlotEntity?> GetAvailabilitySlotByBookingAsync(string bookingId);
+        Task<bool> ReleaseSlotByBookingAsync(string bookingId);
+        Task<bool> DeleteAvailabilitySlotAsync(string slotId, string teacherProfileId);
     }
 
 
@@ -95,7 +111,6 @@ namespace ClassBooking.API.Repositories
             return await _context.TeacherProfiles
                 .Include(t => t.Subjects)
                 .Include(t => t.Availability)
-                .Where(t => t.IsAvailable)
                 .OrderByDescending(t => t.AverageRating)
                 .ToListAsync();
         }
@@ -105,7 +120,6 @@ namespace ClassBooking.API.Repositories
             var query = _context.TeacherProfiles
                 .Include(t => t.Subjects)
                 .Include(t => t.Availability)
-                .Where(t => t.IsAvailable)
                 .AsQueryable();
 
             if (!string.IsNullOrEmpty(subject))
@@ -238,18 +252,8 @@ namespace ClassBooking.API.Repositories
         {
             _context.Reviews.Add(review);
             await _context.SaveChangesAsync();
-            
-            // Update teacher's average rating and total reviews
-            var teacherProfile = await _context.TeacherProfiles.FindAsync(review.TeacherProfileId);
-            if (teacherProfile != null)
-            {
-                var avgRating = await CalculateAverageRatingAsync(review.TeacherProfileId);
-                teacherProfile.AverageRating = avgRating;
-                teacherProfile.TotalReviews = await _context.Reviews
-                    .CountAsync(r => r.TeacherProfileId == review.TeacherProfileId);
-                await _context.SaveChangesAsync();
-            }
-            
+
+            await RefreshTeacherRatingAsync(review.TeacherProfileId);
             return review;
         }
 
@@ -268,8 +272,55 @@ namespace ClassBooking.API.Repositories
                 .ToListAsync();
 
             if (!reviews.Any()) return 0;
-            
+
             return reviews.Average(r => r.Rating);
+        }
+
+        public async Task<List<ReviewEntity>> GetAllReviewsAsync()
+        {
+            return await _context.Reviews
+                .Include(r => r.TeacherProfile)
+                .OrderByDescending(r => r.CreatedAt)
+                .ToListAsync();
+        }
+
+        public async Task<ReviewEntity?> GetReviewByIdAsync(string reviewId)
+        {
+            return await _context.Reviews.FirstOrDefaultAsync(r => r.Id == reviewId);
+        }
+
+        public async Task<ReviewEntity> UpdateReviewAsync(ReviewEntity review)
+        {
+            _context.Reviews.Update(review);
+            await _context.SaveChangesAsync();
+            await RefreshTeacherRatingAsync(review.TeacherProfileId);
+            return review;
+        }
+
+        public async Task<bool> DeleteReviewAsync(string reviewId)
+        {
+            var review = await _context.Reviews.FirstOrDefaultAsync(r => r.Id == reviewId);
+            if (review == null) return false;
+
+            var teacherId = review.TeacherProfileId;
+            _context.Reviews.Remove(review);
+            await _context.SaveChangesAsync();
+            await RefreshTeacherRatingAsync(teacherId);
+            return true;
+        }
+
+        public async Task RefreshTeacherRatingAsync(string teacherProfileId)
+        {
+            var teacherProfile = await _context.TeacherProfiles.FindAsync(teacherProfileId);
+            if (teacherProfile == null) return;
+
+            var reviews = await _context.Reviews
+                .Where(r => r.TeacherProfileId == teacherProfileId)
+                .ToListAsync();
+
+            teacherProfile.AverageRating = reviews.Any() ? reviews.Average(r => r.Rating) : 0;
+            teacherProfile.TotalReviews = reviews.Count;
+            await _context.SaveChangesAsync();
         }
 
         // Attendance Operations
@@ -345,31 +396,66 @@ namespace ClassBooking.API.Repositories
             return true;
         }
 
-public async Task<List<TeacherStudentEntity>> GetTeacherStudentsAsync(string teacherProfileId)
-{
-    var bookings = await _context.Bookings
-        .Where(b => b.TeacherId == teacherProfileId)
-        .ToListAsync();
-
-    var studentIds = bookings.Select(b => b.StudentId).Distinct().ToList();
-
-    if (!studentIds.Any())
-        return new List<TeacherStudentEntity>();
-
-    var students = await _context.StudentProfiles
-        .Where(s => studentIds.Contains(s.UserId))
-        .Select(s => new TeacherStudentEntity
+        public async Task<List<TeacherStudentDto>> GetTeacherStudentsAsync(string teacherProfileId)
         {
-            Id = s.Id,
-            StudentId = s.UserId,
-            StudentName = s.FullName,
-            Grade = s.GradeLevel,
-            EnrolledDate = s.CreatedAt
-        })
-        .ToListAsync();
+            var bookings = await _context.Bookings
+                .Where(b => b.TeacherId == teacherProfileId)
+                .ToListAsync();
 
-    return students;
-}
+            var studentIds = bookings.Select(b => b.StudentId).Distinct().ToList();
+
+            if (!studentIds.Any())
+                return new List<TeacherStudentDto>();
+
+            var profiles = await _context.StudentProfiles
+                .Where(s => studentIds.Contains(s.UserId))
+                .ToListAsync();
+
+            var result = new List<TeacherStudentDto>();
+
+            foreach (var profile in profiles)
+            {
+                var studentBookings = bookings.Where(b => b.StudentId == profile.UserId).ToList();
+                var subjects = studentBookings.Select(b => b.Subject).Distinct().ToList();
+                
+                string parentName = "";
+                string parentContact = "";
+
+                if (!string.IsNullOrEmpty(profile.GuardianInfoJson))
+                {
+                   try 
+                   {
+                        using (JsonDocument doc = JsonDocument.Parse(profile.GuardianInfoJson))
+                        {
+                            if (doc.RootElement.TryGetProperty("name", out JsonElement nameElement) || doc.RootElement.TryGetProperty("Name", out nameElement))
+                                parentName = nameElement.GetString() ?? "";
+                            if (doc.RootElement.TryGetProperty("contact", out JsonElement contactElement) || doc.RootElement.TryGetProperty("Contact", out contactElement))
+                                parentContact = contactElement.GetString() ?? "";
+                        }
+                   }
+                   catch {}
+                }
+
+                result.Add(new TeacherStudentDto
+                {
+                    Id = profile.Id,
+                    UserId = profile.UserId,
+                    FullName = profile.FullName,
+                    Email = profile.Email,
+                    PhoneNumber = profile.PhoneNumber,
+                    ProfilePicture = profile.ProfilePicture ?? "",
+                    Grade = profile.GradeLevel,
+                    Subjects = subjects,
+                    EnrolledDate = profile.CreatedAt,
+                    School = profile.School ?? "",
+                    ParentName = parentName,
+                    ParentContact = parentContact,
+                    IsActive = true // logic for active/inactive could be refined based on recent bookings
+                });
+            }
+
+            return result;
+        }
 
 
         public async Task<TeacherStudentEntity> AddTeacherStudentAsync(TeacherStudentEntity relationship)
@@ -387,6 +473,84 @@ public async Task<List<TeacherStudentEntity>> GetTeacherStudentsAsync(string tea
             if (relationship == null) return false;
 
             relationship.IsActive = false;
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<List<TeacherAvailabilitySlotEntity>> GetAvailabilitySlotsAsync(string teacherProfileId, DateTime? startDate = null, DateTime? endDate = null)
+        {
+            var query = _context.TeacherAvailabilitySlots
+                .Where(s => s.TeacherProfileId == teacherProfileId)
+                .AsQueryable();
+
+            if (startDate.HasValue)
+            {
+                query = query.Where(s => s.Date.Date >= startDate.Value.Date);
+            }
+
+            if (endDate.HasValue)
+            {
+                query = query.Where(s => s.Date.Date <= endDate.Value.Date);
+            }
+
+            return await query
+                .OrderBy(s => s.Date)
+                .ThenBy(s => s.StartTime)
+                .ToListAsync();
+        }
+
+        public async Task<TeacherAvailabilitySlotEntity?> GetAvailabilitySlotAsync(string teacherProfileId, DateTime date, string startTime, string endTime)
+        {
+            return await _context.TeacherAvailabilitySlots.FirstOrDefaultAsync(s =>
+                s.TeacherProfileId == teacherProfileId &&
+                s.Date.Date == date.Date &&
+                s.StartTime == startTime &&
+                s.EndTime == endTime);
+        }
+
+        public async Task<TeacherAvailabilitySlotEntity> AddAvailabilitySlotAsync(TeacherAvailabilitySlotEntity slot)
+        {
+            _context.TeacherAvailabilitySlots.Add(slot);
+            await _context.SaveChangesAsync();
+            return slot;
+        }
+
+        public async Task<bool> UpdateAvailabilitySlotStatusAsync(string slotId, string status, string? bookingId = null)
+        {
+            var slot = await _context.TeacherAvailabilitySlots.FindAsync(slotId);
+            if (slot == null) return false;
+
+            slot.Status = status;
+            slot.BookingId = bookingId;
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<TeacherAvailabilitySlotEntity?> GetAvailabilitySlotByBookingAsync(string bookingId)
+        {
+            return await _context.TeacherAvailabilitySlots.FirstOrDefaultAsync(s => s.BookingId == bookingId);
+        }
+
+        public async Task<bool> ReleaseSlotByBookingAsync(string bookingId)
+        {
+            var slot = await _context.TeacherAvailabilitySlots.FirstOrDefaultAsync(s => s.BookingId == bookingId);
+            if (slot == null) return false;
+
+            slot.Status = "Available";
+            slot.BookingId = null;
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> DeleteAvailabilitySlotAsync(string slotId, string teacherProfileId)
+        {
+            var slot = await _context.TeacherAvailabilitySlots.FirstOrDefaultAsync(s =>
+                s.Id == slotId && s.TeacherProfileId == teacherProfileId);
+
+            if (slot == null) return false;
+            if (slot.Status == "Pending" || slot.Status == "Booked") return false;
+
+            _context.TeacherAvailabilitySlots.Remove(slot);
             await _context.SaveChangesAsync();
             return true;
         }

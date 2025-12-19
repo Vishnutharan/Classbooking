@@ -5,15 +5,19 @@ import { FormsModule } from '@angular/forms';
 import { StudentService } from '../../core/services/student.service';
 import { TeacherService } from '../../core/services/teacher.service';
 import { ClassBookingService } from '../../core/services/class-booking.service';
-import { TeacherProfile, ClassBooking } from '../../core/models/shared.models';
+import { TeacherProfile, ClassBooking, TimetableEvent } from '../../core/models/shared.models';
+import { TimetableService } from '../../core/services/timetable.service';
 import { forkJoin } from 'rxjs';
+import { AuthService } from '../../core/services/auth.service';
+import { PaymentIntegrationService } from '../../core/services/payment-integration.service';
+import { PaymentRecord } from '../../core/models/payment.models';
 
 @Component({
   selector: 'app-student-dashboard',
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './student-dashboard.component.html',
-  styleUrl: './student-dashboard.component.css'
+  styleUrls: ['./student-dashboard.component.css']
 })
 export class StudentDashboardComponent implements OnInit {
   private studentService = inject(StudentService);
@@ -21,6 +25,9 @@ export class StudentDashboardComponent implements OnInit {
   private teacherService = inject(TeacherService);
   private router = inject(Router);
   private platformId = inject(PLATFORM_ID);
+  private timetableService = inject(TimetableService);
+  private authService = inject(AuthService);
+  private paymentService = inject(PaymentIntegrationService);
 
   upcomingClasses: ClassBooking[] = [];
   recommendedTeachers: TeacherProfile[] = [];
@@ -42,8 +49,11 @@ export class StudentDashboardComponent implements OnInit {
     averageRating: 0,
     progressPercentage: 0
   };
+  timetableEvents: TimetableEvent[] = [];
   recentActivity: any[] = [];
+  recentPayments: PaymentRecord[] = [];
   isLoading = false;
+  today = new Date();
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
@@ -59,9 +69,11 @@ export class StudentDashboardComponent implements OnInit {
       bookings: this.bookingService.getStudentBookings(),
       recommended: this.studentService.getRecommendedTeachers(),
       progress: this.studentService.getProgressReport(),
-      allTeachers: this.teacherService.getAllTeachers()
+      allTeachers: this.teacherService.getAllTeachers(),
+      timetable: this.timetableService.getTimetableForUser(),
+      payments: this.paymentService.getStudentPayments()
     }).subscribe({
-      next: ({ summary, bookings, recommended, progress, allTeachers }) => {
+      next: ({ summary, bookings, recommended, progress, allTeachers, timetable, payments }) => {
         this.upcomingClasses = bookings
           .filter(b => b.status === 'Confirmed')
           .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
@@ -78,7 +90,10 @@ export class StudentDashboardComponent implements OnInit {
 
         this.allTeachers = allTeachers || [];
         this.filteredTeachers = allTeachers || [];
+        this.timetableEvents = (timetable || []).slice(0, 5);
         this.recommendedTeachers = recommended || [];
+        this.recentPayments = (payments || []).slice(0, 4);
+        this.isLoading = false;
       },
       error: () => {
         this.isLoading = false;
@@ -87,6 +102,14 @@ export class StudentDashboardComponent implements OnInit {
         this.isLoading = false;
       }
     });
+  }
+
+  navigateToTimetable(): void {
+    this.router.navigate(['/timetable']);
+  }
+
+  navigateToProfile(): void {
+    this.router.navigate(['/student/details']);
   }
 
   private calculateHours(bookings: ClassBooking[]): number {
@@ -111,6 +134,10 @@ export class StudentDashboardComponent implements OnInit {
     this.router.navigate(['/past-papers']);
   }
 
+  findTeacher(): void {
+    this.router.navigate(['/find-teacher']);
+  }
+
   viewTeacherProfile(teacherId: string): void {
     this.router.navigate(['/teacher-profile', teacherId]);
   }
@@ -125,6 +152,14 @@ export class StudentDashboardComponent implements OnInit {
 
   viewMyReviews(): void {
     this.router.navigate(['/my-reviews']);
+  }
+
+  viewLessonPlans(): void {
+    this.router.navigate(['/student/lesson-plans']);
+  }
+
+  viewResources(): void {
+    this.router.navigate(['/student/resources']);
   }
 
   applyFilters(): void {
@@ -149,5 +184,9 @@ export class StudentDashboardComponent implements OnInit {
       medium: ''
     };
     this.filteredTeachers = this.allTeachers;
+  }
+
+  logout(): void {
+    this.authService.logout();
   }
 }

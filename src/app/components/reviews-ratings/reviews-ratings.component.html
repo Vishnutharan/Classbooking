@@ -83,6 +83,7 @@
             />
             <div class="student-details">
               <h4>{{ review.studentName }}</h4>
+              <small *ngIf="review.teacherName && isStudentView">Teacher: {{ review.teacherName }}</small>
               <small>{{ review.date | date: 'MMM dd, yyyy' }}</small>
             </div>
           </div>
@@ -99,9 +100,36 @@
 
         <p class="review-text">{{ review.text }}</p>
 
+        <div *ngIf="editingReviewId === review.id" class="edit-review">
+          <label>Update Rating</label>
+          <select [(ngModel)]="editRating">
+            <option *ngFor="let r of [5,4,3,2,1]" [value]="r">{{ r }} ★</option>
+          </select>
+          <label>Update Comment</label>
+          <textarea rows="3" [(ngModel)]="editComment"></textarea>
+          <div class="edit-actions">
+            <button class="btn-submit" (click)="saveEdit()">Save</button>
+            <button class="btn-cancel" (click)="cancelEdit()">Cancel</button>
+          </div>
+        </div>
+
         <div class="review-actions">
           <button class="btn-helpful" (click)="markHelpful(review.id)">
             👍 Helpful ({{ review.helpful }})
+          </button>
+          <button
+            *ngIf="isStudentView && editingReviewId !== review.id"
+            class="btn-reply"
+            (click)="startEdit(review)"
+          >
+            ✏️ Edit
+          </button>
+          <button
+            *ngIf="isStudentView"
+            class="btn-cancel"
+            (click)="deleteReview(review.id)"
+          >
+            🗑 Delete
           </button>
         </div>
 

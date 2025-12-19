@@ -1,0 +1,57 @@
+<div class="page">
+  <div class="header">
+    <div>
+      <h1>📝 Lesson Planner</h1>
+      <p class="subtext">View lesson plans shared by teachers you have booked.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <label class="label">Select Teacher</label>
+    <div class="teacher-picker">
+      <select [(ngModel)]="selectedTeacherId" (ngModelChange)="onTeacherChange()">
+        <option value="">-- Choose your teacher --</option>
+        <option *ngFor="let teacher of teachers" [value]="teacher.id">
+          {{ teacher.name }}
+        </option>
+      </select>
+      <span class="hint" *ngIf="bookingsLoading">Loading teachers...</span>
+      <span class="hint" *ngIf="!bookingsLoading && teachers.length === 0">
+        Book a class to see lesson plans from your teacher.
+      </span>
+    </div>
+  </div>
+
+  <div class="card" *ngIf="selectedTeacherId">
+    <div class="card-header">
+      <h2>Lesson Plans</h2>
+      <span class="pill" *ngIf="lessonPlans.length">{{ lessonPlans.length }} plans</span>
+    </div>
+
+    <div *ngIf="isLoading" class="loader">Loading plans...</div>
+
+    <div class="plans-grid" *ngIf="!isLoading && lessonPlans.length">
+      <div class="plan-card" *ngFor="let plan of lessonPlans">
+        <div class="plan-top">
+          <h3>{{ plan.title }}</h3>
+          <span class="status" [ngClass]="plan.status.toLowerCase().replace(' ', '-')">
+            {{ plan.status }}
+          </span>
+        </div>
+        <p class="description">{{ plan.description || 'No description provided.' }}</p>
+        <div class="meta">
+          <span>📚 {{ plan.subject }}</span>
+          <span *ngIf="plan.level">🎓 {{ plan.level }}</span>
+          <span *ngIf="plan.durationMinutes">⏱️ {{ plan.durationMinutes }} mins</span>
+        </div>
+        <div class="date" *ngIf="plan.scheduledDate">
+          📆 Scheduled: {{ plan.scheduledDate | date:'MMM dd, yyyy' }}
+        </div>
+      </div>
+    </div>
+
+    <div class="empty" *ngIf="!isLoading && lessonPlans.length === 0">
+      No lesson plans shared yet for this teacher.
+    </div>
+  </div>
+</div>

@@ -17,113 +17,114 @@ export class LandingComponent implements OnInit {
 
   currentUser: User | null = null;
   isAuthenticated = false;
-
-  // 👇 ADD THIS
   isMobileMenuOpen = false;
 
-  // Features data
   features = [
     {
-      icon: '📚',
-      title: 'Book Classes',
-      description: 'Find and book classes with qualified teachers across various subjects.'
+      icon: 'CAL',
+      title: 'Smart scheduling',
+      description:
+        'Book, reschedule, and manage classes with live availability, reminders, and instant confirmations.'
     },
     {
-      icon: '👨‍🏫',
-      title: 'Expert Teachers',
-      description: 'Connect with experienced educators who are passionate about teaching.'
+      icon: 'FND',
+      title: 'Find the right teacher',
+      description:
+        'Search by subject, experience, ratings, and availability to match every student quickly.'
     },
     {
-      icon: '📅',
-      title: 'Flexible Scheduling',
-      description: 'Book classes at times that work best for you with our intuitive calendar.'
+      icon: 'DASH',
+      title: 'Role-based dashboards',
+      description:
+        'Students, teachers, and admins each get the tools they need without clutter or confusion.'
     },
     {
-      icon: '🎓',
-      title: 'Exam Preparation',
-      description: 'Access study materials, past papers, and exam preparation resources.'
+      icon: 'TRK',
+      title: 'Progress & exams',
+      description:
+        'Manage lesson plans, assignments, exam prep, results, and feedback in one place.'
     },
     {
-      icon: '📊',
-      title: 'Track Progress',
-      description: 'Monitor your learning journey with detailed progress tracking and analytics.'
+      icon: 'PAY',
+      title: 'Fees & admin',
+      description: 'Handle payments, receipts, user permissions, and attendance with confidence.'
     },
     {
-      icon: '💬',
-      title: 'Reviews & Ratings',
-      description: 'Read authentic reviews from students to find the perfect teacher.'
+      icon: 'MSG',
+      title: 'Messaging & alerts',
+      description: 'Reminders, follow-ups, and notifications keep everyone aligned and on time.'
     }
   ];
 
-  // How it works steps
   studentSteps = [
     {
-      number: '1',
-      title: 'Create Account',
-      description: 'Sign up as a student in just a few clicks.'
+      number: '01',
+      title: 'Create your space',
+      description: 'Sign up and personalize your learning goals.'
     },
     {
-      number: '2',
-      title: 'Browse Teachers',
-      description: 'Search and filter teachers by subject, experience, and ratings.'
+      number: '02',
+      title: 'Book the right class',
+      description: 'Filter teachers, pick a slot, and confirm instantly.'
     },
     {
-      number: '3',
-      title: 'Book Classes',
-      description: 'Select available time slots and book your class instantly.'
+      number: '03',
+      title: 'Stay ready',
+      description: 'Get reminders, resources, and a clear timetable.'
     },
     {
-      number: '4',
-      title: 'Start Learning',
-      description: 'Attend your class and track your progress over time.'
+      number: '04',
+      title: 'Track results',
+      description: 'Follow progress, grades, and feedback from your dashboard.'
     }
   ];
 
   teacherSteps = [
     {
-      number: '1',
-      title: 'Register as Teacher',
-      description: 'Create your teacher profile with qualifications and expertise.'
+      number: '01',
+      title: 'Set your profile',
+      description: 'Highlight subjects, experience, and rates.'
     },
     {
-      number: '2',
-      title: 'Set Availability',
-      description: 'Manage your schedule and set when you\'re available to teach.'
+      number: '02',
+      title: 'Publish availability',
+      description: 'Control your schedule and avoid conflicts.'
     },
     {
-      number: '3',
-      title: 'Receive Bookings',
-      description: 'Students discover your profile and book your available slots.'
+      number: '03',
+      title: 'Accept bookings',
+      description: 'Approve, message students, and prepare resources.'
     },
     {
-      number: '4',
-      title: 'Teach & Earn',
-      description: 'Conduct classes and manage your students efficiently.'
+      number: '04',
+      title: 'Teach and grow',
+      description: 'Track attendance, outcomes, and earnings.'
     }
   ];
 
-  // Testimonials
   testimonials = [
     {
-      name: 'Sarah Johnson',
-      role: 'Student',
-      avatar: '👩‍🎓',
+      name: 'Ayesha Perera',
+      role: 'Parent & Student',
+      avatar: 'AP',
       rating: 5,
-      text: 'ClassBooking made it easy to find the perfect math tutor. My grades have improved significantly!'
+      text:
+        'We book two classes a week and everything from reminders to results is in one dashboard.'
     },
     {
-      name: 'David Chen',
+      name: 'Ruwan Silva',
       role: 'Teacher',
-      avatar: '👨‍🏫',
+      avatar: 'RS',
       rating: 5,
-      text: 'As a teacher, this platform has helped me reach more students and manage my schedule efficiently.'
+      text:
+        'Scheduling, messaging, and resource sharing are finally in one place. My no-shows dropped dramatically.'
     },
     {
-      name: 'Emily Rodriguez',
-      role: 'Student',
-      avatar: '👩‍💼',
+      name: 'Meera Jayasinghe',
+      role: 'Academic Coordinator',
+      avatar: 'MJ',
       rating: 5,
-      text: 'The exam preparation resources are incredible. I passed my exams with flying colors!'
+      text: 'ClassBooking keeps attendance, fees, and teacher performance transparent for our team.'
     }
   ];
 

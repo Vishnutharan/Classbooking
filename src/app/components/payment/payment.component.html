@@ -1,0 +1,119 @@
+<div class="payment-page" *ngIf="booking; else loading">
+  <div class="header">
+    <div>
+      <p class="eyebrow">Booking Payment</p>
+      <h1>Complete your class booking</h1>
+      <p class="muted">Securely pay for <strong>{{ booking.subject }}</strong> with {{ booking.teacherName || 'your teacher' }}.</p>
+    </div>
+    <div class="status" [ngClass]="paymentMethod === 'Card' ? 'status-success' : 'status-pending'">
+      {{ paymentMethod === 'Card' ? 'Card' : 'Cash' }} selected
+    </div>
+  </div>
+
+  <div class="layout">
+    <div class="card">
+      <div class="card-header">
+        <h3>Payment method</h3>
+        <p>Choose how you want to pay for this class.</p>
+      </div>
+
+      <div class="method-toggle">
+        <button type="button"
+                [class.active]="paymentMethod === 'Card'"
+                (click)="paymentMethod = 'Card'">
+          Card
+        </button>
+        <button type="button"
+                [class.active]="paymentMethod === 'Cash'"
+                (click)="paymentMethod = 'Cash'">
+          Cash
+        </button>
+      </div>
+
+      <div *ngIf="paymentMethod === 'Card'" class="form-grid">
+        <label>
+          <span>Cardholder name</span>
+          <input type="text" [(ngModel)]="cardDetails.cardholderName" placeholder="As displayed on card">
+        </label>
+        <label>
+          <span>Card number</span>
+          <input type="text" [(ngModel)]="cardDetails.cardNumber" placeholder="1234 5678 9012 3456">
+        </label>
+        <div class="inline">
+          <label>
+            <span>Expiry month</span>
+            <input type="text" [(ngModel)]="cardDetails.expiryMonth" placeholder="MM">
+          </label>
+          <label>
+            <span>Expiry year</span>
+            <input type="text" [(ngModel)]="cardDetails.expiryYear" placeholder="YYYY">
+          </label>
+          <label>
+            <span>CVV</span>
+            <input type="password" [(ngModel)]="cardDetails.cvv" placeholder="***">
+          </label>
+        </div>
+        <div class="actions">
+          <button class="primary" [disabled]="isProcessing" (click)="submitPayment()">
+            {{ isProcessing ? 'Processing...' : 'Pay with Card' }}
+          </button>
+        </div>
+      </div>
+
+      <div *ngIf="paymentMethod === 'Cash'" class="cash-note">
+        <p class="muted">We will mark this booking as <strong>Pending cash payment</strong>. Please bring the exact amount to your session or pay your teacher directly.</p>
+        <button class="secondary" [disabled]="isProcessing" (click)="markCash()">
+          {{ isProcessing ? 'Saving...' : 'Confirm Cash Payment' }}
+        </button>
+      </div>
+    </div>
+
+    <div class="card summary">
+      <div class="card-header">
+        <h3>Booking summary</h3>
+        <p>Linked to this payment</p>
+      </div>
+      <ul class="summary-list">
+        <li>
+          <span>Student</span>
+          <strong>{{ currentUserName }}</strong>
+        </li>
+        <li>
+          <span>Teacher</span>
+          <strong>{{ booking.teacherName || 'Teacher' }}</strong>
+        </li>
+        <li>
+          <span>Subject</span>
+          <strong>{{ booking.subject }}</strong>
+        </li>
+        <li>
+          <span>Date & time</span>
+          <strong>{{ booking.date | date:'mediumDate' }} · {{ booking.startTime }} - {{ booking.endTime }}</strong>
+        </li>
+        <li>
+          <span>Class type</span>
+          <strong>{{ booking.classType }}</strong>
+        </li>
+        <li>
+          <span>Payment method</span>
+          <strong>{{ paymentMethod }}</strong>
+        </li>
+      </ul>
+      <div class="amount-due">
+        <p>Amount due</p>
+        <h2>LKR {{ amount | number:'1.2-2' }}</h2>
+      </div>
+      <div *ngIf="paymentResult" class="receipt">
+        <p class="muted">Saved in system</p>
+        <p class="badge" [ngClass]="paymentResult.paymentStatus === 'Paid' ? 'status-success' : 'status-pending'">
+          {{ paymentResult.paymentStatus }}
+        </p>
+        <p class="small">Reference: {{ paymentResult.transactionReference }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-template #loading>
+  <div class="loader">Loading payment details...</div>
+</ng-template>

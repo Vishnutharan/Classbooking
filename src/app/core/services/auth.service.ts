@@ -18,10 +18,11 @@ export class AuthService {
   private router = inject(Router);
   private platformId = inject(PLATFORM_ID);
   private mockData = inject(MockDataService);
-  private isBrowser: boolean;
+  private isBrowser = isPlatformBrowser(this.platformId);
 
-  private currentUserSubject = new BehaviorSubject<User | null>(this.getUserFromToken());
-  private isAuthenticatedSubject = new BehaviorSubject<boolean>(this.hasValidToken());
+  // Initialize with safe defaults
+  private currentUserSubject = new BehaviorSubject<User | null>(null);
+  private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
 
   currentUser$ = this.currentUserSubject.asObservable();
   isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
@@ -32,28 +33,34 @@ export class AuthService {
   private userKey = 'current_user';
 
   constructor() {
-    this.isBrowser = isPlatformBrowser(this.platformId);
+    // Explicitly load state in constructor to correctness on client
+    if (this.isBrowser) {
+        this.loadSession();
+    }
+  }
+
+  private loadSession(): void {
+    const user = this.getUserFromToken();
+    const isValid = this.hasValidToken();
+    
+    if (user && isValid) {
+        this.currentUserSubject.next(user);
+        this.isAuthenticatedSubject.next(true);
+    } else {
+        this.currentUserSubject.next(null);
+        this.isAuthenticatedSubject.next(false);
+    }
   }
 
   register(userData: any): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/register`, userData).pipe(
-      tap(response => this.handleAuthResponse(response)),
-      catchError(() =>
-        this.mockData
-          .register(userData.fullName, userData.email, userData.password, userData.role)
-          .pipe(tap(response => this.handleAuthResponse(response)))
-      )
+      tap(response => this.handleAuthResponse(response))
     );
   }
 
   login(credentials: LoginRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, credentials).pipe(
-      tap(response => this.handleAuthResponse(response)),
-      catchError(() =>
-        this.mockData
-          .login(credentials.email, credentials.password)
-          .pipe(tap(response => this.handleAuthResponse(response)))
-      )
+      tap(response => this.handleAuthResponse(response))
     );
   }
 

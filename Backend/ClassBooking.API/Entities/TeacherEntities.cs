@@ -47,6 +47,19 @@ namespace ClassBooking.API.Entities
         [MaxLength(50)]
         public string VerificationStatus { get; set; } = "Pending"; // Pending, Verified, Rejected
         
+        [MaxLength(4000)]
+        public string? Policies { get; set; }
+
+        [Required]
+        [MaxLength(20)]
+        public string TeachingMode { get; set; } = "ONLINE"; // ONLINE, IN_PERSON, BOTH
+
+        [MaxLength(500)]
+        public string? LocationAddress { get; set; }
+
+        [MaxLength(500)]
+        public string? MeetingLink { get; set; }
+        
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
@@ -98,6 +111,18 @@ namespace ClassBooking.API.Entities
         [Required]
         [MaxLength(50)]
         public string Level { get; set; } = "OLevel"; // Primary, OLevel, ALevel, Secondary, Advanced
+
+
+
+        [MaxLength(500)]
+        public string? Grades { get; set; } // Comma-separated: "Grade 6,Grade 7,Grade 8"
+
+        [MaxLength(50)]
+        public string? CurriculumBoard { get; set; } // CBSE, IB, IGCSE
+
+        [Required]
+        [MaxLength(100)]
+        public string ClassTypes { get; set; } = "PERSONAL_1_1"; // PERSONAL_1_1, GROUP
     }
     
     [Table("TeacherAvailabilities")]
@@ -105,7 +130,7 @@ namespace ClassBooking.API.Entities
     {
         [Key]
         public string Id { get; set; } = Guid.NewGuid().ToString();
-        
+
         [Required]
         public string TeacherProfileId { get; set; } = string.Empty;
         
@@ -121,6 +146,38 @@ namespace ClassBooking.API.Entities
         
         [Required]
         public string EndTime { get; set; } = string.Empty;
+    }
+
+    // Date-specific availability that can be locked by bookings
+    [Table("TeacherAvailabilitySlots")]
+    public class TeacherAvailabilitySlotEntity
+    {
+        [Key]
+        public string Id { get; set; } = Guid.NewGuid().ToString();
+
+        [Required]
+        public string TeacherProfileId { get; set; } = string.Empty;
+
+        [ForeignKey("TeacherProfileId")]
+        public TeacherProfileEntity? TeacherProfile { get; set; }
+
+        [Required]
+        public DateTime Date { get; set; }
+
+        [Required]
+        public string StartTime { get; set; } = string.Empty;
+
+        [Required]
+        public string EndTime { get; set; } = string.Empty;
+
+        // Available = free to book, Pending = locked by a pending booking, Booked = confirmed
+        [Required]
+        [MaxLength(30)]
+        public string Status { get; set; } = "Available";
+
+        public string? BookingId { get; set; }
+
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
     
     [Table("Reviews")]

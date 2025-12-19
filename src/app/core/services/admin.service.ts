@@ -16,6 +16,17 @@ export interface DashboardStats {
   averageRating: number;
 }
 
+export interface AdminReview {
+  id: string;
+  teacherId: string;
+  teacherName: string;
+  studentId: string;
+  studentName: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+}
+
 export interface CreateUserRequest {
   email: string;
   password: string;
@@ -182,6 +193,25 @@ export class AdminService {
   getTeacherPerformanceStats(): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/stats/teacher-performance`).pipe(
       catchError(() => this.mockData.getTeacherPerformanceStats())
+    );
+  }
+
+  // Reviews
+  getReviews(): Observable<AdminReview[]> {
+    return this.http.get<AdminReview[]>(`${this.apiUrl}/reviews`).pipe(
+      catchError(() => of([] as AdminReview[]))
+    );
+  }
+
+  updateReview(id: string, rating: number, comment: string): Observable<any> {
+    return this.http.put(`${this.apiUrl}/reviews/${id}`, { rating, comment }).pipe(
+      catchError(() => of({ success: true }))
+    );
+  }
+
+  deleteReview(id: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/reviews/${id}`).pipe(
+      catchError(() => of({ success: true }))
     );
   }
 

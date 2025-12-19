@@ -1,0 +1,94 @@
+
+
+
+using Microsoft.Data.SqlClient;
+using System.Data;
+
+namespace SFA_Dreamron.Context
+{
+    public class DapperContext
+    {
+        public readonly string _connectionString;
+
+
+
+        public DapperContext(IConfiguration configuration)
+        {
+            _connectionString = configuration.GetConnectionString("DefaultConnection");
+        }
+
+
+        public IDbConnection CreateConnection()
+        {
+            return new SqlConnection(_connectionString);
+        }
+
+    }
+}
+
+
+
+  modelBuilder.Entity<ItemMaster>(entity =>
+  {
+      entity.ToTable("ItemMaster", tb =>
+          {
+              tb.HasTrigger("ItemMaster_delete_trigger");
+              tb.HasTrigger("ItemMaster_insert_trigger");
+              tb.HasTrigger("ItemMaster_update_trigger");
+          });
+
+      entity.HasIndex(e => new { e.ProductGroupId, e.BudgetGroupId, e.Active }, "IDX_ItemMaster_ProductGroupId_BudgetGroupId_Active");
+
+      entity.HasIndex(e => e.BudgetGroupId, "IX_ItemMaster_BudgetGroupId_sre_SalesWithDateRange");
+
+      entity.HasIndex(e => e.Id, "IX_ItemMaster_Id");
+
+      entity.HasIndex(e => e.Id, "IX_ItemMaster_Id_sre_SalesWithDateRange");
+
+      entity.HasIndex(e => e.ItemCategoryId, "IX_ItemMaster_ItemCategoryId_sre_SalesWithDateRange");
+
+      entity.HasIndex(e => e.ProductGroupId, "IX_ItemMaster_ProductGroupId_sre_SalesWithDateRange");
+
+      entity.HasIndex(e => e.Id, "IX_ItemMaster_SalesWithDateRange");
+
+      entity.HasIndex(e => e.Id, "idx_ItemMaster_Id_");
+
+      entity.HasIndex(e => e.Id, "idx_itemmaster_Id");
+
+      entity.Property(e => e.Id).ValueGeneratedNever();
+      entity.Property(e => e.Active).HasDefaultValue(true);
+      entity.Property(e => e.CreatedBy)
+          .HasMaxLength(50)
+          .IsUnicode(false);
+      entity.Property(e => e.CreatedDateTime).HasColumnType("datetime");
+      entity.Property(e => e.ERPItemCode)
+          .HasMaxLength(20)
+          .IsUnicode(false)
+          .HasColumnName("ERPItemCode");
+      entity.Property(e => e.ERPItemCode2)
+          .HasMaxLength(20)
+          .IsUnicode(false)
+          .HasColumnName("ERPItemCode2");
+      entity.Property(e => e.LastModifiedBy)
+          .HasMaxLength(50)
+          .IsUnicode(false);
+      entity.Property(e => e.LastModifiedDateTime).HasColumnType("datetime");
+      entity.Property(e => e.Name)
+          .HasMaxLength(50)
+          .IsUnicode(false);
+      entity.Property(e => e.NameCode)
+          .HasMaxLength(50)
+          .IsUnicode(false);
+      entity.Property(e => e.SearchDescription)
+          .HasMaxLength(50)
+          .IsUnicode(false);
+      entity.Property(e => e.Sequence).HasDefaultValue(0);
+      entity.Property(e => e.StdLength).HasColumnType("decimal(18, 6)");
+      entity.Property(e => e.StdVolume).HasColumnType("decimal(18, 6)");
+      entity.Property(e => e.StdWeight).HasColumnType("decimal(18, 6)");
+      entity.Property(e => e.Syncable).HasDefaultValue(true);
+      entity.Property(e => e.Unit)
+          .HasMaxLength(6)
+          .IsUnicode(false);
+  });
+  

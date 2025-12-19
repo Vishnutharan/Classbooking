@@ -5,6 +5,7 @@ import { NotificationService } from '../../core/services/notification.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ClassBookingService } from '../../core/services/class-booking.service';
 import { ClassBooking } from '../../core/models/shared.models';
+import { StudentService } from '../../core/services/student.service';
 
 @Component({
   selector: 'app-my-bookings',
@@ -17,6 +18,7 @@ export class MyBookingsComponent implements OnInit {
   private bookingService = inject(ClassBookingService);
   private notificationService = inject(NotificationService);
   private authService = inject(AuthService);
+  private studentService = inject(StudentService);
 
   allBookings: ClassBooking[] = [];
   filteredBookings: ClassBooking[] = [];
@@ -174,8 +176,23 @@ export class MyBookingsComponent implements OnInit {
   }
 
   submitReview(): void {
-    this.notificationService.showSuccess('Review submitted');
-    this.closeReviewModal();
+    if (!this.selectedBooking) return;
+    if (this.ratingValue <= 0) {
+      this.notificationService.showWarning('Please select a rating before submitting');
+      return;
+    }
+
+    this.studentService.submitReview({
+      teacherId: this.selectedBooking.teacherId,
+      rating: this.ratingValue,
+      comment: this.reviewText
+    }).subscribe({
+      next: () => {
+        this.notificationService.showSuccess('Review submitted');
+        this.closeReviewModal();
+      },
+      error: () => this.notificationService.showError('Failed to submit review')
+    });
   }
 
   cancelBooking(booking: ClassBooking): void {

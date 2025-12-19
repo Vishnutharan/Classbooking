@@ -1,7 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FeePayment } from '../../core/models/admin.models';
+import { PaymentIntegrationService } from '../../core/services/payment-integration.service';
+import { PaymentRecord } from '../../core/models/payment.models';
+import { NotificationService } from '../../core/services/notification.service';
 
 @Component({
     selector: 'app-fee-management',
@@ -11,6 +14,9 @@ import { FeePayment } from '../../core/models/admin.models';
     styleUrls: ['./fee-management.component.css']
 })
 export class FeeManagementComponent implements OnInit {
+    private paymentService = inject(PaymentIntegrationService);
+    private notificationService = inject(NotificationService);
+
     payments: FeePayment[] = [];
     filteredPayments: FeePayment[] = [];
     searchTerm: string = '';
@@ -26,47 +32,38 @@ export class FeeManagementComponent implements OnInit {
     showAddModal: boolean = false;
 
     ngOnInit(): void {
-        this.loadDemoData();
+        this.loadPayments();
     }
 
-    loadDemoData() {
-        // Sri Lankan context demo data
-        this.payments = [
-            {
-                id: 'PAY-001',
-                studentId: 'ST-2023001',
-                studentName: 'Kasun Perera',
-                amount: 2500,
-                month: 'October',
-                year: 2023,
-                date: new Date('2023-10-05'),
-                status: 'Paid',
-                type: 'Monthly Fee'
+    loadPayments() {
+        this.paymentService.getAdminPayments().subscribe({
+            next: (records) => {
+                this.payments = (records || []).map(r => this.mapRecordToFeePayment(r));
+                this.filteredPayments = [...this.payments];
             },
-            {
-                id: 'PAY-002',
-                studentId: 'ST-2023002',
-                studentName: 'Nimali Fernando',
-                amount: 2500,
-                month: 'October',
-                year: 2023,
-                date: new Date('2023-10-06'),
-                status: 'Paid',
-                type: 'Monthly Fee'
-            },
-            {
-                id: 'PAY-003',
-                studentId: 'ST-2023003',
-                studentName: 'Ruwan Silva',
-                amount: 1000,
-                month: 'October',
-                year: 2023,
-                date: new Date('2023-10-10'),
-                status: 'Pending',
-                type: 'Exam Fee'
+            error: () => {
+                this.notificationService.showError('Failed to load payments. Showing cached/manual entries.');
+                this.filteredPayments = [...this.payments];
             }
-        ];
-        this.filteredPayments = [...this.payments];
+        });
+    }
+
+    private mapRecordToFeePayment(record: PaymentRecord): FeePayment {
+        const date = record.sessionDate ? new Date(record.sessionDate) : new Date(record.createdAt);
+        const month = date.toLocaleString('default', { month: 'long' });
+        const status = record.paymentStatus?.toLowerCase() === 'paid' ? 'Paid' : 'Pending';
+
+        return {
+            id: record.id,
+            studentId: record.studentId || 'N/A',
+            studentName: record.studentName || 'Student',
+            amount: record.amount || 0,
+            month,
+            year: date.getFullYear(),
+            date,
+            status: status as any,
+            type: record.paymentMethod ? `${record.paymentMethod} Payment` as any : 'Monthly Fee'
+        };
     }
 
     filterPayments() {

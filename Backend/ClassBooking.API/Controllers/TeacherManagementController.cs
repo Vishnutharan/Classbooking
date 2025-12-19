@@ -44,93 +44,33 @@ namespace ClassBooking.API.Controllers
         }
 
         // Profile Management
-[HttpGet("profile")]
-public async Task<ActionResult<TeacherProfile>> GetMyProfile()
-{
-    // Log all claims for debugging
-    _logger.LogInformation("=== GetMyProfile Debug Info ===");
-    foreach (var claim in User.Claims)
-    {
-        _logger.LogInformation($"Claim: {claim.Type} = {claim.Value}");
-    }
+        [HttpGet("profile")]
+        public async Task<ActionResult<TeacherProfile>> GetMyProfile()
+        {
+            // Log all claims for debugging
+            _logger.LogInformation("=== GetMyProfile Debug Info ===");
+            foreach (var claim in User.Claims)
+            {
+                _logger.LogInformation($"Claim: {claim.Type} = {claim.Value}");
+            }
 
-    // Try multiple claim types
-    var userId = User.FindFirst("userId")?.Value 
-        ?? User.FindFirst("sub")?.Value 
-        ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
-        ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value;
-    
-    _logger.LogInformation($"Extracted userId: '{userId}'");
+            var userId = ExtractUserId();
 
-    if (string.IsNullOrEmpty(userId))
-    {
-        _logger.LogError("UserId is null or empty. User is not properly authenticated.");
-        return Unauthorized(new { message = "User ID not found in token" });
-    }
+            if (string.IsNullOrEmpty(userId))
+            {
+                _logger.LogError("UserId is null or empty. User is not properly authenticated.");
+                return Unauthorized(new { message = "User ID not found in token" });
+            }
 
-    // Try to get existing teacher profile
-    var teacher = await _teacherService.GetTeacherByUserIdAsync(userId);
-    
-    if (teacher != null)
-    {
-        _logger.LogInformation($"Teacher profile found for userId: {userId}");
-        return Ok(teacher);
-    }
+            var teacher = await EnsureTeacherProfile(userId);
+            if (teacher == null)
+            {
+                _logger.LogError($"Teacher profile creation failed for userId: {userId}");
+                return StatusCode(500, new { message = "Failed to create teacher profile" });
+            }
 
-    _logger.LogWarning($"No teacher profile found for userId: {userId}. Attempting to create one.");
-    
-    // Self-healing: Create profile if user exists but profile doesn't
-    var user = await _userRepository.GetByIdAsync(userId);
-    
-    if (user == null)
-    {
-        _logger.LogError($"User record not found for userId: {userId}");
-        return NotFound(new { message = $"User not found in database for ID: {userId}" });
-    }
-
-    _logger.LogInformation($"User found - Role: {user.Role}");
-
-    // Check if user is actually a teacher
-    if (!string.Equals(user.Role, "Teacher", StringComparison.OrdinalIgnoreCase))
-    {
-        _logger.LogError($"User role is '{user.Role}', not 'Teacher'");
-        return Forbid();
-    }
-
-    // Create new teacher profile
-    _logger.LogInformation("Creating new teacher profile...");
-    var newProfile = new Entities.TeacherProfileEntity
-    {
-        UserId = userId,
-        FullName = user.FullName ?? "Unknown",
-        Email = user.Email ?? "",
-        PhoneNumber = user.PhoneNumber ?? "",
-        HourlyRate = 0,
-        ExperienceYears = 0,
-        AverageRating = 0,
-        TotalReviews = 0,
-        TotalClasses = 0,
-        IsAvailable = true,
-        VerificationStatus = "Pending",
-        CreatedAt = DateTime.UtcNow,
-        UpdatedAt = DateTime.UtcNow
-    };
-
-    try
-    {
-        await _teacherRepository.CreateTeacherAsync(newProfile);
-        _logger.LogInformation($"Teacher profile created successfully for userId: {userId}");
-        
-        // Fetch and return the newly created profile
-        var createdTeacher = await _teacherService.GetTeacherByUserIdAsync(userId);
-        return Ok(createdTeacher);
-    }
-    catch (Exception ex)
-    {
-        _logger.LogError($"Failed to create teacher profile: {ex.Message}");
-        return StatusCode(500, new { message = "Failed to create teacher profile" });
-    }
-}
+            return Ok(teacher);
+        }
         [HttpPut("profile")]
         public async Task<ActionResult<TeacherProfile>> UpdateProfile([FromBody] UpdateTeacherProfileRequest request)
         {
@@ -138,7 +78,7 @@ public async Task<ActionResult<TeacherProfile>> GetMyProfile()
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized();
 
-            var teacher = await _teacherService.GetTeacherByUserIdAsync(userId);
+            var teacher = await EnsureTeacherProfile(userId);
             if (teacher == null)
                 return NotFound("Teacher profile not found");
 
@@ -156,6 +96,44 @@ public async Task<ActionResult<TeacherProfile>> GetMyProfile()
         }
 
         // Subject Management
+        [HttpPost("profile/picture")]
+        public async Task<ActionResult> UploadProfilePicture([FromForm] IFormFile file)
+        {
+            var userId = User.FindFirst("userId")?.Value ?? User.FindFirst("sub")?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var teacher = await EnsureTeacherProfile(userId);
+            if (teacher == null)
+                return NotFound("Teacher profile not found");
+
+            if (file == null || file.Length == 0)
+                return BadRequest("No file uploaded");
+
+            // Ensure uploads directory exists
+            var uploadsPath = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+            if (!System.IO.Directory.Exists(uploadsPath))
+                System.IO.Directory.CreateDirectory(uploadsPath);
+
+            var fileName = $"{teacher.Id}_{Guid.NewGuid()}{System.IO.Path.GetExtension(file.FileName)}";
+            var filePath = System.IO.Path.Combine(uploadsPath, fileName);
+
+            using (var stream = new System.IO.FileStream(filePath, System.IO.FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            // Generate URL
+            var request = HttpContext.Request;
+            var baseUrl = $"{request.Scheme}://{request.Host}";
+            var fileUrl = $"{baseUrl}/uploads/{fileName}";
+
+            // Update Teacher Profile
+            await _teacherService.UpdateTeacherProfileAsync(teacher.Id, new TeacherProfile { ProfilePicture = fileUrl });
+
+            return Ok(new { url = fileUrl });
+        }
+
         [HttpPost("profile/subjects")]
         public async Task<ActionResult<TeacherSubject>> AddSubject([FromBody] TeacherSubject subject)
         {
@@ -163,7 +141,7 @@ public async Task<ActionResult<TeacherProfile>> GetMyProfile()
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized();
 
-            var teacher = await _teacherService.GetTeacherByUserIdAsync(userId);
+            var teacher = await EnsureTeacherProfile(userId);
             if (teacher == null)
                 return NotFound("Teacher profile not found");
 
@@ -189,7 +167,7 @@ public async Task<ActionResult<TeacherProfile>> GetMyProfile()
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized();
 
-            var teacher = await _teacherService.GetTeacherByUserIdAsync(userId);
+            var teacher = await EnsureTeacherProfile(userId);
             if (teacher == null)
                 return NotFound("Teacher profile not found");
 
@@ -197,18 +175,75 @@ public async Task<ActionResult<TeacherProfile>> GetMyProfile()
             return Ok();
         }
 
-        // Student Management
-       // Student Management
-[HttpGet("students")]
-        public async Task<ActionResult> GetTeacherStudents()
+        [HttpGet("availability/slots")]
+        public async Task<ActionResult> GetAvailabilitySlots([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
         {
             var userId = User.FindFirst("userId")?.Value ?? User.FindFirst("sub")?.Value;
-           if (string.IsNullOrEmpty(userId))
+            if (string.IsNullOrEmpty(userId))
                 return Unauthorized();
 
-            var teacher = await _teacherService.GetTeacherByUserIdAsync(userId);
+            var teacher = await EnsureTeacherProfile(userId);
             if (teacher == null)
                 return NotFound("Teacher profile not found");
+
+            var slots = await _teacherService.GetAvailabilitySlotsAsync(teacher.Id, startDate, endDate);
+            return Ok(slots);
+        }
+
+        [HttpPost("availability/slots")]
+        public async Task<ActionResult> AddAvailabilitySlot([FromBody] AvailabilitySlotRequest request)
+        {
+            var userId = User.FindFirst("userId")?.Value ?? User.FindFirst("sub")?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var teacher = await EnsureTeacherProfile(userId);
+            if (teacher == null)
+                return NotFound("Teacher profile not found");
+
+            if (request.Date.Date < DateTime.UtcNow.Date)
+                return BadRequest("Cannot add slots in the past");
+
+            var existing = await _teacherService.FindAvailabilitySlotAsync(teacher.Id, request.Date, request.StartTime, request.EndTime);
+            if (existing != null)
+                return Conflict("Slot already exists");
+
+            var slot = await _teacherService.AddAvailabilitySlotAsync(teacher.Id, request.Date, request.StartTime, request.EndTime);
+            return Ok(slot);
+        }
+
+        [HttpDelete("availability/slots/{slotId}")]
+        public async Task<ActionResult> DeleteAvailabilitySlot(string slotId)
+        {
+            var userId = User.FindFirst("userId")?.Value ?? User.FindFirst("sub")?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var teacher = await EnsureTeacherProfile(userId);
+            if (teacher == null)
+                return NotFound("Teacher profile not found");
+
+            var deleted = await _teacherService.DeleteAvailabilitySlotAsync(slotId, teacher.Id);
+            if (!deleted)
+                return BadRequest("Unable to delete slot. It may be locked by a booking or does not exist.");
+
+            var students = await _teacherRepository.GetTeacherStudentsAsync(teacher.Id);
+            return Ok(students);
+        }
+
+        [HttpGet("students")]
+        public async Task<ActionResult> GetMyStudents()
+        {
+            var userId = User.FindFirst("userId")?.Value ?? User.FindFirst("sub")?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var teacher = await EnsureTeacherProfile(userId);
+            if (teacher == null)
+            {
+                // Fallback: avoid 404 to keep UI usable, return empty list with hint
+                return Ok(Array.Empty<object>());
+            }
 
             var students = await _teacherRepository.GetTeacherStudentsAsync(teacher.Id);
             return Ok(students);
@@ -234,7 +269,7 @@ public async Task<ActionResult<TeacherProfile>> GetMyProfile()
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized();
 
-            var teacher = await _teacherService.GetTeacherByUserIdAsync(userId);
+            var teacher = await EnsureTeacherProfile(userId);
             if (teacher == null)
                 return NotFound("Teacher profile not found");
 
@@ -249,7 +284,7 @@ public async Task<ActionResult<TeacherProfile>> GetMyProfile()
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized();
 
-            var teacher = await _teacherService.GetTeacherByUserIdAsync(userId);
+            var teacher = await EnsureTeacherProfile(userId);
             if (teacher == null)
                 return NotFound("Teacher profile not found");
 
@@ -448,6 +483,45 @@ public async Task<ActionResult<TeacherProfile>> GetMyProfile()
                 
             return Ok(announcement);
         }
+
+        // Helper methods (controller scope)
+        private string? ExtractUserId()
+        {
+            return User.FindFirst("userId")?.Value
+                ?? User.FindFirst("sub")?.Value
+                ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value;
+        }
+
+        private async Task<TeacherProfile?> EnsureTeacherProfile(string userId)
+        {
+            var existing = await _teacherService.GetTeacherByUserIdAsync(userId);
+            if (existing != null) return existing;
+
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null) return null;
+            if (!string.Equals(user.Role, "Teacher", StringComparison.OrdinalIgnoreCase)) return null;
+
+            var newProfile = new Entities.TeacherProfileEntity
+            {
+                UserId = userId,
+                FullName = user.FullName ?? "Unknown",
+                Email = user.Email ?? "",
+                PhoneNumber = user.PhoneNumber ?? "",
+                HourlyRate = 0,
+                ExperienceYears = 0,
+                AverageRating = 0,
+                TotalReviews = 0,
+                TotalClasses = 0,
+                IsAvailable = true,
+                VerificationStatus = "Pending",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            await _teacherRepository.CreateTeacherAsync(newProfile);
+            return await _teacherService.GetTeacherByUserIdAsync(userId);
+        }
     }
 
     // Request DTOs
@@ -497,5 +571,12 @@ public async Task<ActionResult<TeacherProfile>> GetMyProfile()
         public string Title { get; set; } = string.Empty;
         public string Content { get; set; } = string.Empty;
         public string TargetAudience { get; set; } = "All";
+    }
+
+    public class AvailabilitySlotRequest
+    {
+        public DateTime Date { get; set; }
+        public string StartTime { get; set; } = string.Empty;
+        public string EndTime { get; set; } = string.Empty;
     }
 }

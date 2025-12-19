@@ -8,10 +8,16 @@ namespace ClassBooking.API.Models
         public string TeacherId { get; set; } = string.Empty;
         public string TeacherName { get; set; } = string.Empty;
         public string Subject { get; set; } = string.Empty;
+        public string? BookingGradeLevel { get; set; }
         public DateTime Date { get; set; }
         public string StartTime { get; set; } = string.Empty;
         public string EndTime { get; set; } = string.Empty;
         public string Status { get; set; } = "Pending"; // Pending, Confirmed, Cancelled, Completed
+        public string PaymentStatus { get; set; } = "Pending";
+        public decimal Price { get; set; }
+        public int DurationMinutes { get; set; }
+        public string Mode { get; set; } = "ONLINE";
+        public string? LocationOrLink { get; set; }
         public string ClassType { get; set; } = "OneTime"; // OneTime, Recurring
         public List<string>? RecurringDays { get; set; }
         public string? Notes { get; set; }
@@ -24,11 +30,18 @@ namespace ClassBooking.API.Models
     {
         public string TeacherId { get; set; } = string.Empty;
         public string Subject { get; set; } = string.Empty;
+        public string? BookingGradeLevel { get; set; }
         public DateTime Date { get; set; }
         public string StartTime { get; set; } = string.Empty;
         public string EndTime { get; set; } = string.Empty;
         public string ClassType { get; set; } = "OneTime";
+        public string Mode { get; set; } = "ONLINE"; // ONLINE, IN_PERSON
         public string? Notes { get; set; }
+
+        // New fields for student details capture
+        public string? School { get; set; }
+        public string? ParentName { get; set; }
+        public string? ParentContact { get; set; }
     }
 
     public class BookingResponse
@@ -37,6 +50,6 @@ namespace ClassBooking.API.Models
         public string Id { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;
         public string Message { get; set; } = string.Empty;
+        public ClassBooking? Booking { get; set; }
     }
 }
-

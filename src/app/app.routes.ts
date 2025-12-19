@@ -46,6 +46,24 @@ export const routes: Routes = [
       )
   },
   {
+    path: 'payment/:bookingId',
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['Student'] },
+    loadComponent: () =>
+      import('./components/payment/payment.component').then(
+        m => m.PaymentComponent
+      )
+  },
+  {
+    path: 'find-teacher',
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['Student'] },
+    loadComponent: () =>
+      import('./components/find-teacher/find-teacher.component').then(
+        m => m.FindTeacherComponent
+      )
+  },
+  {
     path: 'my-bookings',
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['Student', 'Teacher'] },
@@ -100,6 +118,15 @@ export const routes: Routes = [
       )
   },
   {
+    path: 'student/lesson-plans',
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['Student'] },
+    loadComponent: () =>
+      import('./components/student-lesson-plans/student-lesson-plans.component').then(
+        m => m.StudentLessonPlansComponent
+      )
+  },
+  {
     path: 'my-reviews',
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['Student'] },
@@ -110,6 +137,25 @@ export const routes: Routes = [
   },
 
   // TEACHER & STUDENT PROFILE
+  {
+    path: 'student/resources',
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['Student'] },
+    loadComponent: () =>
+      import('./components/student-dashboard/student-resources/student-resources.component').then(
+        m => m.StudentResourcesComponent
+      )
+  },
+  {
+    path: 'student/details',
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['Student'] },
+    loadComponent: () =>
+      import('./components/student-details/student-details.component').then(
+        m => m.StudentDetailsComponent
+      )
+  },
+
   {
     path: 'teacher-profile/:id',
     canActivate: [AuthGuard, RoleGuard],
@@ -252,6 +298,15 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./components/timetable-management/timetable-management.component').then(
         m => m.TimetableManagementComponent
+      )
+  },
+  {
+    path: 'timetable',
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['Student', 'Teacher', 'Admin'] },
+    loadComponent: () =>
+      import('./components/timetable-feed/timetable-feed.component').then(
+        m => m.TimetableFeedComponent
       )
   },
   {

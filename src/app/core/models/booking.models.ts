@@ -12,7 +12,13 @@ export interface ClassBooking {
     startTime: string;
     endTime: string;
     status: 'Pending' | 'Confirmed' | 'Cancelled' | 'Completed';
-    classType: 'OneTime' | 'Recurring';
+    paymentStatus: 'Pending' | 'Paid' | 'Failed' | 'Refunded';
+    classType: 'Personal_1_1' | 'Group' | 'OneTime' | 'Recurring'; // Extending existing types
+    mode: 'ONLINE' | 'IN_PERSON';
+    locationOrLink: string;
+    price: number;
+    durationMinutes: number;
+    bookingGradeLevel: string;
     recurringDays?: string[];
     notes?: string;
     meetingLink?: string;
@@ -26,8 +32,9 @@ export interface BookingRequest {
     date: Date;
     startTime: string;
     endTime: string;
-    classType: 'OneTime' | 'Recurring';
-    recurringDays?: string[];
+    classType: 'Personal_1_1' | 'Group' | 'OneTime' | 'Recurring';
+    mode: 'ONLINE' | 'IN_PERSON';
+    bookingGradeLevel: string;
     notes?: string;
 }
 

@@ -3,16 +3,20 @@ import { Component, inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { Router } from '@angular/router';
 import { TeacherService } from '../../core/services/teacher.service';
 import { ClassBookingService } from '../../core/services/class-booking.service';
-import { TeacherProfile, ClassBooking } from '../../core/models/shared.models';
+import { TeacherProfile, ClassBooking, TimetableEvent } from '../../core/models/shared.models';
 import { NotificationService } from '../../core/services/notification.service';
+import { TimetableService } from '../../core/services/timetable.service';
 import { forkJoin } from 'rxjs';
+import { AuthService } from '../../core/services/auth.service';
+import { PaymentIntegrationService } from '../../core/services/payment-integration.service';
+import { PaymentRecord } from '../../core/models/payment.models';
 
 @Component({
   selector: 'app-teacher-dashboard',
   standalone: true,
   imports: [CommonModule],
   templateUrl: './teacher-dashboard.component.html',
-  styleUrl: './teacher-dashboard.component.css'
+  styleUrls: ['./teacher-dashboard.component.css']
 })
 
 export class TeacherDashboardComponent implements OnInit {
@@ -21,6 +25,9 @@ export class TeacherDashboardComponent implements OnInit {
   private notificationService = inject(NotificationService);
   private router = inject(Router);
   private platformId = inject(PLATFORM_ID);
+  private timetableService = inject(TimetableService);
+  private authService = inject(AuthService);
+  private paymentService = inject(PaymentIntegrationService);
 
   teacherProfile: TeacherProfile | null = null;
   upcomingClasses: ClassBooking[] = [];
@@ -28,6 +35,7 @@ export class TeacherDashboardComponent implements OnInit {
   pendingRequests: ClassBooking[] = [];
   recentReviews: any[] = [];
   isLoading = false;
+  timetableEvents: TimetableEvent[] = [];
 
   stats = {
     totalStudents: 0,
@@ -43,6 +51,17 @@ export class TeacherDashboardComponent implements OnInit {
   };
 
   monthlyEarnings: any[] = [];
+  today = new Date();
+  recentPayments: PaymentRecord[] = [];
+
+  ratingWidth(value: number): number {
+    const safe = Number.isFinite(value) ? value : 0;
+    return Math.min(Math.max(safe * 20, 0), 100);
+  }
+
+  logout(): void {
+    this.authService.logout();
+  }
 
   ngOnInit(): void {
     // Only load data on the browser, not during SSR
@@ -56,10 +75,13 @@ export class TeacherDashboardComponent implements OnInit {
 
     forkJoin({
       profile: this.teacherService.getMyProfile(),
-      bookings: this.bookingService.getTeacherBookings()
+      bookings: this.bookingService.getTeacherBookings(),
+      timetable: this.timetableService.getTimetableForUser(),
+      payments: this.paymentService.getTeacherPayments()
     }).subscribe({
-      next: ({ profile, bookings }) => {
+      next: ({ profile, bookings, timetable, payments }) => {
         this.teacherProfile = profile;
+        this.timetableEvents = (timetable || []).slice(0, 5);
 
         this.populateBookingCollections(bookings);
         this.stats.averageRating = profile.averageRating || 0;
@@ -73,6 +95,7 @@ export class TeacherDashboardComponent implements OnInit {
 
         this.updateMonthlyTrend(bookings);
         this.loadReviews(profile.id);
+        this.recentPayments = (payments || []).slice(0, 5);
         this.isLoading = false;
       },
       error: () => {
@@ -90,7 +113,11 @@ export class TeacherDashboardComponent implements OnInit {
 
     this.teacherService.getTeacherReviews(teacherId).subscribe({
       next: (reviews) => {
-        this.recentReviews = (reviews || []).slice(0, 5);
+        this.recentReviews = (reviews || []).map(r => ({
+          ...r,
+          text: r.comment || r.text || '',
+          date: new Date(r.createdAt || r.date)
+        })).slice(0, 5);
       },
       error: () => {
         this.recentReviews = [];

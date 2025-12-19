@@ -43,6 +43,7 @@ builder.Services.AddScoped<IAttendanceRepository, AttendanceRepository>();
 builder.Services.AddScoped<ILessonPlanRepository, LessonPlanRepository>();
 builder.Services.AddScoped<IResourceRepository, ResourceRepository>();
 builder.Services.AddScoped<IAnalyticsRepository, AnalyticsRepository>();
+builder.Services.AddScoped<ITimetableRepository, TimetableRepository>();
 
 // Services
 builder.Services.AddScoped<IExamService, ExamService>();
@@ -56,6 +57,8 @@ builder.Services.AddScoped<IEmailService, MockEmailService>();
 builder.Services.AddScoped<IAttendanceService, AttendanceService>();
 builder.Services.AddScoped<ILessonPlanService, LessonPlanService>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
+builder.Services.AddScoped<ITimetableService, TimetableService>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
 
 // CORS Configuration (MUST be BEFORE Authentication)
 builder.Services.AddCors(options =>
@@ -97,6 +100,32 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = jwtSettings["Audience"],
         ClockSkew = TimeSpan.Zero
     };
+
+    options.Events = new JwtBearerEvents
+    {
+        OnAuthenticationFailed = context =>
+        {
+            var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+            logger.LogError("Authentication failed: {Message}", context.Exception.Message);
+            return Task.CompletedTask;
+        },
+        OnTokenValidated = context =>
+        {
+            var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+            logger.LogInformation("Token validated successfully for user: {User}", context.Principal?.Identity?.Name);
+            
+            var claims = context.Principal?.Claims.Select(c => $"{c.Type}: {c.Value}").ToList();
+            logger.LogInformation("Claims in Token: {Claims}", string.Join(", ", claims ?? new List<string>()));
+            
+            return Task.CompletedTask;
+        },
+        OnChallenge = context =>
+        {
+            var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+            logger.LogWarning("OnChallenge: {Error}, {ErrorDescription}", context.Error, context.ErrorDescription);
+            return Task.CompletedTask;
+        }
+    };
 });
 
 var app = builder.Build();
@@ -113,6 +142,8 @@ app.UseHttpsRedirection();
 
 // Global Exception Handler (MUST be early in pipeline)
 app.UseGlobalExceptionHandler();
+
+app.UseStaticFiles();
 
 // CORS MUST be called BEFORE Authentication & Authorization
 app.UseCors("AllowAngularApp");

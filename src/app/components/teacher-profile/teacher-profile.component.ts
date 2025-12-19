@@ -47,7 +47,11 @@ export class TeacherProfileComponent implements OnInit {
   private loadReviews(teacherId: string): void {
     this.teacherService.getTeacherReviews(teacherId).subscribe({
       next: (reviews) => {
-        this.reviews = reviews;
+        this.reviews = reviews.map(r => ({
+          ...r,
+          text: r.comment || r.text || '',
+          date: new Date(r.createdAt || r.date)
+        }));
         this.isLoading = false;
       },
       error: () => {
@@ -57,7 +61,16 @@ export class TeacherProfileComponent implements OnInit {
   }
 
   bookClass(): void {
-    this.router.navigate(['/book-class']);
+    const queryParams: any = {
+        teacherId: this.teacher?.id
+    };
+    
+    // Forward existing query params (context)
+    const currentParams = this.route.snapshot.queryParams;
+    if (currentParams['subject']) queryParams['subject'] = currentParams['subject'];
+    if (currentParams['grade']) queryParams['grade'] = currentParams['grade'];
+
+    this.router.navigate(['/book-class'], { queryParams });
   }
 
   shareProfile(): void {

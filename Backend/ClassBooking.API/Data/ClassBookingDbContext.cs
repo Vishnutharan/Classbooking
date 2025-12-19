@@ -33,6 +33,8 @@ namespace ClassBooking.API.Data
         public DbSet<AnnouncementEntity> Announcements { get; set; }
         public DbSet<ResourceEntity> Resources { get; set; }
         public DbSet<ExamPreparationEntity> ExamPreparations { get; set; }
+        public DbSet<TeacherAvailabilitySlotEntity> TeacherAvailabilitySlots { get; set; }
+        public DbSet<TimetableEventEntity> TimetableEvents { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -54,6 +56,7 @@ namespace ClassBooking.API.Data
                 entity.HasKey(e => e.Id);
                 entity.HasIndex(e => e.UserId).IsUnique();
                 entity.HasIndex(e => e.Email);
+                entity.Property(e => e.HourlyRate).HasColumnType("decimal(18,2)");
                 
                 entity.HasOne(e => e.User)
                     .WithMany()
@@ -99,6 +102,21 @@ namespace ClassBooking.API.Data
                 entity.HasIndex(e => e.TeacherProfileId);
             });
 
+            modelBuilder.Entity<TeacherAvailabilitySlotEntity>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.HasIndex(e => new { e.TeacherProfileId, e.Date });
+                entity.HasIndex(e => new { e.TeacherProfileId, e.Status });
+            });
+
+            modelBuilder.Entity<TimetableEventEntity>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.HasIndex(e => e.Date);
+                entity.HasIndex(e => e.Audience);
+                entity.Property(e => e.Title).IsRequired();
+            });
+
             modelBuilder.Entity<ReviewEntity>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -134,6 +152,7 @@ namespace ClassBooking.API.Data
                 entity.HasIndex(e => e.TeacherId);
                 entity.HasIndex(e => e.Date);
                 entity.HasIndex(e => e.Status);
+                entity.Property(e => e.Price).HasColumnType("decimal(18,2)");
             });
 
             // Configure StudentProfile entity

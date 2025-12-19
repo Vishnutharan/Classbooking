@@ -63,8 +63,10 @@ namespace ClassBooking.API.Models
     {
         public string BookingId { get; set; } = string.Empty;
         public decimal Amount { get; set; }
+        public string Currency { get; set; } = "LKR";
         public string PaymentMethod { get; set; } = string.Empty;
         public string? PaymentDetails { get; set; } // Card info, bank details, etc.
+        public CardPaymentDetails? Card { get; set; }
     }
 
     public class PaymentResponse
@@ -73,6 +75,41 @@ namespace ClassBooking.API.Models
         public string Message { get; set; } = string.Empty;
         public string? TransactionId { get; set; }
         public FeeTransaction? Transaction { get; set; }
+    }
+
+    public class CardPaymentDetails
+    {
+        public string CardholderName { get; set; } = string.Empty;
+        public string CardNumber { get; set; } = string.Empty;
+        public string ExpiryMonth { get; set; } = string.Empty;
+        public string ExpiryYear { get; set; } = string.Empty;
+        public string Cvv { get; set; } = string.Empty;
+    }
+
+    public class PaymentRecord
+    {
+        public string Id { get; set; } = string.Empty;
+        public string BookingId { get; set; } = string.Empty;
+        public string StudentId { get; set; } = string.Empty;
+        public string StudentName { get; set; } = string.Empty;
+        public string StudentEmail { get; set; } = string.Empty;
+        public string TeacherId { get; set; } = string.Empty;
+        public string TeacherName { get; set; } = string.Empty;
+        public string TeacherEmail { get; set; } = string.Empty;
+        public string Subject { get; set; } = string.Empty;
+        public string ClassType { get; set; } = string.Empty;
+        public DateTime SessionDate { get; set; }
+        public string StartTime { get; set; } = string.Empty;
+        public string EndTime { get; set; } = string.Empty;
+        public int DurationMinutes { get; set; }
+        public string PaymentMethod { get; set; } = string.Empty;
+        public string PaymentStatus { get; set; } = string.Empty;
+        public decimal Amount { get; set; }
+        public string Currency { get; set; } = "LKR";
+        public string? TransactionReference { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? PaidAt { get; set; }
+        public string? Notes { get; set; }
     }
 
     public class EarningsData

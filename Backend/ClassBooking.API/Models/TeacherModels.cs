@@ -1,3 +1,4 @@
+
 namespace ClassBooking.API.Models
 {
     public class TeacherProfile
@@ -21,6 +22,10 @@ namespace ClassBooking.API.Models
         public string VerificationStatus { get; set; } = "Pending"; // Pending, Verified, Rejected
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
+        public string? Policies { get; set; }
+        public string TeachingMode { get; set; } = "ONLINE";
+        public string? LocationAddress { get; set; }
+        public string? MeetingLink { get; set; }
     }
 
     public class TeacherSubject
@@ -29,6 +34,9 @@ namespace ClassBooking.API.Models
         public string Name { get; set; } = string.Empty;
         public string Medium { get; set; } = "English"; // Sinhala, Tamil, English
         public string Level { get; set; } = "OLevel"; // Primary, OLevel, ALevel, Secondary, Advanced
+        public string? CurriculumBoard { get; set; }
+        public string Grades { get; set; } = string.Empty;
+        public List<string> ClassTypes { get; set; } = new List<string> { "PERSONAL_1_1" };
     }
 
     public class TeacherAvailability
@@ -36,5 +44,16 @@ namespace ClassBooking.API.Models
         public string DayOfWeek { get; set; } = string.Empty;
         public string StartTime { get; set; } = string.Empty;
         public string EndTime { get; set; } = string.Empty;
+    }
+
+    public class TeacherAvailabilitySlot
+    {
+        public string Id { get; set; } = string.Empty;
+        public string TeacherProfileId { get; set; } = string.Empty;
+        public DateTime Date { get; set; }
+        public string StartTime { get; set; } = string.Empty;
+        public string EndTime { get; set; } = string.Empty;
+        public string Status { get; set; } = "Available";
+        public string? BookingId { get; set; }
     }
 }
